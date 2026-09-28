@@ -1,0 +1,1413 @@
+openapi: 3.0.3
+info:
+  title: UNO App API
+  description: |
+    API for UNO License Distribution Platform.
+
+    ## Authentication
+    Public endpoints require no authentication. Admin endpoints require HMAC-signed requests.
+  version: 0.1.0
+  contact:
+    name: UNO Support
+    url: https://unetwork.io
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+  - url: https://api.unetwork.io/api/v1
+    description: Production
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Licenses
+    description: License claiming and variants
+  - name: Statistics
+    description: Visitor and network statistics
+  - name: FAQ
+    description: Frequently asked questions
+  - name: Content
+    description: CMS content (tasks, tutorials, errors)
+  - name: Admin
+    description: Admin endpoints (HMAC authentication required)
+  - name: Admin Content
+    description: Content management admin endpoints (HMAC authentication required)
+
+paths:
+  # Health
+  /health:
+    get:
+      tags: [Health]
+      summary: Application health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  # Licenses
+  /licenses/variants:
+    get:
+      tags: [Licenses]
+      summary: Get available license variants
+      description: Returns all available license split options with availability counts
+      operationId: getLicenseVariants
+      responses:
+        '200':
+          description: List of available license variants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LicenseVariant'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /licenses/claim:
+    post:
+      tags: [Licenses]
+      summary: Claim a license
+      description: Claim a license using a lease code
+      operationId: claimLicense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaimRequest'
+      responses:
+        '200':
+          description: Claim result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimResponse'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  # Statistics
+  /stats/visitors:
+    get:
+      tags: [Statistics]
+      summary: Get visitor statistics
+      operationId: getVisitorStats
+      parameters:
+        - $ref: '#/components/parameters/PeriodParam'
+      responses:
+        '200':
+          description: Visitor statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitorStats'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /stats/countries:
+    get:
+      tags: [Statistics]
+      summary: Get top countries by visitors
+      operationId: getCountryStats
+      parameters:
+        - $ref: '#/components/parameters/PeriodParam'
+        - name: limit
+          in: query
+          description: Number of countries to return
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Country statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CountryStats'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /stats/dashboard:
+    get:
+      tags: [Statistics]
+      summary: Get dashboard statistics
+      operationId: getDashboardStats
+      parameters:
+        - $ref: '#/components/parameters/PeriodParam'
+      responses:
+        '200':
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  # FAQ
+  /faq:
+    get:
+      tags: [FAQ]
+      summary: Get all FAQ items
+      operationId: getFaqs
+      parameters:
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+        - $ref: '#/components/parameters/LocaleParam'
+      responses:
+        '200':
+          description: List of FAQ items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FaqItem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /faq/search:
+    get:
+      tags: [FAQ]
+      summary: Search FAQ items
+      operationId: searchFaqs
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query
+          schema:
+            type: string
+            minLength: 1
+        - $ref: '#/components/parameters/LocaleParam'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FaqItem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /faq/categories:
+    get:
+      tags: [FAQ]
+      summary: Get FAQ categories
+      operationId: getFaqCategories
+      responses:
+        '200':
+          description: List of categories with counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FaqCategory'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /faq/featured:
+    get:
+      tags: [FAQ]
+      summary: Get featured FAQ items
+      operationId: getFeaturedFaqs
+      parameters:
+        - $ref: '#/components/parameters/LocaleParam'
+      responses:
+        '200':
+          description: Featured FAQ items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FaqItem'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /faq/{id}:
+    get:
+      tags: [FAQ]
+      summary: Get FAQ item by ID
+      operationId: getFaqById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/LocaleParam'
+      responses:
+        '200':
+          description: FAQ item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FaqItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  # Content (Public)
+  /contents/{type}:
+    get:
+      tags: [Content]
+      summary: Get published content by type
+      description: Returns all published content items of the specified type
+      operationId: getContentsByType
+      parameters:
+        - name: type
+          in: path
+          required: true
+          description: Content type (task, tutorial, error)
+          schema:
+            type: string
+            enum: [task, tutorial, error]
+        - $ref: '#/components/parameters/LocaleParam'
+      responses:
+        '200':
+          description: List of published content items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LocalizedContent'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /contents/{type}/featured:
+    get:
+      tags: [Content]
+      summary: Get featured content by type
+      description: Returns featured content items of the specified type
+      operationId: getFeaturedContents
+      parameters:
+        - name: type
+          in: path
+          required: true
+          description: Content type (task, tutorial, error)
+          schema:
+            type: string
+            enum: [task, tutorial, error]
+        - $ref: '#/components/parameters/LocaleParam'
+      responses:
+        '200':
+          description: List of featured content items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LocalizedContent'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /contents/{type}/{slug}:
+    get:
+      tags: [Content]
+      summary: Get content by type and slug
+      description: Returns a single content item by its type and slug
+      operationId: getContentBySlug
+      parameters:
+        - name: type
+          in: path
+          required: true
+          description: Content type (task, tutorial, error)
+          schema:
+            type: string
+            enum: [task, tutorial, error]
+        - name: slug
+          in: path
+          required: true
+          description: Content slug (URL-friendly identifier)
+          schema:
+            type: string
+        - $ref: '#/components/parameters/LocaleParam'
+      responses:
+        '200':
+          description: Content item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocalizedContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  # Admin Endpoints
+  /admin/health:
+    get:
+      tags: [Admin]
+      summary: Admin health check
+      operationId: adminHealth
+      responses:
+        '200':
+          description: Admin service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /admin/licenses:
+    post:
+      tags: [Admin]
+      summary: Publish licenses
+      description: Publish a batch of new licenses (requires HMAC authentication)
+      operationId: publishLicenses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedRequest'
+      responses:
+        '200':
+          description: Publish result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    delete:
+      tags: [Admin]
+      summary: Revoke licenses
+      description: Revoke one or more licenses (requires HMAC authentication)
+      operationId: revokeLicenses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedRequest'
+      responses:
+        '200':
+          description: Revoke result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/licenses/import:
+    post:
+      tags: [Admin]
+      summary: Import licenses from CSV
+      description: Import licenses from CSV data (requires HMAC authentication)
+      operationId: importCsv
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedRequest'
+      responses:
+        '200':
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/licenses/search:
+    post:
+      tags: [Admin]
+      summary: Search licenses
+      description: Search licenses with filters (requires HMAC authentication)
+      operationId: searchLicenses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedRequest'
+      responses:
+        '200':
+          description: Paginated search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLicenses'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/summary:
+    post:
+      tags: [Admin]
+      summary: Get license summary
+      description: Get license summary statistics (requires HMAC authentication)
+      operationId: getLicenseSummary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedRequest'
+      responses:
+        '200':
+          description: License summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  # Admin Content Endpoints
+  /admin/contents:
+    post:
+      tags: [Admin Content]
+      summary: Create content
+      description: Create new CMS content (requires HMAC authentication)
+      operationId: createContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedContentRequest'
+      responses:
+        '201':
+          description: Content created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/contents/list:
+    post:
+      tags: [Admin Content]
+      summary: List all content
+      description: List all content with filters including drafts (requires HMAC authentication)
+      operationId: listContents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedContentListRequest'
+      responses:
+        '200':
+          description: Paginated content list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/contents/{id}:
+    put:
+      tags: [Admin Content]
+      summary: Update content
+      description: Update existing content, creates a new version (requires HMAC authentication)
+      operationId: updateContent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedContentRequest'
+      responses:
+        '200':
+          description: Content updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/contents/{id}/get:
+    post:
+      tags: [Admin Content]
+      summary: Get content detail
+      description: Get full content detail with version history (requires HMAC authentication)
+      operationId: getContentDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedEmptyRequest'
+      responses:
+        '200':
+          description: Content detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/contents/{id}/delete:
+    post:
+      tags: [Admin Content]
+      summary: Delete content
+      description: Soft delete content (requires HMAC authentication)
+      operationId: deleteContent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedEmptyRequest'
+      responses:
+        '200':
+          description: Content deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/contents/{id}/publish:
+    post:
+      tags: [Admin Content]
+      summary: Publish content
+      description: Publish draft content (requires HMAC authentication)
+      operationId: publishContent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedPublishRequest'
+      responses:
+        '200':
+          description: Content published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/contents/{id}/archive:
+    post:
+      tags: [Admin Content]
+      summary: Archive content
+      description: Archive published content (requires HMAC authentication)
+      operationId: archiveContent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedEmptyRequest'
+      responses:
+        '200':
+          description: Content archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /admin/contents/{id}/revert:
+    post:
+      tags: [Admin Content]
+      summary: Revert content
+      description: Revert content to a previous version (requires HMAC authentication)
+      operationId: revertContent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignedRevertRequest'
+      responses:
+        '200':
+          description: Content reverted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+components:
+  parameters:
+    PeriodParam:
+      name: period
+      in: query
+      description: Time period for statistics
+      schema:
+        type: string
+        enum: [day, week, month, year, all]
+        default: week
+
+    LocaleParam:
+      name: locale
+      in: query
+      description: Locale for translations
+      schema:
+        type: string
+        example: en
+
+  responses:
+    ServiceUnavailable:
+      description: Database not available
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Database not available
+            code: SERVICE_UNAVAILABLE
+
+    Unauthorized:
+      description: Invalid HMAC signature
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Invalid signature
+            code: UNAUTHORIZED
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Resource not found
+            code: NOT_FOUND
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Invalid request data
+            code: BAD_REQUEST
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+          enum:
+            - SERVICE_UNAVAILABLE
+            - UNAUTHORIZED
+            - NOT_FOUND
+            - BAD_REQUEST
+            - INTERNAL_ERROR
+            - IMPORT_ERROR
+
+    HealthResponse:
+      type: object
+      required: [status, version, database]
+      properties:
+        status:
+          type: string
+          example: ok
+        version:
+          type: string
+          example: 0.1.0
+        database:
+          type: string
+          enum: [connected, disconnected]
+
+    LicenseVariant:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_share_percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        operator_share_percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        lease_duration_months:
+          type: integer
+        total_quantity:
+          type: integer
+        claimed_count:
+          type: integer
+        min_monthly_earnings:
+          type: number
+          nullable: true
+        max_monthly_earnings:
+          type: number
+          nullable: true
+        display_name:
+          type: string
+          nullable: true
+        display_order:
+          type: integer
+        is_featured:
+          type: boolean
+
+    ClaimRequest:
+      type: object
+      required: [lease_code]
+      properties:
+        lease_code:
+          type: string
+          description: License lease code (format XXXX-XXXX-XXXX)
+          example: ABCD-EFGH-IJKL
+        device_id:
+          type: string
+          nullable: true
+          description: Optional device identifier for binding
+
+    ClaimResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        license:
+          $ref: '#/components/schemas/LicenseDto'
+          nullable: true
+        license_id:
+          type: string
+          nullable: true
+        license_key:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+
+    LicenseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        lease_code:
+          type: string
+        split_type:
+          $ref: '#/components/schemas/SplitType'
+        user_share:
+          type: integer
+        operator_share:
+          type: integer
+        valid_from:
+          type: string
+          format: date-time
+        valid_to:
+          type: string
+          format: date-time
+        claimed:
+          type: boolean
+
+    SplitType:
+      type: string
+      enum: ['50:50', '55:45', '60:40']
+
+    VisitorStats:
+      type: object
+      properties:
+        period:
+          type: string
+        total_visitors:
+          type: integer
+        unique_visitors:
+          type: integer
+        countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/CountryStats'
+
+    CountryStats:
+      type: object
+      properties:
+        country_code:
+          type: string
+        country_name:
+          type: string
+        visitor_count:
+          type: integer
+        percentage:
+          type: number
+
+    DashboardStats:
+      type: object
+      properties:
+        visitors:
+          $ref: '#/components/schemas/VisitorStats'
+        top_countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/CountryStats'
+
+    FaqItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        question:
+          type: string
+        answer:
+          type: string
+        category:
+          type: string
+        order:
+          type: integer
+        is_featured:
+          type: boolean
+        locale:
+          type: string
+
+    FaqCategory:
+      type: object
+      properties:
+        name:
+          type: string
+        count:
+          type: integer
+
+    SignedRequest:
+      type: object
+      description: HMAC-signed request wrapper for admin endpoints
+      required: [client_id, timestamp, nonce, signature, payload]
+      properties:
+        client_id:
+          type: string
+          description: Admin client identifier
+        timestamp:
+          type: integer
+          format: int64
+          description: Unix timestamp (must be within 5 minutes)
+        nonce:
+          type: string
+          description: Unique request nonce
+        signature:
+          type: string
+          description: HMAC-SHA256 signature
+        payload:
+          type: object
+          description: Request-specific payload
+
+    LicenseSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        claimed:
+          type: integer
+        available:
+          type: integer
+        expired:
+          type: integer
+        by_split_type:
+          type: array
+          items:
+            $ref: '#/components/schemas/SplitTypeSummary'
+
+    SplitTypeSummary:
+      type: object
+      properties:
+        split_type:
+          $ref: '#/components/schemas/SplitType'
+        total:
+          type: integer
+        claimed:
+          type: integer
+        available:
+          type: integer
+
+    PublishResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        created:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string
+
+    RevokeResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        revoked:
+          type: integer
+
+    ImportResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        imported:
+          type: integer
+        skipped:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string
+
+    PaginatedLicenses:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LicenseDto'
+        total:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total_pages:
+          type: integer
+
+    # Content Management Schemas
+    LocalizedContent:
+      type: object
+      description: Content item localized for the requested locale
+      properties:
+        id:
+          type: integer
+        content_type:
+          type: string
+          enum: [task, tutorial, error]
+        slug:
+          type: string
+        content:
+          type: object
+          description: Localized content fields (title, description, etc.)
+        direction:
+          type: string
+          enum: [ltr, rtl]
+          description: Text direction for the content
+        is_featured:
+          type: boolean
+        display_order:
+          type: integer
+        is_fallback:
+          type: boolean
+          description: True if content is falling back to English
+
+    ContentResponse:
+      type: object
+      description: Response after content create/update operations
+      properties:
+        id:
+          type: integer
+        content_type:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        version:
+          type: integer
+        published_version:
+          type: integer
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ContentSummary:
+      type: object
+      description: Content summary for list view
+      properties:
+        id:
+          type: integer
+        content_type:
+          type: string
+        slug:
+          type: string
+        title:
+          type: string
+          description: Title extracted from content JSON
+        status:
+          type: string
+          enum: [draft, published, archived]
+        version:
+          type: integer
+        published_version:
+          type: integer
+          nullable: true
+        is_featured:
+          type: boolean
+        translation_coverage:
+          type: integer
+          description: Percentage of locales with complete translations
+        updated_at:
+          type: string
+          format: date-time
+
+    ContentListResponse:
+      type: object
+      description: Paginated content list response
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentSummary'
+        total:
+          type: integer
+          format: int64
+        page:
+          type: integer
+        per_page:
+          type: integer
+
+    VersionSummary:
+      type: object
+      description: Version history entry
+      properties:
+        version:
+          type: integer
+        change_summary:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        created_by:
+          type: string
+          nullable: true
+
+    ContentDetailResponse:
+      type: object
+      description: Full content detail with version history
+      properties:
+        id:
+          type: integer
+        content_type:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum: [draft, published, archived]
+        content:
+          type: object
+          description: Base content (English)
+        translations:
+          type: object
+          description: Translations keyed by locale code
+          additionalProperties:
+            type: object
+        translation_status:
+          type: object
+          description: Translation status by locale
+          additionalProperties:
+            type: string
+            enum: [complete, partial, missing, auto]
+        translation_coverage:
+          type: integer
+          description: Percentage of locales with complete translations
+        display_order:
+          type: integer
+        is_featured:
+          type: boolean
+        version:
+          type: integer
+        published_version:
+          type: integer
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionSummary'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UpsertContentPayload:
+      type: object
+      description: Payload for creating or updating content
+      required: [content_type, slug, content]
+      properties:
+        content_type:
+          type: string
+          enum: [task, tutorial, error]
+        slug:
+          type: string
+          description: URL-friendly identifier
+        content:
+          type: object
+          description: Base content (English) with title, description, etc.
+        translations:
+          type: object
+          description: Translations keyed by locale code
+          additionalProperties:
+            type: object
+        display_order:
+          type: integer
+        is_featured:
+          type: boolean
+        change_summary:
+          type: string
+          description: Summary of changes for version history
+
+    ContentListPayload:
+      type: object
+      description: Payload for listing content with filters
+      properties:
+        content_type:
+          type: string
+          enum: [task, tutorial, error]
+          nullable: true
+        status:
+          type: string
+          enum: [draft, published, archived]
+          nullable: true
+        search:
+          type: string
+          nullable: true
+        page:
+          type: integer
+          default: 1
+        per_page:
+          type: integer
+          default: 20
+
+    PublishPayload:
+      type: object
+      description: Payload for publishing content
+      properties:
+        published_by:
+          type: string
+          nullable: true
+
+    RevertPayload:
+      type: object
+      description: Payload for reverting content to a previous version
+      required: [version]
+      properties:
+        version:
+          type: integer
+          description: Version number to revert to
+        reverted_by:
+          type: string
+          nullable: true
+
+    SignedContentRequest:
+      type: object
+      description: HMAC-signed request for content create/update
+      required: [client_id, timestamp, nonce, signature, payload]
+      properties:
+        client_id:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+        nonce:
+          type: string
+        signature:
+          type: string
+        payload:
+          $ref: '#/components/schemas/UpsertContentPayload'
+
+    SignedContentListRequest:
+      type: object
+      description: HMAC-signed request for listing content
+      required: [client_id, timestamp, nonce, signature, payload]
+      properties:
+        client_id:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+        nonce:
+          type: string
+        signature:
+          type: string
+        payload:
+          $ref: '#/components/schemas/ContentListPayload'
+
+    SignedEmptyRequest:
+      type: object
+      description: HMAC-signed request with empty payload
+      required: [client_id, timestamp, nonce, signature, payload]
+      properties:
+        client_id:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+        nonce:
+          type: string
+        signature:
+          type: string
+        payload:
+          type: object
+
+    SignedPublishRequest:
+      type: object
+      description: HMAC-signed request for publishing content
+      required: [client_id, timestamp, nonce, signature, payload]
+      properties:
+        client_id:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+        nonce:
+          type: string
+        signature:
+          type: string
+        payload:
+          $ref: '#/components/schemas/PublishPayload'
+
+    SignedRevertRequest:
+      type: object
+      description: HMAC-signed request for reverting content
+      required: [client_id, timestamp, nonce, signature, payload]
+      properties:
+        client_id:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+        nonce:
+          type: string
+        signature:
+          type: string
+        payload:
+          $ref: '#/components/schemas/RevertPayload'

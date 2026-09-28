@@ -1,0 +1,94 @@
+{{- if .Values.monitoring.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alert-rules
+  namespace: {{ .Values.monitoring.namespace }}
+  labels:
+    {{- include "monitoring.labels" . | nindent 4 }}
+data:
+  alerts.yaml: |
+    groups:
+      - name: uno-app-alerts
+        rules:
+          - alert: HighErrorRate
+            expr: |
+              sum(rate(http_requests_total{app="uno-app", status=~"5.."}[5m])) /
+              sum(rate(http_requests_total{app="uno-app"}[5m])) > {{ .Values.monitoring.alerts.highErrorRate.threshold }}
+            for: {{ .Values.monitoring.alerts.highErrorRate.duration }}
+            labels:
+              severity: critical
+              app: uno-app
+            annotations:
+              summary: "High error rate detected"
+              description: "Error rate is above {{ mul (int .Values.monitoring.alerts.highErrorRate.threshold) 100 }}% for more than {{ .Values.monitoring.alerts.highErrorRate.duration }}"
+
+          - alert: HighLatency
+            expr: |
+              histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{app="uno-app"}[5m])) by (le)) > {{ .Values.monitoring.alerts.highLatency.p95Threshold }}
+            for: {{ .Values.monitoring.alerts.highLatency.duration }}
+            labels:
+              severity: warning
+              app: uno-app
+            annotations:
+              summary: "High latency detected"
+              description: "P95 latency is above {{ .Values.monitoring.alerts.highLatency.p95Threshold }}s"
+
+          - alert: PodRestarts
+            expr: |
+              increase(kube_pod_container_status_restarts_total{namespace="{{ .Values.global.namespace }}", pod=~"uno-app.*"}[1h]) > {{ .Values.monitoring.alerts.podRestarts.threshold }}
+            for: 0m
+            labels:
+              severity: warning
+              app: uno-app
+            annotations:
+              summary: "Pod restart detected"
+              description: "Pod {{ "{{" }} $labels.pod {{ "}}" }} has restarted more than {{ .Values.monitoring.alerts.podRestarts.threshold }} times in the last hour"
+
+          - alert: HighCPUUsage
+            expr: |
+              sum(rate(container_cpu_usage_seconds_total{namespace="{{ .Values.global.namespace }}", pod=~"uno-app.*"}[5m])) /
+              sum(kube_pod_container_resource_limits{namespace="{{ .Values.global.namespace }}", pod=~"uno-app.*", resource="cpu"}) * 100 > {{ .Values.monitoring.alerts.highCPU.threshold }}
+            for: {{ .Values.monitoring.alerts.highCPU.duration }}
+            labels:
+              severity: warning
+              app: uno-app
+            annotations:
+              summary: "High CPU usage"
+              description: "CPU usage is above {{ .Values.monitoring.alerts.highCPU.threshold }}%"
+
+          - alert: HighMemoryUsage
+            expr: |
+              sum(container_memory_working_set_bytes{namespace="{{ .Values.global.namespace }}", pod=~"uno-app.*"}) /
+              sum(kube_pod_container_resource_limits{namespace="{{ .Values.global.namespace }}", pod=~"uno-app.*", resource="memory"}) * 100 > {{ .Values.monitoring.alerts.highMemory.threshold }}
+            for: {{ .Values.monitoring.alerts.highMemory.duration }}
+            labels:
+              severity: warning
+              app: uno-app
+            annotations:
+              summary: "High memory usage"
+              description: "Memory usage is above {{ .Values.monitoring.alerts.highMemory.threshold }}%"
+
+          - alert: PodNotReady
+            expr: |
+              kube_pod_status_ready{namespace="{{ .Values.global.namespace }}", pod=~"uno-app.*", condition="true"} == 0
+            for: 5m
+            labels:
+              severity: critical
+              app: uno-app
+            annotations:
+              summary: "Pod not ready"
+              description: "Pod {{ "{{" }} $labels.pod {{ "}}" }} has been not ready for more than 5 minutes"
+
+          - alert: DeploymentReplicasMismatch
+            expr: |
+              kube_deployment_spec_replicas{namespace="{{ .Values.global.namespace }}", deployment="uno-app"} !=
+              kube_deployment_status_replicas_available{namespace="{{ .Values.global.namespace }}", deployment="uno-app"}
+            for: 10m
+            labels:
+              severity: warning
+              app: uno-app
+            annotations:
+              summary: "Deployment replicas mismatch"
+              description: "Deployment uno-app has not matched the expected number of replicas for more than 10 minutes"
+{{- end }}

@@ -1,0 +1,8 @@
+{{- if .Values.cloudflared.enabled -}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.cloudflared.namespace }}
+  labels:
+    {{- include "cloudflared.labels" . | nindent 4 }}
+{{- end }}

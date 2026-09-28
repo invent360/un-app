@@ -1,0 +1,2432 @@
+/* ============================================
+   Ant Design - Guide Components
+   ember-fx-components
+   ============================================ */
+
+/* ============================================
+   CSS Custom Properties
+   ============================================ */
+.fx-guide-ant-carousel,
+.fx-guide-ant-drawer,
+.fx-guide-ant-accordion,
+.fx-guide-ant-tour {
+  --guide-bg: var(--fx-color-bg-container, #141414);
+  --guide-bg-elevated: var(--fx-color-bg-elevated, #1f1f1f);
+  --guide-bg-layout: var(--fx-color-bg-layout, #0a0a0a);
+  --guide-border: var(--fx-color-border, #303030);
+  --guide-text: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  --guide-text-secondary: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+  --guide-text-tertiary: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  --guide-primary: var(--fx-color-primary, #1677ff);
+  --guide-primary-hover: var(--fx-color-primary-hover, #4096ff);
+  --guide-success: var(--fx-color-success, #52c41a);
+  --guide-error: var(--fx-color-error, #ff4d4f);
+}
+
+/* ============================================
+   CAROUSEL OVERLAY GUIDE
+   ============================================ */
+
+/* Overlay backdrop */
+.fx-guide-ant-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: guide-fade-in 0.3s ease-out;
+}
+
+/* Carousel container */
+.fx-guide-ant-carousel {
+  background: var(--guide-bg);
+  border-radius: var(--fx-radius-lg, 12px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  max-width: 640px;
+  width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: guide-scale-in 0.3s ease-out;
+}
+
+/* Size variants */
+.fx-guide-ant-sm {
+  max-width: 480px;
+}
+
+.fx-guide-ant-md {
+  max-width: 640px;
+}
+
+.fx-guide-ant-lg {
+  max-width: 800px;
+}
+
+.fx-guide-ant-fullscreen {
+  max-width: 100%;
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+}
+
+/* Carousel header */
+.fx-guide-ant-carousel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--guide-border);
+}
+
+.fx-guide-ant-carousel-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--guide-text);
+  margin: 0;
+}
+
+.fx-guide-ant-carousel-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--guide-text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: var(--fx-radius-sm, 4px);
+  transition: all 0.2s;
+}
+
+.fx-guide-ant-carousel-close:hover {
+  background: var(--guide-bg-elevated);
+  color: var(--guide-text);
+}
+
+/* Slides container */
+.fx-guide-ant-carousel-slides {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+}
+
+.fx-guide-ant-carousel-slide {
+  padding: 24px;
+  animation: guide-slide-in 0.3s ease-out;
+}
+
+.fx-guide-ant-carousel-slide.active {
+  display: block;
+}
+
+/* ============================================
+   DRAWER (Side Panel Stepper)
+   ============================================ */
+
+/* Drawer backdrop */
+.fx-guide-ant-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 999;
+  animation: guide-fade-in 0.3s ease-out;
+}
+
+/* Drawer container */
+.fx-guide-ant-drawer {
+  position: fixed;
+  background: var(--guide-bg);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: guide-drawer-slide-in 0.3s ease-out;
+}
+
+/* Drawer positions */
+.fx-guide-ant-right {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  max-width: 100vw;
+}
+
+.fx-guide-ant-left {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 400px;
+  max-width: 100vw;
+  animation-name: guide-drawer-slide-in-left;
+}
+
+.fx-guide-ant-bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 50vh;
+  max-height: 600px;
+  animation-name: guide-drawer-slide-in-bottom;
+  border-radius: var(--fx-radius-lg, 12px) var(--fx-radius-lg, 12px) 0 0;
+}
+
+/* Drawer header */
+.fx-guide-ant-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--guide-border);
+  flex-shrink: 0;
+}
+
+.fx-guide-ant-drawer-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--guide-text);
+  margin: 0;
+}
+
+.fx-guide-ant-drawer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fx-guide-ant-drawer-minimize,
+.fx-guide-ant-drawer-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--guide-text-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: var(--fx-radius-sm, 4px);
+  transition: all 0.2s;
+}
+
+.fx-guide-ant-drawer-minimize:hover,
+.fx-guide-ant-drawer-close:hover {
+  background: var(--guide-bg-elevated);
+  color: var(--guide-text);
+}
+
+/* Drawer body */
+.fx-guide-ant-drawer-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.fx-guide-ant-drawer-step-list {
+  width: 200px;
+  border-right: 1px solid var(--guide-border);
+  padding: 16px;
+  overflow-y: auto;
+  flex-shrink: 0;
+  background: var(--guide-bg-layout);
+}
+
+.fx-guide-ant-drawer-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Drawer footer */
+.fx-guide-ant-drawer-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--guide-border);
+  flex-shrink: 0;
+}
+
+/* Minimized button */
+.fx-guide-ant-drawer-minimized-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(22, 119, 255, 0.4);
+  z-index: 1000;
+  transition: all 0.2s;
+}
+
+.fx-guide-ant-drawer-minimized-btn:hover {
+  background: var(--guide-primary-hover);
+  transform: translateY(-2px);
+}
+
+.fx-guide-ant-drawer-minimized-icon {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* ============================================
+   ACCORDION (Inline Guide)
+   ============================================ */
+
+.fx-guide-ant-accordion {
+  background: var(--guide-bg);
+  border: 1px solid var(--guide-border);
+  border-radius: var(--fx-radius-lg, 12px);
+  overflow: hidden;
+}
+
+/* Accordion header */
+.fx-guide-ant-accordion-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--guide-border);
+}
+
+.fx-guide-ant-accordion-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--guide-text);
+  margin: 0 0 8px 0;
+}
+
+.fx-guide-ant-accordion-description {
+  font-size: 14px;
+  color: var(--guide-text-secondary);
+  margin: 0;
+}
+
+/* Accordion progress */
+.fx-guide-ant-accordion-progress {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--guide-border);
+  background: var(--guide-bg-layout);
+}
+
+/* Accordion items container */
+.fx-guide-ant-accordion-items {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Individual accordion item */
+.fx-guide-ant-accordion-item {
+  border-bottom: 1px solid var(--guide-border);
+}
+
+.fx-guide-ant-accordion-item:last-child {
+  border-bottom: none;
+}
+
+.fx-guide-ant-accordion-item.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Accordion item header (clickable) */
+.fx-guide-ant-accordion-item-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 24px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.fx-guide-ant-accordion-item-header:hover {
+  background: var(--guide-bg-elevated);
+}
+
+.fx-guide-ant-accordion-item-header:disabled {
+  cursor: not-allowed;
+}
+
+/* Step indicator circle */
+.fx-guide-ant-accordion-item-indicator {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--guide-bg-elevated);
+  border: 2px solid var(--guide-border);
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--guide-text-tertiary);
+  transition: all 0.2s;
+}
+
+.fx-guide-ant-accordion-item.expanded .fx-guide-ant-accordion-item-indicator {
+  background: var(--guide-primary);
+  border-color: var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-guide-ant-accordion-item.completed .fx-guide-ant-accordion-item-indicator {
+  background: var(--guide-success);
+  border-color: var(--guide-success);
+  color: var(--fx-color-success-content, #ffffff);
+}
+
+/* Step title */
+.fx-guide-ant-accordion-item-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--guide-text);
+}
+
+.fx-guide-ant-accordion-item.completed .fx-guide-ant-accordion-item-title {
+  color: var(--guide-text-secondary);
+}
+
+/* Chevron icon */
+.fx-guide-ant-accordion-item-chevron {
+  font-size: 12px;
+  color: var(--guide-text-tertiary);
+  transition: transform 0.2s;
+}
+
+.fx-guide-ant-accordion-item-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+/* Expandable content */
+.fx-guide-ant-accordion-item-content {
+  overflow: hidden;
+}
+
+.fx-guide-ant-accordion-item-body {
+  padding: 0 24px 24px 72px;
+}
+
+/* Complete button */
+.fx-guide-ant-accordion-item-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+  border: none;
+  border-radius: var(--fx-radius, 6px);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.fx-guide-ant-accordion-item-complete:hover {
+  background: var(--guide-primary-hover);
+}
+
+/* ============================================
+   TOUR (Spotlight)
+   ============================================ */
+
+.fx-guide-ant-tour {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Backdrop with spotlight mask */
+.fx-guide-ant-tour-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.fx-guide-ant-tour-spotlight-mask {
+  width: 100%;
+  height: 100%;
+}
+
+.fx-guide-ant-tour-spotlight-cutout {
+  transition: all 0.3s ease-out;
+}
+
+/* Tooltip */
+.fx-guide-ant-tour-tooltip {
+  position: fixed;
+  background: var(--guide-bg);
+  border: 1px solid var(--guide-border);
+  border-radius: var(--fx-radius-lg, 12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  max-width: 320px;
+  width: 90vw;
+  z-index: 1001;
+  pointer-events: auto;
+  animation: guide-tooltip-in 0.25s ease-out;
+}
+
+/* Tooltip arrow */
+.fx-guide-ant-tour-tooltip-arrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--guide-bg);
+  border: 1px solid var(--guide-border);
+  transform: rotate(45deg);
+}
+
+.fx-guide-ant-placement-top .fx-guide-ant-tour-tooltip-arrow {
+  bottom: -7px;
+  left: 50%;
+  margin-left: -6px;
+  border-top: none;
+  border-left: none;
+}
+
+.fx-guide-ant-placement-bottom .fx-guide-ant-tour-tooltip-arrow {
+  top: -7px;
+  left: 50%;
+  margin-left: -6px;
+  border-bottom: none;
+  border-right: none;
+}
+
+.fx-guide-ant-placement-left .fx-guide-ant-tour-tooltip-arrow {
+  right: -7px;
+  top: 50%;
+  margin-top: -6px;
+  border-bottom: none;
+  border-left: none;
+}
+
+.fx-guide-ant-placement-right .fx-guide-ant-tour-tooltip-arrow {
+  left: -7px;
+  top: 50%;
+  margin-top: -6px;
+  border-top: none;
+  border-right: none;
+}
+
+/* Tooltip content */
+.fx-guide-ant-tour-tooltip-content {
+  padding: 16px 20px;
+}
+
+.fx-guide-ant-tour-tooltip-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--guide-text);
+  margin: 0 0 8px 0;
+}
+
+.fx-guide-ant-tour-tooltip-description {
+  font-size: 14px;
+  color: var(--guide-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Progress dots */
+.fx-guide-ant-tour-tooltip-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--guide-border);
+}
+
+.fx-guide-ant-tour-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--guide-border);
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.fx-guide-ant-tour-tooltip-dot.active {
+  background: var(--guide-primary);
+  transform: scale(1.25);
+}
+
+/* Tour controls */
+.fx-guide-ant-tour-tooltip-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: 1px solid var(--guide-border);
+  background: var(--guide-bg-layout);
+  border-radius: 0 0 var(--fx-radius-lg, 12px) var(--fx-radius-lg, 12px);
+}
+
+.fx-guide-ant-tour-tooltip-skip {
+  background: transparent;
+  border: none;
+  color: var(--guide-text-tertiary);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: color 0.2s;
+}
+
+.fx-guide-ant-tour-tooltip-skip:hover {
+  color: var(--guide-text-secondary);
+}
+
+.fx-guide-ant-tour-tooltip-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fx-guide-ant-tour-tooltip-prev,
+.fx-guide-ant-tour-tooltip-next,
+.fx-guide-ant-tour-tooltip-complete {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--fx-radius, 6px);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-guide-ant-tour-tooltip-prev {
+  background: transparent;
+  border: 1px solid var(--guide-border);
+  color: var(--guide-text-secondary);
+}
+
+.fx-guide-ant-tour-tooltip-prev:hover {
+  border-color: var(--guide-primary);
+  color: var(--guide-primary);
+}
+
+.fx-guide-ant-tour-tooltip-next,
+.fx-guide-ant-tour-tooltip-complete {
+  background: var(--guide-primary);
+  border: 1px solid var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-guide-ant-tour-tooltip-next:hover,
+.fx-guide-ant-tour-tooltip-complete:hover {
+  background: var(--guide-primary-hover);
+  border-color: var(--guide-primary-hover);
+}
+
+/* Tour beacon */
+.fx-guide-ant-tour-beacon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fx-guide-ant-tour-beacon-pulse {
+  position: absolute;
+  inset: 0;
+  background: var(--beacon-color);
+  border-radius: 50%;
+  animation: beacon-pulse 2s ease-out infinite;
+}
+
+.fx-guide-ant-tour-beacon-dot {
+  position: relative;
+  width: 50%;
+  height: 50%;
+  background: var(--beacon-color);
+  border-radius: 50%;
+}
+
+/* ============================================
+   STEP CONTENT
+   ============================================ */
+
+.fx-guide-ant-step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Image positions */
+.fx-guide-ant-image-top .fx-guide-ant-step {
+  flex-direction: column;
+}
+
+.fx-guide-ant-image-bottom .fx-guide-ant-step {
+  flex-direction: column-reverse;
+}
+
+.fx-guide-ant-image-left .fx-guide-ant-step {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.fx-guide-ant-image-right .fx-guide-ant-step {
+  flex-direction: row-reverse;
+  align-items: flex-start;
+}
+
+/* Media section */
+.fx-guide-ant-step-media {
+  border-radius: var(--fx-radius, 8px);
+  overflow: hidden;
+  background: var(--guide-bg-layout);
+}
+
+.fx-guide-ant-image-left .fx-guide-ant-step-media,
+.fx-guide-ant-image-right .fx-guide-ant-step-media {
+  width: 40%;
+  flex-shrink: 0;
+}
+
+.fx-guide-ant-step-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.fx-guide-ant-step-video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Content section */
+.fx-guide-ant-step-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-guide-ant-step-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--guide-text);
+  margin: 0 0 12px 0;
+}
+
+.fx-guide-ant-step-description {
+  font-size: 15px;
+  color: var(--guide-text-secondary);
+  line-height: 1.6;
+}
+
+/* Markdown content */
+.fx-guide-ant-step-description .markdown-content p {
+  margin: 0 0 12px 0;
+}
+
+.fx-guide-ant-step-description .markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
+.fx-guide-ant-step-description .markdown-content ul,
+.fx-guide-ant-step-description .markdown-content ol {
+  margin: 0 0 12px 0;
+  padding-left: 20px;
+}
+
+.fx-guide-ant-step-description .markdown-content li {
+  margin-bottom: 6px;
+}
+
+/* ============================================
+   PROGRESS INDICATORS
+   ============================================ */
+
+.fx-guide-ant-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Dots style */
+.fx-guide-ant-progress-dots {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fx-guide-ant-progress-dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  background: var(--guide-border);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-guide-ant-progress-dot:disabled {
+  cursor: default;
+}
+
+.fx-guide-ant-progress-dot.active {
+  background: var(--guide-primary);
+  transform: scale(1.3);
+}
+
+.fx-guide-ant-progress-dot.completed {
+  background: var(--guide-success);
+}
+
+/* Bar style */
+.fx-guide-ant-progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: var(--guide-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.fx-guide-ant-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--guide-primary), var(--guide-primary-hover));
+  border-radius: 3px;
+  transition: width 0.3s ease-out;
+}
+
+/* Numbers style */
+.fx-guide-ant-progress-numbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.fx-guide-ant-progress-current {
+  font-weight: 600;
+  color: var(--guide-primary);
+}
+
+.fx-guide-ant-progress-separator {
+  color: var(--guide-text-tertiary);
+}
+
+.fx-guide-ant-progress-total {
+  color: var(--guide-text-secondary);
+}
+
+/* Steps style (vertical list) */
+.fx-guide-ant-progress-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.fx-guide-ant-progress-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--fx-radius, 6px);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s;
+  width: 100%;
+}
+
+.fx-guide-ant-progress-step:hover:not(:disabled) {
+  background: var(--guide-bg-elevated);
+}
+
+.fx-guide-ant-progress-step:disabled {
+  cursor: default;
+}
+
+.fx-guide-ant-progress-step.active {
+  background: rgba(22, 119, 255, 0.1);
+}
+
+.fx-guide-ant-progress-step-indicator {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--guide-bg-elevated);
+  border: 1px solid var(--guide-border);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--guide-text-tertiary);
+}
+
+.fx-guide-ant-progress-step.active .fx-guide-ant-progress-step-indicator {
+  background: var(--guide-primary);
+  border-color: var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-guide-ant-progress-step.completed .fx-guide-ant-progress-step-indicator {
+  background: var(--guide-success);
+  border-color: var(--guide-success);
+  color: var(--fx-color-success-content, #ffffff);
+}
+
+.fx-guide-ant-progress-step-title {
+  font-size: 13px;
+  color: var(--guide-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fx-guide-ant-progress-step.active .fx-guide-ant-progress-step-title {
+  color: var(--guide-text);
+  font-weight: 500;
+}
+
+/* ============================================
+   CONTROLS
+   ============================================ */
+
+.fx-guide-ant-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fx-guide-ant-controls-spacer {
+  flex: 1;
+}
+
+.fx-guide-ant-controls-skip {
+  background: transparent;
+  border: none;
+  color: var(--guide-text-tertiary);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.2s;
+}
+
+.fx-guide-ant-controls-skip:hover {
+  color: var(--guide-text-secondary);
+}
+
+.fx-guide-ant-controls-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fx-guide-ant-controls-prev,
+.fx-guide-ant-controls-next,
+.fx-guide-ant-controls-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--fx-radius, 6px);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-guide-ant-controls-prev {
+  background: transparent;
+  border: 1px solid var(--guide-border);
+  color: var(--guide-text-secondary);
+}
+
+.fx-guide-ant-controls-prev:hover:not(:disabled) {
+  border-color: var(--guide-primary);
+  color: var(--guide-primary);
+}
+
+.fx-guide-ant-controls-prev:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fx-guide-ant-controls-next,
+.fx-guide-ant-controls-complete {
+  background: var(--guide-primary);
+  border: 1px solid var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-guide-ant-controls-next:hover,
+.fx-guide-ant-controls-complete:hover {
+  background: var(--guide-primary-hover);
+  border-color: var(--guide-primary-hover);
+}
+
+.fx-guide-ant-controls-icon {
+  font-size: 12px;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes guide-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes guide-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes guide-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes guide-drawer-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes guide-drawer-slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes guide-drawer-slide-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes guide-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes beacon-pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0;
+    transform: scale(2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+/* ============================================
+   TRANSITIONS
+   ============================================ */
+
+.fx-guide-ant-transition-slide .fx-guide-ant-carousel-slide {
+  animation: guide-slide-in 0.3s ease-out;
+}
+
+.fx-guide-ant-transition-fade .fx-guide-ant-carousel-slide {
+  animation: guide-fade-in 0.3s ease-out;
+}
+
+.fx-guide-ant-transition-none .fx-guide-ant-carousel-slide {
+  animation: none;
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-guide-ant-overlay,
+  .fx-guide-ant-carousel,
+  .fx-guide-ant-carousel-slide,
+  .fx-guide-ant-drawer,
+  .fx-guide-ant-drawer-backdrop,
+  .fx-guide-ant-tour-tooltip,
+  .fx-guide-ant-tour-spotlight-cutout,
+  .fx-guide-ant-progress-bar,
+  .fx-guide-ant-progress-dot,
+  .fx-guide-ant-accordion-item-chevron {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .fx-guide-ant-tour-beacon-pulse {
+    animation: none !important;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Carousel */
+  .fx-guide-ant-carousel {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .fx-guide-ant-carousel-slide {
+    padding: 16px;
+  }
+
+  /* Drawer */
+  .fx-guide-ant-right,
+  .fx-guide-ant-left {
+    width: 100vw;
+  }
+
+  .fx-guide-ant-drawer-step-list {
+    display: none;
+  }
+
+  .fx-guide-ant-drawer-content {
+    padding: 16px;
+  }
+
+  /* Accordion */
+  .fx-guide-ant-accordion-item-body {
+    padding-left: 24px;
+  }
+
+  /* Tour */
+  .fx-guide-ant-tour-tooltip {
+    max-width: calc(100vw - 32px);
+    left: 16px !important;
+    right: 16px !important;
+  }
+
+  /* Step content */
+  .fx-guide-ant-image-left .fx-guide-ant-step,
+  .fx-guide-ant-image-right .fx-guide-ant-step {
+    flex-direction: column;
+  }
+
+  .fx-guide-ant-image-left .fx-guide-ant-step-media,
+  .fx-guide-ant-image-right .fx-guide-ant-step-media {
+    width: 100%;
+  }
+
+  /* Controls */
+  .fx-guide-ant-controls {
+    flex-wrap: wrap;
+  }
+
+  .fx-guide-ant-controls-nav {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .fx-guide-ant-step-title {
+    font-size: 18px;
+  }
+
+  .fx-guide-ant-step-description {
+    font-size: 14px;
+  }
+
+  .fx-guide-ant-controls-prev,
+  .fx-guide-ant-controls-next,
+  .fx-guide-ant-controls-complete {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   STEPPER (Wizard-like Workflow)
+   ============================================ */
+
+/* Add stepper to CSS custom properties */
+.fx-guide-ant-stepper {
+  --guide-bg: var(--fx-color-bg-container, #141414);
+  --guide-bg-elevated: var(--fx-color-bg-elevated, #1f1f1f);
+  --guide-bg-layout: var(--fx-color-bg-layout, #0a0a0a);
+  --guide-border: var(--fx-color-border, #303030);
+  --guide-text: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  --guide-text-secondary: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+  --guide-text-tertiary: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  --guide-primary: var(--fx-color-primary, #1677ff);
+  --guide-primary-hover: var(--fx-color-primary-hover, #4096ff);
+  --guide-success: var(--fx-color-success, #52c41a);
+  --guide-error: var(--fx-color-error, #ff4d4f);
+  --guide-warning: var(--fx-color-warning, #faad14);
+
+  /* Stepper specific */
+  --stepper-number-size: 40px;
+  --stepper-number-font-size: 16px;
+  --stepper-separator-width: 2px;
+}
+
+/* Base stepper container */
+.fx-guide-ant-stepper {
+  width: 100%;
+}
+
+/* Linear mode (read-only steps) */
+.fx-guide-ant-stepper-linear .fx-guide-ant-stepper-action {
+  cursor: default;
+}
+
+.fx-guide-ant-stepper-linear .fx-guide-ant-stepper-item-disabled .fx-guide-ant-stepper-action {
+  cursor: not-allowed;
+}
+
+/* ============================================
+   HORIZONTAL STEPPER
+   ============================================ */
+
+.fx-guide-ant-stepper-horizontal {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+}
+
+/* Navigation list */
+.fx-guide-ant-stepper-nav {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--guide-border) transparent;
+  padding-bottom: 8px;
+}
+
+.fx-guide-ant-stepper-nav::-webkit-scrollbar {
+  height: 6px;
+}
+
+.fx-guide-ant-stepper-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fx-guide-ant-stepper-nav::-webkit-scrollbar-thumb {
+  background: var(--guide-border);
+  border-radius: 3px;
+}
+
+.fx-guide-ant-stepper-nav-list {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: max-content;
+  gap: 0;
+}
+
+/* Step item */
+.fx-guide-ant-stepper-item {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.fx-guide-ant-stepper-item:last-child {
+  flex: 0 0 auto;
+}
+
+/* Step action button */
+.fx-guide-ant-stepper-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+  background: transparent;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-guide-ant-stepper-action:focus-visible {
+  outline: 2px solid var(--guide-primary);
+  outline-offset: 2px;
+  border-radius: var(--fx-radius-sm, 4px);
+}
+
+.fx-guide-ant-stepper-action:disabled {
+  cursor: not-allowed;
+}
+
+/* Step number badge */
+.fx-guide-ant-stepper-number {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--stepper-number-size);
+  height: var(--stepper-number-size);
+  min-width: var(--stepper-number-size);
+  background: var(--guide-bg-elevated);
+  border: 2px solid var(--guide-border);
+  border-radius: 50%;
+  font-size: var(--stepper-number-font-size);
+  font-weight: 600;
+  color: var(--guide-text-tertiary);
+  transition: all 0.2s;
+}
+
+/* Active step number */
+.fx-guide-ant-stepper-item-active .fx-guide-ant-stepper-number,
+.fx-guide-ant-stepper-number-active {
+  background: var(--guide-primary);
+  border-color: var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+  box-shadow: 0 0 0 4px rgba(22, 119, 255, 0.15);
+}
+
+/* Completed step number */
+.fx-guide-ant-stepper-item-completed .fx-guide-ant-stepper-number,
+.fx-guide-ant-stepper-number-completed {
+  background: var(--guide-success);
+  border-color: var(--guide-success);
+  color: var(--fx-color-success-content, #ffffff);
+}
+
+/* Pending step number */
+.fx-guide-ant-stepper-item-pending .fx-guide-ant-stepper-number {
+  background: var(--guide-bg-elevated);
+  border-color: var(--guide-border);
+  color: var(--guide-text-tertiary);
+}
+
+/* Disabled step number */
+.fx-guide-ant-stepper-item-disabled .fx-guide-ant-stepper-number {
+  opacity: 0.45;
+}
+
+/* Error step number */
+.fx-guide-ant-stepper-item-error .fx-guide-ant-stepper-number {
+  background: var(--guide-error);
+  border-color: var(--guide-error);
+  color: var(--fx-color-error-content, #ffffff);
+}
+
+/* Check icon in completed steps */
+.fx-guide-ant-stepper-check {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Step title */
+.fx-guide-ant-stepper-title {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--guide-text-secondary);
+  transition: color 0.2s;
+}
+
+.fx-guide-ant-stepper-item-active .fx-guide-ant-stepper-title {
+  color: var(--guide-text);
+  font-weight: 600;
+}
+
+.fx-guide-ant-stepper-item-completed .fx-guide-ant-stepper-title {
+  color: var(--guide-text-secondary);
+}
+
+.fx-guide-ant-stepper-item-disabled .fx-guide-ant-stepper-title {
+  color: var(--guide-text-tertiary);
+}
+
+/* Separator line */
+.fx-guide-ant-stepper-separator {
+  flex: 0 0 auto;
+  min-width: 16px;
+  max-width: 32px;
+  width: 24px;
+  height: var(--stepper-separator-width);
+  background: var(--guide-border);
+  margin: 0 4px;
+  transition: background 0.3s;
+}
+
+.fx-guide-ant-stepper-separator-completed {
+  background: var(--guide-primary);
+}
+
+/* Header position variants (horizontal only) */
+.fx-guide-ant-stepper-header-bottom .fx-guide-ant-stepper-action {
+  flex-direction: column;
+  text-align: center;
+}
+
+.fx-guide-ant-stepper-header-top .fx-guide-ant-stepper-action {
+  flex-direction: column-reverse;
+  text-align: center;
+}
+
+.fx-guide-ant-stepper-header-left .fx-guide-ant-stepper-action {
+  flex-direction: row-reverse;
+}
+
+/* Panel container */
+.fx-guide-ant-stepper-panels {
+  padding: 8px 0 0 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--fx-radius-lg, 12px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.fx-guide-ant-stepper-panel {
+  animation: guide-fade-in 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Content container holds everything */
+.fx-guide-ant-stepper-panel .fx-guide-ant-stepper-content {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Content body: image (left) + description (right), vertically centered */
+.fx-guide-ant-stepper-content-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 300px;
+}
+
+/* Media section - adaptive sizing based on image aspect ratio */
+.fx-guide-ant-stepper-media {
+  flex: 0 1 auto; /* Can shrink but starts at natural size */
+  min-width: 200px;
+  max-width: 55%; /* Allow up to 55% of container width */
+  max-height: 400px; /* Constrain height for tall phone images */
+  border-radius: var(--fx-radius-lg, 12px);
+  overflow: hidden;
+  background: var(--guide-bg-layout);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.fx-guide-ant-stepper-image {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 400px;
+  display: block;
+  object-fit: contain;
+}
+
+/* Larger image when controls are at top-right (more vertical space available) */
+.fx-guide-ant-stepper-controls-top-right .fx-guide-ant-stepper-media {
+  min-width: 280px;
+  max-height: 500px;
+}
+
+.fx-guide-ant-stepper-controls-top-right .fx-guide-ant-stepper-image {
+  max-height: 500px;
+}
+
+/* Description box - flex to fill remaining space, text aligned to top */
+.fx-guide-ant-stepper-content-body .fx-guide-ant-stepper-description-box {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: flex-start; /* Align text to top for consistent layout */
+  align-self: stretch; /* Force stretch to fill container height */
+  padding: 24px;
+  min-height: 200px;
+  height: auto;
+}
+
+.fx-guide-ant-stepper-content-body .fx-guide-ant-stepper-content-description {
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+/* Responsive - stack on mobile */
+@media (max-width: 768px) {
+  .fx-guide-ant-stepper-content-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    min-height: auto;
+  }
+
+  .fx-guide-ant-stepper-media {
+    flex: 0 0 auto;
+    max-width: 100%;
+    width: auto;
+    max-height: 50vh;
+  }
+
+  .fx-guide-ant-stepper-image {
+    max-height: 50vh;
+  }
+
+  .fx-guide-ant-stepper-content-body .fx-guide-ant-stepper-description-box {
+    width: 100%;
+    min-width: unset;
+    align-self: auto;
+  }
+}
+
+/* Step content */
+.fx-guide-ant-stepper-content {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.fx-guide-ant-stepper-content-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--guide-text);
+  margin: 0 0 12px 0;
+}
+
+/* Step indicator box - "Step 1: Title" */
+.fx-guide-ant-stepper-step-indicator {
+  display: inline-block;
+  background: var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border: 1px solid var(--guide-primary);
+  border-radius: var(--fx-radius, 6px);
+}
+
+/* Description box */
+.fx-guide-ant-stepper-description-box {
+  background: var(--guide-bg-elevated);
+  border: 1px solid var(--guide-border);
+  border-radius: var(--fx-radius-lg, 12px);
+  padding: 20px;
+  margin: 0;
+  min-height: 200px;
+}
+
+.fx-guide-ant-stepper-content-description {
+  font-size: 15px;
+  color: var(--guide-text-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Markdown text styling */
+.fx-guide-ant-stepper-content-description strong {
+  color: var(--guide-text);
+  font-weight: 600;
+}
+
+.fx-guide-ant-stepper-content-description .fx-markdown-list {
+  margin: 12px 0;
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+.fx-guide-ant-stepper-content-description .fx-markdown-list li {
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+.fx-guide-ant-stepper-content-description .fx-markdown-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* Controls inside content - align to bottom */
+.fx-guide-ant-stepper-content .fx-guide-ant-stepper-controls {
+  margin-top: auto;
+  padding-top: 24px;
+  padding-bottom: 8px;
+}
+
+/* Stepper controls */
+.fx-guide-ant-stepper-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding-top: 24px;
+}
+
+.fx-guide-ant-stepper-controls-left,
+.fx-guide-ant-stepper-controls-right {
+  display: flex;
+  gap: 12px;
+}
+
+/* Stepper buttons */
+.fx-guide-ant-stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--fx-radius, 6px);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-guide-ant-stepper-btn-icon {
+  font-size: 12px;
+}
+
+.fx-guide-ant-stepper-btn-prev {
+  background: var(--guide-primary);
+  border: 1px solid var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-guide-ant-stepper-btn-prev:hover {
+  background: var(--guide-primary-hover);
+  border-color: var(--guide-primary-hover);
+}
+
+.fx-guide-ant-stepper-btn-next {
+  background: var(--guide-primary);
+  border: 1px solid var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-guide-ant-stepper-btn-next:hover {
+  background: var(--guide-primary-hover);
+  border-color: var(--guide-primary-hover);
+}
+
+.fx-guide-ant-stepper-btn-complete {
+  background: var(--guide-success);
+  border: 1px solid var(--guide-success);
+  color: var(--fx-color-success-content, #ffffff);
+}
+
+.fx-guide-ant-stepper-btn-complete:hover {
+  background: var(--fx-color-success-hover, #73d13d);
+  border-color: var(--fx-color-success-hover, #73d13d);
+}
+
+/* ============================================
+   VERTICAL STEPPER
+   ============================================ */
+
+.fx-guide-ant-stepper-vertical {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Vertical panel */
+.fx-guide-ant-stepper-panel-vertical {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Vertical header */
+.fx-guide-ant-stepper-header-vertical {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.fx-guide-ant-stepper-header-vertical .fx-guide-ant-stepper-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.fx-guide-ant-stepper-header-vertical .fx-guide-ant-stepper-action:hover {
+  background: var(--guide-bg-elevated);
+  border-radius: var(--fx-radius, 6px);
+}
+
+/* Toggleable content area */
+.fx-guide-ant-stepper-toggleable {
+  display: flex;
+  padding-left: calc(var(--stepper-number-size) / 2);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  width: 100%;
+}
+
+.fx-guide-ant-stepper-toggleable-open {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+/* Vertical separator */
+.fx-guide-ant-stepper-separator-vertical {
+  width: var(--stepper-separator-width);
+  min-height: 100%;
+  background: var(--guide-border);
+  margin-left: calc(var(--stepper-number-size) / 2 - var(--stepper-separator-width) / 2);
+  flex-shrink: 0;
+}
+
+.fx-guide-ant-stepper-separator-vertical.fx-guide-ant-stepper-separator-completed {
+  background: var(--guide-primary);
+}
+
+/* Vertical content */
+.fx-guide-ant-stepper-content-vertical {
+  flex: 1;
+  padding: 16px 16px 24px 16px;
+  margin-left: 12px;
+  min-width: 0; /* Allow flex item to shrink below content size */
+  width: calc(100% - var(--stepper-number-size) - 24px);
+}
+
+.fx-guide-ant-stepper-content-vertical .fx-guide-ant-stepper-content {
+  text-align: left;
+  padding: 20px;
+  background: var(--guide-bg);
+  border: 1px dashed var(--guide-border);
+  border-radius: var(--fx-radius-lg, 12px);
+  margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Vertical controls */
+.fx-guide-ant-stepper-controls-vertical {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   STEPPER RESPONSIVE - MOBILE FIRST
+   ============================================ */
+
+/* Base mobile styles (default) */
+.fx-guide-ant-stepper {
+  --stepper-number-size: 36px;
+  --stepper-number-font-size: 14px;
+}
+
+.fx-guide-ant-stepper-horizontal .fx-guide-ant-stepper-nav-list {
+  gap: 0;
+  padding: 8px 0;
+}
+
+.fx-guide-ant-stepper-horizontal .fx-guide-ant-stepper-title {
+  display: none; /* Hide titles on mobile */
+}
+
+.fx-guide-ant-stepper-horizontal .fx-guide-ant-stepper-separator {
+  min-width: 12px;
+  max-width: 24px;
+  width: 16px;
+  flex: 0 0 auto;
+  margin: 0 2px;
+}
+
+.fx-guide-ant-stepper-panels {
+  padding: 16px;
+  min-height: 150px;
+}
+
+.fx-guide-ant-stepper-content-title {
+  font-size: 18px;
+}
+
+.fx-guide-ant-stepper-content-description {
+  font-size: 14px;
+}
+
+.fx-guide-ant-stepper-btn {
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+.fx-guide-ant-stepper-controls {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Tablet and up */
+@media (min-width: 640px) {
+  .fx-guide-ant-stepper {
+    --stepper-number-size: 36px;
+    --stepper-number-font-size: 14px;
+  }
+
+  .fx-guide-ant-stepper-horizontal .fx-guide-ant-stepper-title {
+    display: block; /* Show titles on tablet+ */
+    max-width: 80px;
+    font-size: 12px;
+  }
+
+  .fx-guide-ant-stepper-horizontal .fx-guide-ant-stepper-separator {
+    min-width: 16px;
+    max-width: 24px;
+    margin: 0 4px;
+  }
+
+  .fx-guide-ant-stepper-panels {
+    padding: 24px;
+    min-height: 200px;
+  }
+
+  .fx-guide-ant-stepper-content-title {
+    font-size: 20px;
+  }
+
+  .fx-guide-ant-stepper-content-description {
+    font-size: 15px;
+  }
+
+  .fx-guide-ant-stepper-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}
+
+/* Desktop and up */
+@media (min-width: 1024px) {
+  .fx-guide-ant-stepper {
+    --stepper-number-size: 40px;
+    --stepper-number-font-size: 15px;
+  }
+
+  .fx-guide-ant-stepper-horizontal .fx-guide-ant-stepper-title {
+    max-width: 100px;
+    font-size: 13px;
+  }
+
+  .fx-guide-ant-stepper-horizontal .fx-guide-ant-stepper-separator {
+    min-width: 20px;
+    max-width: 32px;
+    margin: 0 6px;
+  }
+
+  .fx-guide-ant-stepper-panels {
+    padding: 32px;
+  }
+
+  .fx-guide-ant-stepper-btn {
+    padding: 14px 28px;
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1280px) {
+  .fx-guide-ant-stepper {
+    --stepper-number-size: 44px;
+    --stepper-number-font-size: 16px;
+  }
+
+  .fx-guide-ant-stepper-horizontal .fx-guide-ant-stepper-title {
+    max-width: 120px;
+    font-size: 14px;
+  }
+
+  .fx-guide-ant-stepper-horizontal .fx-guide-ant-stepper-separator {
+    min-width: 24px;
+    max-width: 40px;
+    margin: 0 8px;
+  }
+}
+
+/* Vertical stepper mobile adjustments */
+@media (max-width: 640px) {
+  .fx-guide-ant-stepper-vertical .fx-guide-ant-stepper-content-vertical {
+    padding: 12px 16px 16px 16px;
+    margin-left: 8px;
+  }
+
+  .fx-guide-ant-stepper-vertical .fx-guide-ant-stepper-content-vertical .fx-guide-ant-stepper-content {
+    padding: 16px;
+  }
+
+  .fx-guide-ant-stepper-controls-vertical {
+    flex-direction: column;
+  }
+
+  .fx-guide-ant-stepper-controls-vertical .fx-guide-ant-stepper-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   STEPPER LAYOUT MODES
+   ============================================ */
+
+/* Side-by-Side Layout (default) - image left, text right inside content body */
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-panels {
+  position: relative;
+  padding-bottom: 70px; /* Space for controls at bottom */
+  display: flex;
+  flex-direction: column;
+}
+
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Content body has image left, description right, vertically centered */
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-content-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  align-items: stretch;
+  flex: 1;
+  padding: 8px 0;
+  min-height: 300px;
+}
+
+/* Adaptive media sizing - grows based on image aspect ratio */
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-media {
+  flex: 0 1 auto; /* Natural size, can shrink */
+  min-width: 220px;
+  max-width: 55%; /* Up to 55% for landscape images */
+  max-height: 400px; /* Constrain tall phone images */
+  border-radius: var(--fx-radius-lg, 12px);
+  overflow: hidden;
+  background: var(--guide-bg-layout);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-image {
+  max-height: 400px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Larger image when controls are at top-right in side-by-side layout */
+.fx-guide-ant-stepper-controls-top-right.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-media {
+  min-width: 300px;
+  max-height: 500px;
+}
+
+.fx-guide-ant-stepper-controls-top-right.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-image {
+  max-height: 500px;
+}
+
+/* Description box - fills remaining space, vertically centered */
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-description-box {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: flex-start; /* Align text to top for consistent layout */
+  align-self: stretch; /* Force stretch to fill container height */
+  padding: 20px 24px;
+  min-height: 200px;
+  height: auto;
+}
+
+/* Controls positioned at bottom center for side-by-side */
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0 0 0;
+  margin: 0;
+}
+
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-controls-left,
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-controls-right {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+/* Responsive - stack on mobile */
+@media (max-width: 640px) {
+  .fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-content-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    min-height: auto;
+  }
+
+  .fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-media {
+    max-width: 100%;
+    width: auto;
+    max-height: 45vh;
+  }
+
+  .fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-image {
+    max-height: 45vh;
+  }
+
+  .fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-description-box {
+    width: 100%;
+    min-width: unset;
+    align-self: auto;
+  }
+}
+
+/* Stacked Layout - title at top, then image+description stacked, controls at bottom */
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-panels {
+  position: relative;
+  padding-bottom: 50px; /* Space for absolutely positioned controls */
+  flex: 0 0 auto !important; /* Don't stretch - override base flex: 1 */
+  overflow: visible; /* Don't clip content */
+}
+
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Reduced gap */
+  flex: 0 0 auto !important; /* Don't stretch - override base flex: 1 */
+  align-items: stretch;
+}
+
+/* Content section */
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-content {
+  flex: 0 0 auto !important;
+  width: 100%;
+  height: auto !important;
+}
+
+/* Step indicator with blue background and white text */
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-step-indicator {
+  display: block;
+  background: var(--guide-primary, #1677ff);
+  color: var(--fx-color-primary-content, #ffffff);
+  padding: 12px 20px;
+  border-radius: var(--fx-radius-md, 8px);
+  font-size: 15px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Content body in stacked mode - vertical layout */
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-content-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* Description box styling for stacked */
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-description-box {
+  margin: 0;
+  padding: 8px 12px;
+  min-height: auto;
+  order: 1;
+}
+
+/* Image section: below description in stacked mode */
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-media {
+  order: 2;
+  flex: 0 0 auto;
+  max-width: 100%;
+  width: 100%;
+  max-height: 40vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--guide-bg-layout);
+  border-radius: var(--fx-radius-lg, 12px);
+  overflow: hidden;
+}
+
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-image {
+  max-width: 100%;
+  max-height: 40vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Controls: centered at bottom */
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-controls {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  padding: 8px 0 0 0;
+  margin: 0;
+  display: flex !important;
+  justify-content: center !important; /* Center the buttons */
+  align-items: center;
+  gap: 16px !important; /* Gap between Back and Next */
+}
+
+/* Show Back button - inline with Next */
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-controls-left,
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-controls-right {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+}
+
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-btn-prev,
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-btn-next,
+.fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-btn-complete {
+  display: inline-flex !important;
+}
+
+/* Responsive adjustments for stacked layout */
+@media (max-width: 768px) {
+  .fx-guide-ant-stepper-layout-stacked .fx-guide-ant-stepper-panels {
+    padding-bottom: 60px;
+  }
+}
+
+/* ============================================
+   STEPPER CONTROLS POSITION: TOP-RIGHT
+   ============================================ */
+
+/* Top-right controls - use absolute positioning to move controls to top */
+.fx-guide-ant-stepper-controls-top-right {
+  position: relative;
+}
+
+/* Position controls absolutely at top-right, aligned with step indicators */
+.fx-guide-ant-stepper-controls-top-right .fx-guide-ant-stepper-controls {
+  position: absolute !important;
+  top: -8px !important; /* Align with top of step indicators */
+  right: 0 !important;
+  left: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 10;
+}
+
+/* Remove bottom padding from panels since controls are at top */
+.fx-guide-ant-stepper-controls-top-right .fx-guide-ant-stepper-panels {
+  padding-bottom: 16px;
+  position: static;
+}
+
+.fx-guide-ant-stepper-controls-top-right.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-panels {
+  padding-bottom: 16px;
+}
+
+/* Hide the nav-inline controls (we're using absolute positioning instead) */
+.fx-guide-ant-stepper-controls-nav-inline {
+  display: none !important;
+}
+
+/* Responsive - revert to normal positioning on mobile */
+@media (max-width: 768px) {
+  .fx-guide-ant-stepper-controls-top-right .fx-guide-ant-stepper-controls {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    margin-top: 16px !important;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   STEPPER SPLIT HEADER LAYOUT
+   ============================================ */
+
+/* Split header container - steps left, controls right, full width */
+.fx-guide-ant-stepper-header-split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0px;
+  border-bottom: 1px solid var(--guide-border);
+}
+
+/* Left section: pagination arrows + step indicators */
+.fx-guide-ant-stepper-header-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 1 auto; /* Don't expand - let space-between push sections to extremes */
+  min-width: 0; /* Allow shrinking */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.fx-guide-ant-stepper-header-left::-webkit-scrollbar {
+  display: none;
+}
+
+/* Nav inside split header - no extra padding, don't expand */
+.fx-guide-ant-stepper-header-split .fx-guide-ant-stepper-nav {
+  flex: 0 1 auto;
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+.fx-guide-ant-stepper-header-split .fx-guide-ant-stepper-nav-list {
+  padding: 0;
+}
+
+/* Right section: Back/Next controls */
+.fx-guide-ant-stepper-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  flex-shrink: 0;
+}
+
+/* Pagination arrow buttons - same size as step numbers for alignment */
+.fx-guide-ant-stepper-page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  background: var(--guide-bg-elevated);
+  border: 2px solid var(--guide-border);
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--guide-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.fx-guide-ant-stepper-page-btn:hover:not(:disabled) {
+  background: var(--guide-primary);
+  border-color: var(--guide-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-guide-ant-stepper-page-btn:disabled,
+.fx-guide-ant-stepper-page-btn-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fx-guide-ant-stepper-page-btn-disabled:hover {
+  background: var(--guide-bg-elevated);
+  border-color: var(--guide-border);
+  color: var(--guide-text-secondary);
+}
+
+/* Hidden pagination button (when not enough steps for pagination) */
+.fx-guide-ant-stepper-page-btn-hidden {
+  display: none !important;
+}
+
+/* Split header hides controls from content panel */
+.fx-guide-ant-stepper-header-split + .fx-guide-ant-stepper-panels .fx-guide-ant-stepper-controls {
+  display: none !important;
+}
+
+/* Split header panels don't need bottom padding for controls - override layout-specific padding */
+.fx-guide-ant-stepper-header-split + .fx-guide-ant-stepper-panels {
+  padding-bottom: 8px !important;
+}
+
+/* Override side-by-side layout's 70px bottom padding when using split header */
+.fx-guide-ant-stepper-layout-side-by-side .fx-guide-ant-stepper-header-split + .fx-guide-ant-stepper-panels {
+  padding-bottom: 8px !important;
+}
+
+/* Step indicators in split header - fixed size for consistency with pagination */
+.fx-guide-ant-stepper-header-split .fx-guide-ant-stepper-number {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  font-size: 14px;
+}
+
+.fx-guide-ant-stepper-header-split .fx-guide-ant-stepper-title {
+  font-size: 12px;
+  max-width: 70px;
+}
+
+.fx-guide-ant-stepper-header-split .fx-guide-ant-stepper-separator {
+  min-width: 12px;
+  max-width: 20px;
+  width: 16px;
+  margin: 0 2px;
+}
+
+/* Responsive adjustments for split header */
+@media (max-width: 768px) {
+  .fx-guide-ant-stepper-header-split {
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  .fx-guide-ant-stepper-header-left {
+    gap: 4px;
+  }
+
+  .fx-guide-ant-stepper-header-split .fx-guide-ant-stepper-title {
+    display: none; /* Hide titles on mobile in split mode */
+  }
+
+  .fx-guide-ant-stepper-header-split .fx-guide-ant-stepper-number {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    font-size: 12px;
+  }
+
+  .fx-guide-ant-stepper-header-split .fx-guide-ant-stepper-separator {
+    min-width: 8px;
+    max-width: 14px;
+    width: 10px;
+  }
+
+  .fx-guide-ant-stepper-page-btn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    font-size: 14px;
+  }
+
+  .fx-guide-ant-stepper-header-right .fx-guide-ant-stepper-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .fx-guide-ant-stepper-header-right .fx-guide-ant-stepper-btn-icon {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fx-guide-ant-stepper-header-split {
+    gap: 8px;
+  }
+
+  /* Stack controls below nav on very small screens */
+  .fx-guide-ant-stepper-header-split {
+    flex-wrap: wrap;
+  }
+
+  .fx-guide-ant-stepper-header-left {
+    flex: 1 0 100%;
+    justify-content: center;
+  }
+
+  .fx-guide-ant-stepper-header-right {
+    flex: 1 0 100%;
+    justify-content: center;
+    padding-top: 8px;
+    border-top: 1px solid var(--guide-border);
+  }
+}
+
+/* ============================================
+   STEPPER REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-guide-ant-stepper-panel,
+  .fx-guide-ant-stepper-number,
+  .fx-guide-ant-stepper-separator,
+  .fx-guide-ant-stepper-toggleable,
+  .fx-guide-ant-stepper-action,
+  .fx-guide-ant-stepper-page-btn {
+    animation: none !important;
+    transition: none !important;
+  }
+}

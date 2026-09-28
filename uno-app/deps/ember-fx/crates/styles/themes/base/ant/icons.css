@@ -1,0 +1,201 @@
+/**
+ * Icon Component Styles
+ * Ant Design compatible icon styling with Tabler Icons support
+ */
+
+/* Base icon container */
+.fx-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+  color: currentColor;
+  vertical-align: middle;
+}
+
+.fx-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* Tabler icons use stroke, not fill */
+.fx-icon-tabler svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+/* ================================
+   Size Variants
+   ================================ */
+
+.fx-icon-xs {
+  width: 12px;
+  height: 12px;
+  font-size: 12px;
+}
+
+.fx-icon-sm {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
+.fx-icon-md {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.fx-icon-lg {
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+}
+
+.fx-icon-xl {
+  width: 32px;
+  height: 32px;
+  font-size: 32px;
+}
+
+.fx-icon-xxl {
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+}
+
+/* ================================
+   Semantic Colors
+   ================================ */
+
+.fx-icon-primary {
+  color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-icon-secondary {
+  color: var(--fx-color-text-secondary, rgba(0, 0, 0, 0.45));
+}
+
+.fx-icon-success {
+  color: var(--fx-color-success, #52c41a);
+}
+
+.fx-icon-warning {
+  color: var(--fx-color-warning, #faad14);
+}
+
+.fx-icon-error {
+  color: var(--fx-color-error, #ff4d4f);
+}
+
+.fx-icon-info {
+  color: var(--fx-color-info, #1677ff);
+}
+
+/* ================================
+   Interactive States
+   ================================ */
+
+.fx-icon-clickable {
+  cursor: pointer;
+  transition: color var(--fx-transition-fast, 150ms) ease,
+              transform var(--fx-transition-fast, 150ms) ease;
+}
+
+.fx-icon-clickable:hover {
+  color: var(--fx-color-primary-hover, #4096ff);
+}
+
+.fx-icon-clickable:active {
+  transform: scale(0.95);
+}
+
+.fx-icon-disabled {
+  color: var(--fx-color-text-disabled, rgba(0, 0, 0, 0.25));
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ================================
+   Animation
+   ================================ */
+
+.fx-icon-spin {
+  animation: fx-icon-spin 1s linear infinite;
+}
+
+@keyframes fx-icon-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fx-icon-pulse {
+  animation: fx-icon-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes fx-icon-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.fx-icon-bounce {
+  animation: fx-icon-bounce 1s ease infinite;
+}
+
+@keyframes fx-icon-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ================================
+   Dark Theme Adjustments
+   ================================ */
+
+[data-theme="dark"] .fx-icon-secondary {
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+}
+
+[data-theme="dark"] .fx-icon-disabled {
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+}
+
+/* ================================
+   Utility Classes
+   ================================ */
+
+/* Flip horizontally */
+.fx-icon-flip-h {
+  transform: scaleX(-1);
+}
+
+/* Flip vertically */
+.fx-icon-flip-v {
+  transform: scaleY(-1);
+}
+
+/* Rotate variants */
+.fx-icon-rotate-90 {
+  transform: rotate(90deg);
+}
+
+.fx-icon-rotate-180 {
+  transform: rotate(180deg);
+}
+
+.fx-icon-rotate-270 {
+  transform: rotate(270deg);
+}

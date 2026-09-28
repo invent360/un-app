@@ -1,0 +1,22 @@
+[package]
+name = "ember-fx-mobile"
+description = "Mobile-specific components for ember-fx"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default = ["csr"]
+csr = ["leptos/csr", "ember-fx-core/csr"]
+ssr = ["leptos/ssr", "ember-fx-core/ssr"]
+hydrate = ["leptos/hydrate", "ember-fx-core/hydrate"]
+
+[dependencies]
+ember-fx-core = { workspace = true }
+ember-fx-components = { workspace = true }
+leptos = { workspace = true }
+web-sys = { workspace = true }

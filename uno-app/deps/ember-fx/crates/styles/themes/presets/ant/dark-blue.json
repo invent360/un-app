@@ -1,0 +1,140 @@
+{
+  "name": "dark-blue",
+  "displayName": "Dark Blue",
+  "colorScheme": "dark",
+  "designSystem": "ant",
+  "default": false,
+  "colors": {
+    "primary": "#1677ff",
+    "primaryBg": "#0d1f32",
+    "primaryBgHover": "#112a45",
+    "primaryBorder": "#15325b",
+    "primaryBorderHover": "#1a4a7e",
+    "primaryHover": "#4096ff",
+    "primaryActive": "#0958d9",
+    "primaryContent": "#ffffff",
+
+    "secondary": "#69b1ff",
+    "secondaryContent": "#0a1628",
+
+    "accent": "#13c2c2",
+    "accentContent": "#0a1628",
+
+    "neutral": "#1a2d42",
+    "neutralContent": "#ffffff",
+
+    "base-100": "#0a1628",
+    "base-200": "#0d1f32",
+    "base-300": "#0f2540",
+    "baseContent": "rgba(255, 255, 255, 0.88)",
+
+    "bgContainer": "#0d1f32",
+    "bgElevated": "#0f2540",
+    "bgLayout": "#0a1628",
+    "bgSpotlight": "#142c44",
+    "bgTextHover": "rgba(22, 119, 255, 0.12)",
+    "bgContainerDisabled": "#0f2540",
+
+    "info": "#1677ff",
+    "infoContent": "#ffffff",
+
+    "success": "#52c41a",
+    "successBg": "#0d2a12",
+    "successBorder": "#1a4a22",
+    "successContent": "#ffffff",
+
+    "warning": "#faad14",
+    "warningBg": "#2a2111",
+    "warningBorder": "#594a1a",
+    "warningContent": "#0a1628",
+
+    "error": "#ff4d4f",
+    "errorBg": "#2c1618",
+    "errorBorder": "#5c2223",
+    "errorContent": "#ffffff",
+
+    "border": "rgba(255, 255, 255, 0.12)",
+    "borderHover": "#1677ff",
+    "borderSecondary": "rgba(255, 255, 255, 0.08)",
+
+    "fill": "rgba(255, 255, 255, 0.15)",
+    "fillSecondary": "rgba(255, 255, 255, 0.10)",
+    "fillTertiary": "rgba(255, 255, 255, 0.06)",
+
+    "text": "rgba(255, 255, 255, 0.88)",
+    "textSecondary": "rgba(255, 255, 255, 0.65)",
+    "textTertiary": "rgba(255, 255, 255, 0.45)",
+    "textDisabled": "rgba(255, 255, 255, 0.25)",
+
+    "link": "#1677ff",
+    "linkHover": "#4096ff",
+    "linkActive": "#0958d9",
+
+    "landingBg1": "#0a1628",
+    "landingBg2": "#0d1f32",
+    "landingBg3": "#0f2540",
+    "landingCardBg": "rgba(20, 40, 60, 0.6)",
+    "landingCardBgHover": "rgba(15, 30, 48, 0.8)",
+    "landingGradientStart": "rgba(20, 35, 50, 0.9)",
+    "landingGradientEnd": "rgba(15, 25, 38, 0.95)",
+    "landingCardGradientStart": "rgba(20, 40, 60, 0.6)",
+    "landingCardGradientEnd": "rgba(15, 30, 48, 0.8)",
+    "landingCardGradientStartStrong": "rgba(20, 40, 60, 0.8)",
+    "landingCardGradientEndStrong": "rgba(15, 30, 48, 0.9)",
+
+    "glowPrimary": "rgba(22, 119, 255, 0.4)",
+    "glowPrimarySoft": "rgba(22, 119, 255, 0.15)",
+    "glowPrimaryStrong": "rgba(22, 119, 255, 0.6)",
+    "glowRadialBg": "rgba(22, 119, 255, 0.08)",
+    "glowRadialBgSoft": "rgba(22, 119, 255, 0.05)",
+    "glowRadialBgFaint": "rgba(22, 119, 255, 0.04)",
+    "borderGlow": "rgba(22, 119, 255, 0.5)",
+    "borderGlowWeak": "rgba(22, 119, 255, 0.3)",
+
+    "phoneScreenBg1": "#0c1824",
+    "phoneScreenBg2": "#0a1420",
+    "highlightGradientEnd": "#69b1ff"
+  },
+  "radius": {
+    "xs": "2px",
+    "sm": "4px",
+    "md": "6px",
+    "lg": "8px",
+    "xl": "12px",
+    "full": "9999px"
+  },
+  "spacing": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "effects": {
+    "shadowSm": "0 1px 2px 0 rgba(0, 0, 0, 0.5)",
+    "shadow": "0 1px 2px 0 rgba(0, 0, 0, 0.5), 0 1px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px 0 rgba(0, 0, 0, 0.4)",
+    "shadowMd": "0 6px 16px 0 rgba(0, 0, 0, 0.4), 0 3px 6px -4px rgba(0, 0, 0, 0.5), 0 9px 28px 8px rgba(0, 0, 0, 0.3)",
+    "shadowLg": "0 6px 16px 0 rgba(0, 0, 0, 0.4), 0 3px 6px -4px rgba(0, 0, 0, 0.5), 0 9px 28px 8px rgba(0, 0, 0, 0.3)",
+    "blur": "8px",
+    "blurLg": "16px"
+  },
+  "motion": {
+    "unit": "0.1s",
+    "base": "0s",
+    "easeOut": "cubic-bezier(0.215, 0.61, 0.355, 1)",
+    "easeInOut": "cubic-bezier(0.645, 0.045, 0.355, 1)",
+    "easeOutBack": "cubic-bezier(0.12, 0.4, 0.29, 1.46)",
+    "easeInBack": "cubic-bezier(0.71, -0.46, 0.88, 0.6)"
+  },
+  "font": {
+    "family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "familyCode": "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
+    "size": "14px",
+    "sizeSm": "12px",
+    "sizeLg": "16px",
+    "sizeXl": "20px"
+  },
+  "lineWidth": "1px"
+}

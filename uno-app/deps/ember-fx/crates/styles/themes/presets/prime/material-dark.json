@@ -1,0 +1,139 @@
+{
+  "name": "material-dark",
+  "displayName": "Material Dark",
+  "colorScheme": "dark",
+  "designSystem": "prime",
+  "colors": {
+    "primary": "#90caf9",
+    "primaryBg": "rgba(144, 202, 249, 0.16)",
+    "primaryBgHover": "rgba(144, 202, 249, 0.24)",
+    "primaryBorder": "#90caf9",
+    "primaryBorderHover": "#bbdefb",
+    "primaryHover": "#bbdefb",
+    "primaryActive": "#64b5f6",
+    "primaryContent": "#0d1117",
+
+    "secondary": "#ce93d8",
+    "secondaryContent": "#0d1117",
+
+    "accent": "#80deea",
+    "accentContent": "#0d1117",
+
+    "neutral": "#616161",
+    "neutralContent": "#ffffff",
+
+    "base-100": "#121212",
+    "base-200": "#1e1e1e",
+    "base-300": "#2d2d2d",
+    "baseContent": "rgba(255, 255, 255, 0.87)",
+
+    "bgContainer": "#1e1e1e",
+    "bgElevated": "#2d2d2d",
+    "bgLayout": "#121212",
+    "bgSpotlight": "#383838",
+    "bgTextHover": "rgba(255, 255, 255, 0.08)",
+    "bgContainerDisabled": "#2d2d2d",
+
+    "info": "#29b6f6",
+    "infoContent": "#0d1117",
+
+    "success": "#66bb6a",
+    "successBg": "rgba(102, 187, 106, 0.16)",
+    "successBorder": "#66bb6a",
+    "successContent": "#0d1117",
+
+    "warning": "#ffa726",
+    "warningBg": "rgba(255, 167, 38, 0.16)",
+    "warningBorder": "#ffa726",
+    "warningContent": "#0d1117",
+
+    "error": "#ef5350",
+    "errorBg": "rgba(239, 83, 80, 0.16)",
+    "errorBorder": "#ef5350",
+    "errorContent": "#ffffff",
+
+    "border": "#424242",
+    "borderHover": "#90caf9",
+    "borderSecondary": "#2d2d2d",
+
+    "fill": "rgba(255, 255, 255, 0.16)",
+    "fillSecondary": "rgba(255, 255, 255, 0.12)",
+    "fillTertiary": "rgba(255, 255, 255, 0.08)",
+
+    "text": "rgba(255, 255, 255, 0.87)",
+    "textSecondary": "rgba(255, 255, 255, 0.6)",
+    "textTertiary": "rgba(255, 255, 255, 0.38)",
+    "textDisabled": "rgba(255, 255, 255, 0.26)",
+
+    "link": "#90caf9",
+    "linkHover": "#bbdefb",
+    "linkActive": "#64b5f6",
+
+    "landingBg1": "#0a0a0a",
+    "landingBg2": "#121212",
+    "landingBg3": "#1e1e1e",
+    "landingCardBg": "rgba(30, 30, 30, 0.8)",
+    "landingCardBgHover": "rgba(45, 45, 45, 0.9)",
+    "landingGradientStart": "rgba(18, 18, 18, 0.9)",
+    "landingGradientEnd": "rgba(10, 10, 10, 0.95)",
+    "landingCardGradientStart": "rgba(30, 30, 30, 0.6)",
+    "landingCardGradientEnd": "rgba(18, 18, 18, 0.8)",
+    "landingCardGradientStartStrong": "rgba(45, 45, 45, 0.8)",
+    "landingCardGradientEndStrong": "rgba(30, 30, 30, 0.9)",
+
+    "glowPrimary": "rgba(144, 202, 249, 0.4)",
+    "glowPrimarySoft": "rgba(144, 202, 249, 0.15)",
+    "glowPrimaryStrong": "rgba(144, 202, 249, 0.6)",
+    "glowRadialBg": "rgba(144, 202, 249, 0.08)",
+    "glowRadialBgSoft": "rgba(144, 202, 249, 0.05)",
+    "glowRadialBgFaint": "rgba(144, 202, 249, 0.04)",
+    "borderGlow": "rgba(144, 202, 249, 0.5)",
+    "borderGlowWeak": "rgba(144, 202, 249, 0.3)",
+
+    "phoneScreenBg1": "#1e1e1e",
+    "phoneScreenBg2": "#121212",
+    "highlightGradientEnd": "#bbdefb"
+  },
+  "radius": {
+    "xs": "2px",
+    "sm": "4px",
+    "md": "4px",
+    "lg": "8px",
+    "xl": "12px",
+    "full": "9999px"
+  },
+  "spacing": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "effects": {
+    "shadowSm": "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
+    "shadow": "0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12)",
+    "shadowMd": "0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12)",
+    "shadowLg": "0 8px 10px -5px rgba(0, 0, 0, 0.2), 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12)",
+    "blur": "8px",
+    "blurLg": "16px"
+  },
+  "motion": {
+    "unit": "0.1s",
+    "base": "0s",
+    "easeOut": "cubic-bezier(0, 0, 0.2, 1)",
+    "easeInOut": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "easeOutBack": "cubic-bezier(0, 0, 0.2, 1)",
+    "easeInBack": "cubic-bezier(0.4, 0, 1, 1)"
+  },
+  "font": {
+    "family": "Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "familyCode": "'Roboto Mono', Consolas, monospace",
+    "size": "14px",
+    "sizeSm": "12px",
+    "sizeLg": "16px",
+    "sizeXl": "20px"
+  },
+  "lineWidth": "1px"
+}

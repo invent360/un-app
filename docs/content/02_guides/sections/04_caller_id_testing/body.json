@@ -1,0 +1,32 @@
+{
+  "title": "Caller ID Testing Activation Guide",
+  "description": "Step-by-step guide to enable Caller ID Testing on your device",
+  "difficulty": "easy",
+  "duration_minutes": 5,
+  "steps": [
+    {
+      "order": 1,
+      "title": "Select Caller ID Testing",
+      "description": "From the Unetwork Tasks screen, tap on 'Caller ID Testing' to view details and begin the activation process.",
+      "image": "1.png"
+    },
+    {
+      "order": 2,
+      "title": "Review How It Works",
+      "description": "Read through the process: 1) Opt in to participate, 2) Verify your phone number, 3) Receive test calls from our network, 4) You don't need to answer - missed calls count, 5) Report the Caller ID when prompted, 6) Earn rewards for each successful test. Then tap 'ACCEPT' to continue.",
+      "image": "2.png"
+    },
+    {
+      "order": 3,
+      "title": "Enter Your Phone Number",
+      "description": "Select your country code and enter your phone number to receive a verification code via SMS.",
+      "image": "3.png"
+    },
+    {
+      "order": 4,
+      "title": "Verify with OTP",
+      "description": "Enter the 6-digit verification code sent to your phone and tap 'VERIFY' to complete the setup. Test calls may come from various international numbers.",
+      "image": "4.png"
+    }
+  ]
+}

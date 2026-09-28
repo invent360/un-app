@@ -1,0 +1,68 @@
+{
+  "presets": {
+    "dark-blue": {
+      "name": "Dark Blue",
+      "description": "UNO's signature dark blue theme",
+      "icon": "water-drop",
+      "base": "dark",
+      "variables": {
+        "--fx-color-bg-layout": "#0a1628",
+        "--fx-color-bg-container": "#0d1f32",
+        "--fx-color-bg-elevated": "#0f2540",
+        "--fx-color-accent": "#13c2c2",
+        "--uno-landing-bg-1": "#0a1628",
+        "--uno-landing-bg-2": "#0d1f32",
+        "--uno-landing-bg-3": "#0f2540",
+        "--uno-bg-spotlight": "#142c44"
+      }
+    },
+    "dark": {
+      "name": "Dark",
+      "description": "Pure dark theme",
+      "icon": "moon",
+      "base": "dark",
+      "variables": {
+        "--uno-landing-bg-1": "#0a0a0a",
+        "--uno-landing-bg-2": "#121212",
+        "--uno-landing-bg-3": "#1a1a1a",
+        "--uno-bg-spotlight": "#2a2a2a"
+      }
+    },
+    "light": {
+      "name": "Light",
+      "description": "Light theme",
+      "icon": "sun",
+      "base": "light",
+      "variables": {
+        "--uno-landing-bg-1": "#f0f5ff",
+        "--uno-landing-bg-2": "#e6f0ff",
+        "--uno-landing-bg-3": "#d6e4ff",
+        "--uno-bg-spotlight": "rgba(0, 0, 0, 0.02)"
+      }
+    }
+  },
+  "designSystems": {
+    "ant": {
+      "name": "Ant Design",
+      "description": "Clean, enterprise-focused design",
+      "cssPrefix": "fx-ant",
+      "features": {
+        "roundedButtons": true,
+        "subtleShadows": true,
+        "minimalBorders": true
+      }
+    },
+    "material": {
+      "name": "Material Design",
+      "description": "Google's Material Design system",
+      "cssPrefix": "fx-material",
+      "features": {
+        "elevatedShadows": true,
+        "rippleEffects": true,
+        "boldTypography": true
+      }
+    }
+  },
+  "defaultTheme": "dark-blue",
+  "defaultDesignSystem": "ant"
+}

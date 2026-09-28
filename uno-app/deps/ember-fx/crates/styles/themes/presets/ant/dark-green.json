@@ -1,0 +1,139 @@
+{
+  "name": "dark-green",
+  "displayName": "Dark Green",
+  "colorScheme": "dark",
+  "designSystem": "ant",
+  "colors": {
+    "primary": "#52c41a",
+    "primaryBg": "#162312",
+    "primaryBgHover": "#1d3712",
+    "primaryBorder": "#274916",
+    "primaryBorderHover": "#306317",
+    "primaryHover": "#73d13d",
+    "primaryActive": "#389e0d",
+    "primaryContent": "#ffffff",
+
+    "secondary": "#13c2c2",
+    "secondaryContent": "#ffffff",
+
+    "accent": "#1677ff",
+    "accentContent": "#ffffff",
+
+    "neutral": "#434343",
+    "neutralContent": "#ffffff",
+
+    "base-100": "#0a1f0a",
+    "base-200": "#0f2b0f",
+    "base-300": "#143714",
+    "baseContent": "rgba(255, 255, 255, 0.85)",
+
+    "bgContainer": "#0a1f0a",
+    "bgElevated": "#0f2b0f",
+    "bgLayout": "#0f2b0f",
+    "bgSpotlight": "#143714",
+    "bgTextHover": "rgba(255, 255, 255, 0.08)",
+    "bgContainerDisabled": "#1a3a1a",
+
+    "info": "#1677ff",
+    "infoContent": "#ffffff",
+
+    "success": "#52c41a",
+    "successBg": "#162312",
+    "successBorder": "#274916",
+    "successContent": "#ffffff",
+
+    "warning": "#d89614",
+    "warningBg": "#2b2111",
+    "warningBorder": "#594214",
+    "warningContent": "#000000",
+
+    "error": "#dc4446",
+    "errorBg": "#2c1618",
+    "errorBorder": "#5c2223",
+    "errorContent": "#ffffff",
+
+    "border": "#2d5a2d",
+    "borderHover": "#52c41a",
+    "borderSecondary": "#1e3d1e",
+
+    "fill": "rgba(255, 255, 255, 0.18)",
+    "fillSecondary": "rgba(255, 255, 255, 0.12)",
+    "fillTertiary": "rgba(255, 255, 255, 0.08)",
+
+    "text": "rgba(255, 255, 255, 0.85)",
+    "textSecondary": "rgba(255, 255, 255, 0.65)",
+    "textTertiary": "rgba(255, 255, 255, 0.45)",
+    "textDisabled": "rgba(255, 255, 255, 0.25)",
+
+    "link": "#52c41a",
+    "linkHover": "#73d13d",
+    "linkActive": "#389e0d",
+
+    "landingBg1": "#0a1a0f",
+    "landingBg2": "#0d2515",
+    "landingBg3": "#103320",
+    "landingCardBg": "rgba(16, 51, 32, 0.7)",
+    "landingCardBgHover": "rgba(20, 63, 40, 0.8)",
+    "landingGradientStart": "rgba(10, 26, 15, 0.95)",
+    "landingGradientEnd": "rgba(13, 37, 21, 0.95)",
+    "landingCardGradientStart": "rgba(16, 51, 32, 0.6)",
+    "landingCardGradientEnd": "rgba(20, 63, 40, 0.7)",
+    "landingCardGradientStartStrong": "rgba(16, 51, 32, 0.85)",
+    "landingCardGradientEndStrong": "rgba(20, 63, 40, 0.9)",
+
+    "glowPrimary": "rgba(82, 196, 26, 0.4)",
+    "glowPrimarySoft": "rgba(82, 196, 26, 0.15)",
+    "glowPrimaryStrong": "rgba(82, 196, 26, 0.6)",
+    "glowRadialBg": "rgba(82, 196, 26, 0.08)",
+    "glowRadialBgSoft": "rgba(82, 196, 26, 0.05)",
+    "glowRadialBgFaint": "rgba(82, 196, 26, 0.04)",
+    "borderGlow": "rgba(82, 196, 26, 0.5)",
+    "borderGlowWeak": "rgba(82, 196, 26, 0.3)",
+
+    "phoneScreenBg1": "#0f2b0f",
+    "phoneScreenBg2": "#0a1f0a",
+    "highlightGradientEnd": "#73d13d"
+  },
+  "radius": {
+    "xs": "2px",
+    "sm": "4px",
+    "md": "6px",
+    "lg": "8px",
+    "xl": "12px",
+    "full": "9999px"
+  },
+  "spacing": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "effects": {
+    "shadowSm": "0 1px 2px 0 rgba(0, 0, 0, 0.5)",
+    "shadow": "0 1px 2px 0 rgba(0, 0, 0, 0.5), 0 1px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px 0 rgba(0, 0, 0, 0.4)",
+    "shadowMd": "0 6px 16px 0 rgba(0, 0, 0, 0.4), 0 3px 6px -4px rgba(0, 0, 0, 0.5), 0 9px 28px 8px rgba(0, 0, 0, 0.3)",
+    "shadowLg": "0 6px 16px 0 rgba(0, 0, 0, 0.4), 0 3px 6px -4px rgba(0, 0, 0, 0.5), 0 9px 28px 8px rgba(0, 0, 0, 0.3)",
+    "blur": "8px",
+    "blurLg": "16px"
+  },
+  "motion": {
+    "unit": "0.1s",
+    "base": "0s",
+    "easeOut": "cubic-bezier(0.215, 0.61, 0.355, 1)",
+    "easeInOut": "cubic-bezier(0.645, 0.045, 0.355, 1)",
+    "easeOutBack": "cubic-bezier(0.12, 0.4, 0.29, 1.46)",
+    "easeInBack": "cubic-bezier(0.71, -0.46, 0.88, 0.6)"
+  },
+  "font": {
+    "family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "familyCode": "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
+    "size": "14px",
+    "sizeSm": "12px",
+    "sizeLg": "16px",
+    "sizeXl": "20px"
+  },
+  "lineWidth": "1px"
+}

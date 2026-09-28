@@ -1,0 +1,317 @@
+{
+  "tutorial": {
+    "content_type": "tutorial",
+    "slug": "app-setup-guide",
+    "status": "published",
+    "display_order": 1,
+    "is_featured": true,
+    "content": {
+      "title": "Setup Guide",
+      "description": "Complete guide to setting up Unetwork on your mobile device and start earning network incentives.",
+      "thumbnail": "/images/tutorials/setup-thumbnail.png",
+      "duration_minutes": 5,
+      "difficulty": "easy",
+      "direction": "ltr",
+      "requirements": [
+        "A supported Android or iOS smartphone",
+        "A stable internet connection (Wi-Fi or mobile data)",
+        "Access to your email address (for email sign-in) and/or access to a Web3 wallet (for wallet sign-in and crypto redemption)"
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "title": "Welcome to Unetwork",
+          "description": "Open the Unetwork app to see the welcome screen. Generate Network Incentives by Verifying the Telecom Grid from Your Mobile Phone. Click 'GET STARTED' to proceed.",
+          "image": "/images/setup/1-welcome.png"
+        },
+        {
+          "order": 2,
+          "title": "Choose Your Role",
+          "description": "Select how you want to use Unetwork:\n\n- **Node Operator**: Manage nodes and licenses you own on-chain.\n- **License Operator**: Operate a single or multiple licenses.\n- **Claim a License**: Explore the marketplace to choose and claim yours.",
+          "image": "/images/setup/2-choose-role.png"
+        },
+        {
+          "order": 3,
+          "title": "Access Your Leased License",
+          "description": "If you selected 'License Operator', enter your lease code to continue. If you don't have a lease code, tap 'Skip' to continue without one.",
+          "image": "/images/setup/3-lease-code.png"
+        },
+        {
+          "order": 4,
+          "title": "Choose Sign-In Method",
+          "description": "Select how you want to access Unetwork:\n\n- **Sign in with Web3**: Use your crypto wallet (MetaMask, WalletConnect, or Coinbase) to manage licenses.\n- **Sign in with Email**: Use your email address to manage licenses.",
+          "image": "/images/setup/4-sign-in-options.png"
+        },
+        {
+          "order": 5,
+          "title": "Sign In with Email",
+          "description": "To manage your leased license, sign in with your email. Enter your email address and we'll send you a one-time code to continue. Click 'CONTINUE' after entering your email.",
+          "image": "/images/setup/5-email-signin.png"
+        },
+        {
+          "order": 6,
+          "title": "Verify Your Code",
+          "description": "We've sent a one-time code to your email. Enter the OTP code to confirm your identity and continue to your account. Click 'VERIFY' to complete sign-in.",
+          "image": "/images/setup/5b-verify-otp.png"
+        },
+        {
+          "order": 7,
+          "title": "License Claimed Successfully",
+          "description": "Congratulations! You have successfully claimed this License. Click 'CONTINUE' to proceed to your dashboard.",
+          "image": "/images/setup/6-congratulations.png"
+        },
+        {
+          "order": 8,
+          "title": "Dashboard Overview",
+          "description": "Welcome to your Unetwork dashboard! Here you can see:\n\n- **Total Network Incentives**: Your cumulative earnings\n- **Earnings**: Today's earnings and Last 7 Days summary\n- **Proof of Work Status**: Service Status, Switch Node, Validation Node connection states\n- **License Details**: Your license ID, activation status, lease duration, and required uptime (97% daily)",
+          "image": "/images/setup/7-dashboard.png"
+        }
+      ]
+    },
+    "translations": {
+      "es": {
+        "title": "Guía de Configuración de la App",
+        "description": "Guía completa para configurar Unetwork en tu dispositivo móvil y comenzar a ganar incentivos de red.",
+        "direction": "ltr",
+        "steps": [
+          {
+            "order": 1,
+            "title": "Bienvenido a Unetwork",
+            "description": "Abre la app de Unetwork para ver la pantalla de bienvenida. Genera Incentivos de Red verificando la Red de Telecomunicaciones desde tu teléfono móvil. Haz clic en 'COMENZAR' para continuar."
+          },
+          {
+            "order": 2,
+            "title": "Elige tu Rol",
+            "description": "Selecciona cómo quieres usar Unetwork:\n\n- **Operador de Nodo**: Gestiona nodos y licencias que posees en la blockchain.\n- **Operador de Licencia**: Opera una o múltiples licencias.\n- **Reclamar una Licencia**: Explora el marketplace para elegir y reclamar la tuya."
+          }
+        ]
+      },
+      "ar": {
+        "title": "دليل إعداد التطبيق",
+        "description": "دليل شامل لإعداد Unetwork على جهازك المحمول والبدء في كسب حوافز الشبكة.",
+        "direction": "rtl",
+        "steps": [
+          {
+            "order": 1,
+            "title": "مرحباً بك في Unetwork",
+            "description": "افتح تطبيق Unetwork لرؤية شاشة الترحيب. اكسب حوافز الشبكة من خلال التحقق من شبكة الاتصالات من هاتفك المحمول. انقر على 'ابدأ' للمتابعة."
+          }
+        ]
+      }
+    }
+  },
+  "tasks": [
+    {
+      "content_type": "task",
+      "slug": "license-operator",
+      "status": "published",
+      "display_order": 1,
+      "is_featured": true,
+      "content": {
+        "title": "License Operator",
+        "description": "Operate a single or multiple licenses to earn network incentives. Manage your leased licenses and start generating rewards by verifying the telecom grid.",
+        "image": "/images/tasks/license-operator.png",
+        "status": "active",
+        "earnings_estimate": [
+          {
+            "name": "1 License",
+            "min_earnings": 5,
+            "max_earnings": 15,
+            "period": "month",
+            "features": [
+              "Basic network verification",
+              "Single device operation",
+              "97% uptime requirement"
+            ],
+            "is_popular": false
+          },
+          {
+            "name": "2-3 Licenses",
+            "min_earnings": 15,
+            "max_earnings": 40,
+            "period": "month",
+            "features": [
+              "Multiple device support",
+              "Higher earning potential",
+              "Priority task allocation"
+            ],
+            "is_popular": true
+          },
+          {
+            "name": "5+ Licenses",
+            "min_earnings": 40,
+            "max_earnings": 100,
+            "period": "month",
+            "features": [
+              "Maximum earnings",
+              "Fleet management",
+              "Premium support"
+            ],
+            "is_popular": false
+          }
+        ],
+        "duration": "Always running",
+        "difficulty": "easy",
+        "requirements": [
+          "Supported Android or iOS smartphone",
+          "Stable internet connection (Wi-Fi or Mobile Data)",
+          "Email address or Web3 wallet",
+          "97% daily uptime"
+        ],
+        "metadata": {
+          "category": "network_verification",
+          "min_uptime": "97%"
+        },
+        "direction": "ltr"
+      },
+      "translations": {
+        "es": {
+          "title": "Operador de Licencia",
+          "description": "Opera una o múltiples licencias para ganar incentivos de red. Gestiona tus licencias arrendadas y comienza a generar recompensas verificando la red de telecomunicaciones.",
+          "direction": "ltr"
+        },
+        "ar": {
+          "title": "مشغل الترخيص",
+          "description": "قم بتشغيل ترخيص واحد أو أكثر لكسب حوافز الشبكة. إدارة التراخيص المؤجرة الخاصة بك والبدء في توليد المكافآت من خلال التحقق من شبكة الاتصالات.",
+          "direction": "rtl"
+        }
+      }
+    },
+    {
+      "content_type": "task",
+      "slug": "node-operator",
+      "status": "published",
+      "display_order": 2,
+      "is_featured": true,
+      "content": {
+        "title": "Node Operator",
+        "description": "Manage nodes and licenses you own on-chain. As a Node Operator, you have full control over your blockchain assets and can maximize your network incentive earnings.",
+        "image": "/images/tasks/node-operator.png",
+        "status": "active",
+        "earnings_estimate": [
+          {
+            "name": "Single Node",
+            "min_earnings": 50,
+            "max_earnings": 150,
+            "period": "month",
+            "features": [
+              "Full node ownership",
+              "On-chain asset management",
+              "Direct validator rewards"
+            ],
+            "is_popular": false
+          },
+          {
+            "name": "Multi-Node",
+            "min_earnings": 150,
+            "max_earnings": 500,
+            "period": "month",
+            "features": [
+              "Fleet management",
+              "Lease licenses to operators",
+              "Compounding rewards"
+            ],
+            "is_popular": true
+          }
+        ],
+        "duration": "Continuous",
+        "difficulty": "medium",
+        "requirements": [
+          "UNO License NFT ownership",
+          "Web3 wallet (MetaMask, WalletConnect, or Coinbase)",
+          "Stable internet connection",
+          "Understanding of blockchain basics"
+        ],
+        "metadata": {
+          "category": "node_management",
+          "requires_nft": "true"
+        },
+        "direction": "ltr"
+      }
+    },
+    {
+      "content_type": "task",
+      "slug": "claim-license",
+      "status": "published",
+      "display_order": 3,
+      "is_featured": false,
+      "content": {
+        "title": "Claim a License",
+        "description": "Explore the Unetwork License Marketplace to choose and claim your license. Browse available licenses, check uptime requirements, and start earning network incentives.",
+        "image": "/images/tasks/claim-license.png",
+        "status": "active",
+        "earnings_estimate": [
+          {
+            "name": "Marketplace License",
+            "min_earnings": 5,
+            "max_earnings": 60,
+            "period": "month",
+            "features": [
+              "Quick claim process",
+              "Various license options",
+              "Flexible lease terms"
+            ],
+            "is_popular": true
+          }
+        ],
+        "duration": "One-time setup",
+        "difficulty": "easy",
+        "requirements": [
+          "Supported Android or iOS smartphone",
+          "Email address for sign-in",
+          "Accept license terms"
+        ],
+        "metadata": {
+          "category": "onboarding",
+          "marketplace": "true"
+        },
+        "direction": "ltr"
+      }
+    }
+  ],
+  "image_mappings": {
+    "1.png": {
+      "step": 1,
+      "title": "Welcome to Unetwork",
+      "description": "Welcome screen with Unetwork logo. Text: 'Generate Network Incentives by Verifying the Telecom Grid from Your Mobile Phone'. Button: 'GET STARTED'"
+    },
+    "2.png": {
+      "step": 2,
+      "title": "Choose role to get started",
+      "description": "Role selection screen with three options: Node Operator (manage on-chain nodes/licenses), License Operator (operate single/multiple licenses), Claim a License (explore marketplace)"
+    },
+    "3.png": {
+      "step": 3,
+      "title": "Access your Leased License",
+      "description": "Lease code entry screen for License Operators. Field: 'Enter Lease Code'. Button: 'CONTINUE'"
+    },
+    "4.png": {
+      "step": 4,
+      "title": "Sign In Options",
+      "description": "Authentication method selection. Options: 'Sign in with Web3' (Manage Licenses), 'Sign in with Email' (Manage Licenses)"
+    },
+    "5.png": {
+      "step": 5,
+      "title": "Sign In with your email",
+      "description": "Email sign-in form. Text: 'To manage your leased license please sign in with your email. Enter your email below and we'll send you a one-time code to continue.' Field: 'Your Email'"
+    },
+    "6.png": {
+      "step": 6,
+      "title": "Congratulations!",
+      "description": "Success screen with green checkmark. Text: 'You have successfully claimed this License'. Button: 'CONTINUE'"
+    },
+    "7.png": {
+      "step": 7,
+      "title": "Dashboard",
+      "description": "Main dashboard showing: Total Network Incentives (457), Earnings Today (564) and Last 7 Days (12,345), Proof of Work status (Service: Active, Switch/Validation Node: Connected), License info (0X89...3fa2), Activation status, Lease until date, Required Uptime (97.00% Daily)"
+    }
+  },
+  "pdf_sources": {
+    "5_ULO UNETWORK USER GUIDE 2026.pdf": "Requirements page - lists smartphone, internet connection, and account access requirements",
+    "7_UNETWORK USER GUIDE APR 2026.pdf": "UNO Login & Management flow - 5-step Web3 wallet sign-in process",
+    "9_UNETWORK USER GUIDE APR 2026.pdf": "ULO Login & Management flow - License Operator path with email/Web3 options",
+    "10_ULO UNETWORK USER GUIDE 2026.pdf": "Get a ULO License & Login - Claim a License marketplace flow",
+    "11_ULO UNETWORK USER GUIDE 2026.pdf": "Get a ULO License & Login - Terms acceptance and email verification",
+    "12_ULO UNETWORK USER GUIDE 2026.pdf": "Claim Private License-Code and Log-in - Private lease code redemption"
+  }
+}

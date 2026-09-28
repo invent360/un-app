@@ -1,0 +1,383 @@
+{
+  "description": "This page is a catalogue of how-to guides on getting started with Unetwork",
+  "name": "How-to guides in Unetwork",
+  "sections": [
+    {
+      "complexity": "easy",
+      "cover_images": ["gcs://rwa-app/guides/setup/1.png"],
+      "cover_videos": [],
+      "description": "This guide walks you through the complete process of installing and setting up the UNetwork app on a Redmi Note 10 device.",
+      "display_order": 0,
+      "estimated_time": "",
+      "highlights": [],
+      "is_visible": true,
+      "links": [],
+      "pre_steps": [],
+      "steps": [
+        {
+          "description": "Search for UNetwork App from Play Store",
+          "images": ["gcs://rwa-app/guides/setup/1.png"],
+          "order": 1,
+          "title": "Installing the app from Play Store"
+        },
+        {
+          "description": "On the Unetwork App page, you will see the app details including its 5.0 rating, PEGI 3 age rating, and 10k+ downloads. \nTap the Install button (highlighted with a red rectangle) to begin downloading and installing the app on your device.",
+          "images": ["gcs://rwa-app/guides/setup/2.png"],
+          "order": 2,
+          "title": "Install the app"
+        },
+        {
+          "description": "The app will begin downloading. You can see the download progress indicator at the top of the screen. The app is verified by Play Protect (highlighted with a red rectangle), confirming it's safe to install. Wait for the download and installation to complete.",
+          "images": ["gcs://rwa-app/guides/setup/3.png"],
+          "order": 3,
+          "title": "Wait for download"
+        },
+        {
+          "description": "Once installed, open the app. You will see the Welcome to Unetwork screen with the message \"Generate Network Incentives by Verifying the Telecom Grid from Your Mobile Phone.\" Tap the GET STARTED button (highlighted with a red rectangle) to begin the setup process.",
+          "images": ["gcs://rwa-app/guides/setup/4.png"],
+          "order": 4,
+          "title": "Initial app setup"
+        },
+        {
+          "description": "On the \"Choose role to get started\" screen, you have three options:\n- **Node Operator**: Manage nodes and licenses you own on-chain\n- **License Operator**: Operate a single or multiple licenses\n- **Claim a License**: Explore the marketplace to choose and claim yours\n\nSelect **License Operator** (highlighted with a red rectangle) to continue with the license operator setup.",
+          "images": ["gcs://rwa-app/guides/setup/5.png"],
+          "order": 5,
+          "title": "Choose your role"
+        },
+        {
+          "description": "The Sign In Options screen appears with three choices:\n- **Sign in with Web3**: For managing licenses with a Web3 wallet\n- **Sign In with Email**: For managing licenses using your email\n- **Enter a Lease Code**: If you have a code from a marketplace claim\n\nSelect **Sign In with Email** (highlighted with a red rectangle) to proceed with email authentication.",
+          "images": ["gcs://rwa-app/guides/setup/6.png"],
+          "order": 6,
+          "title": "Select sign-in method"
+        },
+        {
+          "description": "On the \"Sign In with your email\" screen, you will need to enter your email address to manage your leased license. The app will send a one-time code to verify your identity. Enter your email address in the Your Email field (highlighted with a red rectangle).",
+          "images": ["gcs://rwa-app/guides/setup/7.png"],
+          "order": 7,
+          "title": "Enter your email"
+        },
+        {
+          "description": "After entering your email, a Cloudflare CAPTCHA verification will appear. Click the checkbox next to \"Verify you are human\" (highlighted with a red rectangle) to prove you're not a bot. Wait for the verification to complete.",
+          "images": ["gcs://rwa-app/guides/setup/8.png"],
+          "order": 8,
+          "title": "Complete CAPTCHA verification"
+        },
+        {
+          "description": "Check your email inbox for the one-time verification code sent by UNetwork. Enter the code in the **One-Time Code** field (highlighted with a red rectangle), then tap the **VERIFY** button (also highlighted) to confirm your identity.",
+          "images": ["gcs://rwa-app/guides/setup/9.png"],
+          "order": 9,
+          "title": "Enter verification code"
+        },
+        {
+          "description": "Type your verification code into the input field (highlighted with a red rectangle). If you didn't receive the code, you can request a resend after the countdown timer expires. Once entered, tap the **VERIFY** button (highlighted with a red rectangle) to proceed.",
+          "images": ["gcs://rwa-app/guides/setup/10.png"],
+          "order": 10,
+          "title": "Enter the code and verify"
+        },
+        {
+          "description": "After verification, you will be taken to the main dashboard. This screen shows:\n- **Total Network Incentives**: Your current earnings balance\n- **Earnings**: Today's and last 7 days earnings\n- **Proof of Work**: Service status and node connection status\n\nNotice that **License** shows \"No License selected\" (highlighted with a red rectangle). You need to bind a license to enable Proof of Work. Tap the **Bind a License** button (highlighted with a red rectangle) to proceed.",
+          "images": ["gcs://rwa-app/guides/setup/11.1.png", "gcs://rwa-app/guides/setup/11.2.png"],
+          "order": 11,
+          "title": "Dashboard overview"
+        },
+        {
+          "description": "Alternatively, from the dashboard, tap the **menu icon** (three dots) in the bottom navigation bar (highlighted with a red rectangle) to access additional options.",
+          "images": ["gcs://rwa-app/guides/setup/12.png"],
+          "order": 12,
+          "title": "Open the menu (alternative path)"
+        },
+        {
+          "description": "In the menu that appears, you will see options including Homepage, Licenses, Messages, Unetwork Tasks, Work, Network Incentives, and Settings. Tap on **Work** (highlighted with a red rectangle) to access the license management section.",
+          "images": ["gcs://rwa-app/guides/setup/13.png"],
+          "order": 13,
+          "title": "Navigate to Work section"
+        },
+        {
+          "description": "On the Licenses screen, you have two options:\n- **Browse Marketplace**: To explore available licenses\n- **Access your Leased License**: To enter a lease code you already have\n\nIf you have a lease code, enter it in the **Enter Lease Code** field (highlighted with a red rectangle).",
+          "images": ["gcs://rwa-app/guides/setup/14.png"],
+          "order": 14,
+          "title": "Enter lease code"
+        },
+        {
+          "description": "After entering your lease code in the input field, tap the **CONTINUE** button (highlighted with a red rectangle) to validate and add the license to your account.",
+          "images": ["gcs://rwa-app/guides/setup/15.png"],
+          "order": 15,
+          "title": "Submit lease code"
+        },
+        {
+          "description": "A Cloudflare verification will appear again. Click the **\"Verify you are human\"** checkbox (highlighted with a red rectangle) to confirm you're not a bot and proceed with the license activation.",
+          "images": ["gcs://rwa-app/guides/setup/16.png"],
+          "order": 16,
+          "title": "Complete human verification"
+        },
+        {
+          "description": "After adding the license, a prompt will appear asking you to disable battery optimization to keep background work stable. This is important for maintaining your uptime. Tap **OPEN SETTINGS** (highlighted with a red rectangle) to configure battery settings.",
+          "images": ["gcs://rwa-app/guides/setup/17.png"],
+          "order": 17,
+          "title": "Battery optimization prompt"
+        },
+        {
+          "description": "In the Unetwork App Background Settings, you will see three options:\n- **No restrictions**: Battery saver doesn't restrict app's activity\n- **Battery saver (recommended)**: Identifies important processes and treats them selectively\n- **Restrict background apps**: Closes apps after 10 minutes of background activity\n\nSelect **Battery saver (recommended)** (highlighted with a red rectangle) to allow UNetwork to run efficiently while conserving battery.",
+          "images": ["gcs://rwa-app/guides/setup/18.png"],
+          "order": 18,
+          "title": "Select battery saver mode"
+        },
+        {
+          "description": "Your setup is now complete! The Licenses screen shows your active license (highlighted with a red rectangle) with:\n- **License ID**: Your unique license identifier (starting with 0x...)\n- **Device**: Android Bluedroid\n- **Uptime**: Current uptime percentage with progress bar\n- **Min. Uptime**: 80% minimum required\n\nThe green indicator shows your license is active and connected. You can now start earning Network Incentives through Proof of Work.",
+          "images": ["gcs://rwa-app/guides/setup/19.png"],
+          "order": 19,
+          "title": "License successfully bound"
+        },
+        {
+          "description": "Return to the main dashboard to verify everything is working. The **Proof of Work** section (highlighted with a red rectangle) now shows all systems operational:\n- **Service Status**: Active (green indicator)\n- **Switch Node**: Connected (green indicator)\n- **Validation Node**: Connected (green indicator)\n- **Attestation Level**: Hardware-verified (Reduced)\n- **License**: Your license ID (0x...)\n- **Lease**: Shows your lease expiration date\n- **Required Uptime**: 80.00% / Daily\n\nAll green indicators confirm your device is actively participating in the network.\n",
+          "images": ["gcs://rwa-app/guides/setup/20.png"],
+          "order": 20,
+          "title": "Proof of Work active"
+        },
+        {
+          "description": "You may see an information popup explaining the **\"Attestation Level: Hardware-verified (Reduced)\"** status. This appears because:\n- Your device passed hardware attestation, but the bootloader is unlocked (common on rooted devices or custom ROM installations)\n- The hardware-backed key is still genuine, but the looser operating-system integrity lowers the confidence level\n- You are partially attested for the current session\n\n**Note**: Re-locking the bootloader would restore the highest attestation level, but this is optional. Tap **Continue** to dismiss the popup and proceed with using the app.\n",
+          "images": [],
+          "order": 21,
+          "title": "Attestation level information"
+        },
+        {
+          "description": "You have successfully:\n1. Installed the UNetwork app from Google Play Store\n2. Created an account using email verification\n3. Added your license using a lease code\n4. Configured battery optimization for stable background operation\n5. Activated your license for Proof of Work\n6. Verified all nodes are connected and service is active\n\nYour device is now configured as a License Operator and will start contributing to the UNetwork and earning incentives.",
+          "images": [],
+          "order": 22,
+          "title": "Summary"
+        }
+      ],
+      "title": "Setup guide"
+    },
+    {
+      "complexity": "easy",
+      "cover_images": [],
+      "cover_videos": [],
+      "description": "Learn how to enable telemetry collection on your device",
+      "display_order": 1,
+      "estimated_time": "0",
+      "highlights": [],
+      "is_visible": true,
+      "links": [],
+      "pre_steps": [
+        0
+      ],
+      "steps": [
+        {
+          "description": "Launch the Unetwork app on your mobile device. You'll see the main dashboard with your current status and available tasks.",
+          "images": [],
+          "order": 1,
+          "title": "Open the Unetwork app"
+        },
+        {
+          "description": "Tap on the Tasks icon in the bottom navigation bar to view all available earning opportunities.",
+          "images": [],
+          "order": 2,
+          "title": "Navigate to tasks"
+        },
+        {
+          "description": "Connection to Unetwork is enabled by default and keeps your device continuously connected to participate in ongoing Unetwork tasks. No additional setup required!",
+          "images": [],
+          "order": 3,
+          "title": "Telemetry is always active"
+        }
+      ],
+      "title": "Telemetry activation guide"
+    },
+    {
+      "complexity": "easy",
+      "cover_images": [],
+      "cover_videos": [],
+      "description": "Step-by-step guide to enable Caller ID testing on your device",
+      "display_order": 2,
+      "estimated_time": "2",
+      "highlights": [],
+      "is_visible": true,
+      "links": [],
+      "pre_steps": [
+        0
+      ],
+      "steps": [
+        {
+          "description": "From the Unetwork Tasks screen, tap on 'Caller ID Testing' to view details and begin the activation process.",
+          "images": [],
+          "order": 1,
+          "title": "Select Caller ID testing"
+        },
+        {
+          "description": "Read through the process: 1) Opt in to participate, 2) Verify your phone number, 3) Receive test calls from our network, 4) You don't need to answer - missed calls count, 5) Report the Caller ID when prompted, 6) Earn rewards for each successful test. Then tap 'ACCEPT' to continue.",
+          "images": [],
+          "order": 2,
+          "title": "Review how it works"
+        },
+        {
+          "description": "Select your country code and enter your phone number to receive a verification code via SMS.",
+          "images": [],
+          "order": 3,
+          "title": "Enter your phone number"
+        },
+        {
+          "description": "Enter the 6-digit verification code sent to your phone and tap 'VERIFY' to complete the setup. Test calls may come from various international numbers.",
+          "images": [],
+          "order": 4,
+          "title": "Verify with OTP"
+        }
+      ],
+      "title": "Caller ID testing activation guide"
+    },
+    {
+      "complexity": "easy",
+      "cover_images": [],
+      "cover_videos": [],
+      "description": "Step-by-step guide to enable SMS testing on your device",
+      "display_order": 3,
+      "estimated_time": "2",
+      "highlights": [],
+      "is_visible": true,
+      "links": [],
+      "pre_steps": [
+        0
+      ],
+      "steps": [
+        {
+          "description": "From the Unetwork Tasks screen, tap on 'SMS Testing' to view details and begin the activation process.",
+          "images": [],
+          "order": 1,
+          "title": "Select SMS testing"
+        },
+        {
+          "description": "Read through the process: 1) Opt in to participate, 2) Verify your phone number, 3) Receive test SMS messages, 4) Report whether you received the message and its contents, 5) Earn rewards for each successful test. Then tap 'ACCEPT' to continue.",
+          "images": [],
+          "order": 2,
+          "title": "Review how it works"
+        },
+        {
+          "description": "Select your country code and enter your phone number to receive a verification code via SMS.",
+          "images": [],
+          "order": 3,
+          "title": "Enter your phone number"
+        },
+        {
+          "description": "Enter the 6-digit verification code sent to your phone and tap 'VERIFY' to complete the setup. Test messages may come from various international numbers.",
+          "images": [],
+          "order": 4,
+          "title": "Verify with OTP"
+        }
+      ],
+      "title": "SMS Testing activation guide"
+    },
+    {
+      "complexity": "",
+      "cover_images": ["gcs://rwa-app/guides/migration/0.png"],
+      "cover_videos": [],
+      "description": "This guide walks you through the process of migrating your Proof of Work license from the Unity App to the new Unetwork App on a Redmi Note 10 phone.",
+      "display_order": 4,
+      "estimated_time": "",
+      "highlights": [],
+      "is_visible": true,
+      "links": [],
+      "pre_steps": [
+        0
+      ],
+      "steps": [
+        {
+          "description": "Open the **Unetwork App**. On the homepage, you'll see the **Proof of Work** section showing:\n- **Service Status**: Stopped\n- **Switch Node**: Disconnected\n- **Validation Node**: Disconnected\n- **License**: No License selected\n\nTap the **\"Bind a License\"** button (highlighted) to begin the license binding process.\n",
+          "images": ["gcs://rwa-app/guides/migration/0.png"],
+          "order": 1,
+          "title": "Open the Unetwork app"
+        },
+        {
+          "description": "Alternatively, you can access the license binding through the navigation menu. Tap the **menu icon (three dots)** in the bottom-right corner of the screen (highlighted).",
+          "images": ["gcs://rwa-app/guides/migration/1.1.png"],
+          "order": 2,
+          "title": "Access the navigation menu"
+        },
+        {
+          "description": "From the navigation menu that appears, tap on **\"Work\"** (highlighted). This will take you to the license management screen.",
+          "images": ["gcs://rwa-app/guides/migration/1.2.png"],
+          "order": 3,
+          "title": "Navigate to Work section"
+        },
+        {
+          "description": "On the **Work** screen, you'll see a list of available licenses under **\"Select a License to Use\"**.\n\nLook for a license with **100% Min. Uptime** requirement (highlighted). This is typically the license you want to select for optimal Proof of Work performance. Each license shows:\n- Wallet address (starting with 0x...)\n- Minimum uptime percentage required\n",
+          "images": ["gcs://rwa-app/guides/migration/2.png"],
+          "order": 4,
+          "title": "Select your license"
+        },
+        {
+          "description": "After selecting your preferred license (the one with 100% uptime is now selected, as shown by the filled radio button), tap the **\"CONTINUE\"** button (highlighted) to proceed with binding the license to your device.",
+          "images": ["gcs://rwa-app/guides/migration/3.png"],
+          "order": 5,
+          "title": "Confirm license selection"
+        },
+        {
+          "description": "If you see the message **\"No licenses available yet\"** (highlighted), you'll need to either:\n- Purchase a license from the marketplace, OR\n- Enter a lease code if you have one\n\nTap **\"MANAGE LICENSES\"** (highlighted) to access license management options.\n",
+          "images": ["gcs://rwa-app/guides/migration/4.png"],
+          "order": 6,
+          "title": "Alternative: if no licenses are available"
+        },
+        {
+          "description": "On the **Licenses** screen, if you have a leased license, enter your lease code in the **\"Enter Lease Code\"** field (highlighted) under the \"Access your Leased License\" section, then tap **CONTINUE**.\n\nAlternatively, tap **\"Browse Marketplace\"** to purchase a new license.\n",
+          "images": ["gcs://rwa-app/guides/migration/5.png"],
+          "order": 7,
+          "title": "Enter lease code (if applicable)"
+        },
+        {
+          "description": "A **Battery optimization** dialog will appear. To ensure stable background operation for Proof of Work, tap **\"OPEN SETTINGS\"** (highlighted) to configure battery settings for the Unetwork App.\n",
+          "images": ["gcs://rwa-app/guides/migration/6.png"],
+          "order": 8,
+          "title": "Configure battery optimization"
+        },
+        {
+          "description": "In the **Unetwork App** battery settings, select **\"Battery saver (recommended)\"** (highlighted). This option:\n- Identifies apps and activities to keep important processes going\n- Treats important apps selectively\n- Ensures Proof of Work runs reliably in the background\n\n**Do not** select \"No restrictions\" or \"Restrict background apps/activity\" as these may interfere with Proof of Work operation.\n",
+          "images": ["gcs://rwa-app/guides/migration/7.png"],
+          "order": 9,
+          "title": "Set battery saver mode"
+        },
+        {
+          "description": "After configuration, return to the **Work** screen. You should now see all status indicators showing successful connection (highlighted area):\n- **Service Status**: Active (green)\n- **Switch Node**: Connected (green)\n- **Validation Node**: Connected (green)\n- **Attestation Level**: Hardware-verified (Reduced)\n- **License**: Your license address\n- **Lease**: Expiration date\n- **Required Uptime**: 100.00% / Daily\n",
+          "images": ["gcs://rwa-app/guides/migration/8.png"],
+          "order": 10,
+          "title": "Verify license binding in Work section"
+        },
+        {
+          "description": "Return to the **Unetwork App homepage**. The **Proof of Work** section (highlighted) should now display:\n- **Service Status**: Active (green)\n- **Switch Node**: Connected (green)\n- **Validation Node**: Connected (green)\n- Your license details and lease information\n\nYour license is now successfully migrated to the Unetwork App!\n",
+          "images": ["gcs://rwa-app/guides/migration/9.png"],
+          "order": 11,
+          "title": "Confirm on homepage"
+        },
+        {
+          "description": "You may see an information dialog about your **Attestation Level: Hardware-verified (Reduced)** (highlighted). This indicates:\n- Your device passed hardware attestation\n- The bootloader may be unlocked (common on rooted devices or custom OS installations)\n- The hardware-backed key is still genuine\n- You're partially attested for the current session\n\nTap **\"Continue\"** to proceed. Note: Re-locking the bootloader would restore the highest attestation level.\n",
+          "images": ["gcs://rwa-app/guides/migration/10.png"],
+          "order": 12,
+          "title": "Review attestation level (optional)"
+        },
+        {
+          "description": "Open the **Unity App** (notice the \"UNITY\" branding at the top, highlighted). Confirm that:\n- **Service Status**: Stopped\n- **Switch Node**: Disconnected (red)\n- **Validation Node**: Disconnected (red)\n- **License**: No License selected\n\nThis confirms the license has been successfully unbound from the Unity App.\n",
+          "images": ["gcs://rwa-app/guides/migration/11.png"],
+          "order": 13,
+          "title": "Verify Unity App is disconnected"
+        },
+        {
+          "description": "Go to your phone's **App Drawer**. You'll see both apps:\n- **Unetwork App** (highlighted) - Your new app with the active license\n- **Unity App** (highlighted) - The old app to be uninstalled\n",
+          "images": ["gcs://rwa-app/guides/migration/12.png"],
+          "order": 14,
+          "title": "Locate Unity App for uninstallation"
+        },
+        {
+          "description": "**Long-press** on the **Unity App** icon (highlighted). A context menu will appear with options:\n- Share\n- App info\n- **Uninstall** (highlighted)\n\nTap **\"Uninstall\"** to remove the Unity App.\n",
+          "images": ["gcs://rwa-app/guides/migration/13.png"],
+          "order": 15,
+          "title": "Initiate uninstallation"
+        },
+        {
+          "description": "A confirmation dialog will appear asking **\"Uninstall Unity App?\"** with a warning that uninstalling will remove all app data.\n\nTap **\"Uninstall\"** (highlighted) to confirm and complete the removal of the Unity App.\n",
+          "images": ["gcs://rwa-app/guides/migration/14.png"],
+          "order": 16,
+          "title": "Confirm uninstallation"
+        }
+      ],
+      "title": "Migrating your license from Unity App to Unetwork App"
+    }
+  ]
+}

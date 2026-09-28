@@ -1,0 +1,919 @@
+// ============================================
+// UNO App CSS Variable Compatibility Layer
+// ============================================
+// This file maps old variable names to ember-fx variables.
+// All actual theme values are defined in ember-fx presets:
+// /Users/admin/Dev-x/polkanight/ember/ember-fx/crates/styles/themes/presets/ant/
+//
+// To override ember-fx variables in this app, add overrides AFTER this file
+// is imported in main.scss.
+
+:root, [data-theme] {
+    // ============================================
+    // Landing Page Variables (from ember-fx)
+    // ============================================
+    // Fallback values ensure dark theme works before ember-fx CSS loads
+    --color-landing-bg-1: var(--fx-color-landing-bg1, #0a1628);
+    --color-landing-bg-2: var(--fx-color-landing-bg2, #0d1f32);
+    --color-landing-bg-3: var(--fx-color-landing-bg3, #0f2540);
+    --color-landing-card-bg: var(--fx-color-landing-card-bg, rgba(20, 40, 60, 0.6));
+    --color-landing-card-bg-hover: var(--fx-color-landing-card-bg-hover, rgba(15, 30, 48, 0.8));
+    --color-landing-gradient-start: var(--fx-color-landing-gradient-start, rgba(20, 35, 50, 0.9));
+    --color-landing-gradient-end: var(--fx-color-landing-gradient-end, rgba(15, 25, 38, 0.95));
+    --color-landing-card-gradient-start: var(--fx-color-landing-card-gradient-start, rgba(20, 40, 60, 0.6));
+    --color-landing-card-gradient-end: var(--fx-color-landing-card-gradient-end, rgba(15, 30, 48, 0.8));
+    --color-landing-card-gradient-start-strong: var(--fx-color-landing-card-gradient-start-strong, rgba(20, 40, 60, 0.8));
+    --color-landing-card-gradient-end-strong: var(--fx-color-landing-card-gradient-end-strong, rgba(15, 30, 48, 0.9));
+
+    // ============================================
+    // Glow Effects (from ember-fx)
+    // ============================================
+    --color-glow-primary: var(--fx-color-glow-primary, rgba(22, 119, 255, 0.4));
+    --color-glow-primary-soft: var(--fx-color-glow-primary-soft, rgba(22, 119, 255, 0.15));
+    --color-glow-primary-strong: var(--fx-color-glow-primary-strong, rgba(22, 119, 255, 0.6));
+    --color-glow-radial-bg: var(--fx-color-glow-radial-bg, rgba(22, 119, 255, 0.08));
+    --color-glow-radial-bg-soft: var(--fx-color-glow-radial-bg-soft, rgba(22, 119, 255, 0.05));
+    --color-glow-radial-bg-faint: var(--fx-color-glow-radial-bg-faint, rgba(22, 119, 255, 0.04));
+    --color-border-glow: var(--fx-color-border-glow, rgba(22, 119, 255, 0.5));
+    --color-border-glow-weak: var(--fx-color-border-glow-weak, rgba(22, 119, 255, 0.3));
+
+    // ============================================
+    // Phone Mockup (from ember-fx)
+    // ============================================
+    --color-phone-screen-bg-1: var(--fx-color-phone-screen-bg1, #0c1824);
+    --color-phone-screen-bg-2: var(--fx-color-phone-screen-bg2, #0a1420);
+    --color-phone-carousel-bg: var(--fx-color-phone-screen-bg1, #0c1824);
+    --color-highlight-gradient-end: var(--fx-color-highlight-gradient-end, #69b1ff);
+
+    // ============================================
+    // Spotlight Background (from ember-fx)
+    // ============================================
+    --color-bg-spotlight: var(--fx-color-bg-spotlight, #142c44);
+
+    // ============================================
+    // Core Colors (from ember-fx)
+    // ============================================
+    // Fallback values from dark-blue theme ensure dark theme works before ember-fx loads
+    --color-primary: var(--fx-color-primary, #1677ff);
+    --color-primary-hover: var(--fx-color-primary-hover, #4096ff);
+    --color-primary-active: var(--fx-color-primary-active, #0958d9);
+    --color-primary-text: var(--fx-color-primary-content, #ffffff);
+    --color-primary-bg: var(--fx-color-primary-bg, #0d1f32);
+
+    // ============================================
+    // Semantic Colors (from ember-fx)
+    // ============================================
+    --color-success: var(--fx-color-success, #52c41a);
+    --color-warning: var(--fx-color-warning, #faad14);
+    --color-error: var(--fx-color-error, #ff4d4f);
+    --color-info: var(--fx-color-info, #1677ff);
+
+    // ============================================
+    // Text Colors (from ember-fx)
+    // ============================================
+    // Dark theme: light text on dark backgrounds
+    --color-text: var(--fx-color-text, rgba(255, 255, 255, 0.88));
+    --color-text-secondary: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+    --color-text-muted: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+    --color-text-disabled: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+
+    // ============================================
+    // Background Colors (from ember-fx)
+    // ============================================
+    // Dark theme: dark blue backgrounds
+    --color-bg: var(--fx-color-bg-layout, #0a1628);
+    --color-bg-container: var(--fx-color-bg-container, #0d1f32);
+    --color-bg-elevated: var(--fx-color-bg-elevated, #0f2540);
+    --color-bg-card: var(--fx-color-bg-container, #0d1f32);
+    --color-bg-primary: var(--fx-color-bg-layout, #0a1628);
+    --color-bg-secondary: var(--fx-color-bg-container, #0d1f32);
+    --color-bg-tertiary: var(--fx-color-bg-elevated, #0f2540);
+
+    // ============================================
+    // Border Colors (from ember-fx)
+    // ============================================
+    --color-border: var(--fx-color-border, rgba(255, 255, 255, 0.12));
+    --color-border-secondary: var(--fx-color-border-secondary, rgba(255, 255, 255, 0.08));
+
+    // ============================================
+    // Spacing (from ember-fx)
+    // ============================================
+    --spacing-xxs: var(--fx-spacing-xxs, 4px);
+    --spacing-xs: var(--fx-spacing-xs, 8px);
+    --spacing-sm: var(--fx-spacing-sm, 12px);
+    --spacing-md: var(--fx-spacing-md, 16px);
+    --spacing-lg: var(--fx-spacing-lg, 24px);
+    --spacing-xl: var(--fx-spacing-xl, 32px);
+    --spacing-xxl: var(--fx-spacing-xxl, 48px);
+    --spacing-2xl: var(--fx-spacing-xxl, 48px);
+    --spacing-3xl: 64px; // Extended spacing
+
+    // ============================================
+    // Border Radius (from ember-fx)
+    // ============================================
+    --radius-sm: 2px;  // Minimal rounding
+    --radius-md: 4px;  // Minimal rounding
+    --radius-lg: 6px;  // Minimal rounding
+    --radius-xl: 8px;  // Minimal rounding
+
+    // ============================================
+    // Shadows (from ember-fx)
+    // ============================================
+    --shadow-sm: var(--fx-effect-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.5));
+    --shadow-md: var(--fx-effect-shadow-md, 0 4px 12px 0 rgba(0, 0, 0, 0.5));
+    --shadow-lg: var(--fx-effect-shadow-lg, 0 8px 24px 0 rgba(0, 0, 0, 0.6));
+
+    // ============================================
+    // Transitions (app-specific)
+    // ============================================
+    --transition-fast: 0.1s ease;
+    --transition-normal: 0.2s ease;
+    --transition-slow: 0.3s ease;
+}
+
+// ============================================
+// Guides Page Styles
+// ============================================
+.guides-page {
+    .guides-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: var(--spacing-lg);
+    }
+
+    // Client-only dynamic container
+    .guides-dynamic-container {
+        min-height: 200px;
+    }
+
+    // Loading state shown during SSR and before client hydration
+    .guides-loading-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+
+        .loading-text {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-md);
+        }
+    }
+
+    .guides-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-lg);
+
+        @media (max-width: 1024px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        @media (max-width: 640px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .guides-tip {
+        margin-top: var(--spacing-xl);
+        padding: var(--spacing-md) var(--spacing-lg);
+        background: var(--color-bg-container);
+        border-left: 4px solid var(--color-warning);
+        border-radius: var(--radius-md);
+        display: flex;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+
+        .tip-label {
+            font-weight: 600;
+            color: var(--color-warning);
+        }
+
+        .tip-text {
+            color: var(--color-text-secondary);
+        }
+    }
+}
+
+// ============================================
+// Guide Card Component (Header + Body with background image)
+// ============================================
+.guide-card {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-container);
+    border: 1px solid var(--color-border);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        border-color: var(--color-border-glow-weak);
+
+        .guide-card-media img {
+            transform: scale(1.08);
+        }
+    }
+}
+
+// Header section with title
+.guide-card-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--color-bg-elevated);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.guide-card-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1.3;
+}
+
+// Body section with background image
+.guide-card-body {
+    position: relative;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+}
+
+.guide-card-media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transition: transform var(--transition-slow);
+    }
+
+    // Dark overlay for better text readability
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1;
+    }
+
+    &.guide-card-media-hidden {
+        display: none;
+    }
+}
+
+// Hidden utility class for guide elements
+.guide-hidden {
+    display: none !important;
+}
+
+.guide-card-content {
+    position: relative;
+    z-index: 2;
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    flex: 1;
+    justify-content: flex-end;
+    min-height: 220px;
+}
+
+.guide-card-description {
+    margin: 0;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.guide-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+
+    // Style badge spans with glassmorphism effect
+    > span {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .guide-card-difficulty {
+        &[data-difficulty="easy"] {
+            background: rgba(82, 196, 26, 0.25);
+            color: #7dff5c;
+            border: 1px solid rgba(82, 196, 26, 0.4);
+        }
+
+        &[data-difficulty="medium"] {
+            background: rgba(250, 173, 20, 0.25);
+            color: #ffd666;
+            border: 1px solid rgba(250, 173, 20, 0.4);
+        }
+
+        &[data-difficulty="hard"] {
+            background: rgba(255, 77, 79, 0.25);
+            color: #ff7875;
+            border: 1px solid rgba(255, 77, 79, 0.4);
+        }
+    }
+
+    .guide-card-duration {
+        &::before {
+            content: "⏱ ";
+        }
+    }
+
+    .guide-card-steps {
+        &::before {
+            content: "📋 ";
+        }
+    }
+
+    // Badges container for complexity and estimated time
+    .guide-card-badges {
+        display: flex;
+        gap: var(--spacing-xs);
+        flex-wrap: wrap;
+    }
+
+    // Guide badge base styles
+    .guide-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        border-radius: 12px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    // Complexity badges
+    .guide-badge-easy {
+        background: rgba(236, 72, 153, 0.25);
+        color: #f472b6;
+        border: 1px solid rgba(236, 72, 153, 0.4);
+    }
+
+    .guide-badge-medium {
+        background: rgba(250, 173, 20, 0.25);
+        color: #ffd666;
+        border: 1px solid rgba(250, 173, 20, 0.4);
+    }
+
+    // Estimated time badge
+    .guide-badge-time {
+        background: rgba(59, 130, 246, 0.25);
+        color: #93c5fd;
+        border: 1px solid rgba(59, 130, 246, 0.4);
+
+        &::before {
+            content: "⏱ ";
+        }
+    }
+
+    // More button inline with badges
+    .guide-card-toggle {
+        margin-left: var(--spacing-xs);
+    }
+}
+
+// ============================================
+// Guide Modal - positioned below nav bar
+// ============================================
+.guide-modal-backdrop {
+    position: fixed;
+    top: 70px; // Below navigation bar
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: calc(100vh - 70px); // Subtract nav bar height
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: guide-modal-fade-in 0.2s ease-out;
+    padding: var(--spacing-md);
+    isolation: isolate;
+}
+
+@keyframes guide-modal-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes guide-modal-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.guide-modal {
+    position: relative;
+    z-index: 10000;
+    width: 85vw;
+    height: auto;
+    max-height: calc(100vh - 70px - 32px); // Full height minus nav bar and padding
+    max-width: 1200px;
+    background: var(--color-bg-container);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: guide-modal-scale-in 0.25s ease-out;
+
+    @media (max-width: 768px) {
+        width: 95vw;
+        max-height: calc(100vh - 70px - 24px);
+    }
+}
+
+.guide-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    flex-shrink: 0;
+}
+
+.guide-modal-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+
+    @media (max-width: 768px) {
+        font-size: 1.25rem;
+    }
+}
+
+.guide-modal-close {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+
+    &:hover {
+        background: var(--color-bg-elevated);
+        color: var(--color-text);
+        border-color: var(--color-border-glow-weak);
+    }
+}
+
+.guide-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 var(--spacing-md) var(--spacing-sm);
+
+    // Ensure stepper takes full width and remove top padding
+    .fx-guide-ant-stepper,
+    .fx-guide-ant-stepper-horizontal,
+    .fx-guide-ant-stepper-vertical,
+    .fx-guide-ant-stepper-panel-vertical,
+    .fx-guide-ant-stepper-toggleable {
+        width: 100%;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    // Reduce gaps in stepper nav
+    .fx-guide-ant-stepper-nav {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-top: 0 !important;
+        padding-bottom: 4px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .fx-guide-ant-stepper-nav-list {
+        width: max-content;
+        min-width: 100%;
+        padding: 8px 0 0 0 !important;
+    }
+
+    // Reduce gap between nav and content panel
+    .fx-guide-ant-stepper-content-vertical,
+    .fx-guide-ant-stepper-content-wrapper {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        gap: 0 !important;
+    }
+
+    // Keep horizontal gap for image + content layout
+    .fx-guide-ant-stepper-panel {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    // Target the step content area directly
+    .fx-guide-ant-stepper-content {
+        margin-top: 0 !important;
+        padding-top: 8px !important;
+    }
+
+    // Remove top padding from panels container
+    .fx-guide-ant-stepper-panels {
+        padding-top: 0 !important;
+    }
+
+    // Make content area wider in modal
+    .fx-guide-ant-stepper-content-vertical {
+        width: calc(100% - 60px);
+        padding: 0 16px 24px 16px;
+    }
+
+    .fx-guide-ant-stepper-content-vertical .fx-guide-ant-stepper-content {
+        width: 100%;
+        padding: 12px 24px;
+    }
+
+    @media (max-width: 768px) {
+        padding: 0 var(--spacing-md) var(--spacing-md);
+
+        .fx-guide-ant-stepper-content-vertical {
+            width: calc(100% - 48px);
+            padding: 0 8px 16px 8px;
+        }
+
+        .fx-guide-ant-stepper-content-vertical .fx-guide-ant-stepper-content {
+            padding: 16px;
+        }
+    }
+}
+
+.guide-modal-empty {
+    text-align: center;
+    color: var(--color-text-secondary);
+    padding: var(--spacing-xl);
+}
+
+// ============================================
+// Guide Prerequisites Screen
+// ============================================
+.guide-prereqs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-xl) var(--spacing-lg);
+    text-align: center;
+    min-height: 300px;
+    justify-content: center;
+}
+
+.guide-prereqs-icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(245, 158, 11, 0.15);
+    border-radius: 50%;
+    margin-bottom: var(--spacing-md);
+    color: #f59e0b;
+
+    svg {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+.guide-prereqs-title {
+    margin: 0 0 var(--spacing-xs);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.guide-prereqs-subtitle {
+    margin: 0 0 var(--spacing-lg);
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+}
+
+.guide-prereqs-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: var(--spacing-lg);
+}
+
+.guide-prereq-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    color: var(--color-text);
+    text-align: left;
+    width: 100%;
+
+    &:hover {
+        background: rgba(59, 130, 246, 0.2);
+        border-color: rgba(59, 130, 246, 0.5);
+        transform: translateY(-1px);
+    }
+}
+
+.guide-prereq-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(59, 130, 246, 0.2);
+    border-radius: var(--radius-sm);
+    color: #3b82f6;
+    flex-shrink: 0;
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.guide-prereq-title {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.guide-prereq-arrow {
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.guide-continue-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+
+    &:hover {
+        background: var(--color-primary-hover, #2563eb);
+        transform: translateY(-1px);
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+// ============================================
+// Tasks Page Styles - Override ember-fx defaults
+// ============================================
+.tasks-page {
+    // Client-only dynamic container
+    .tasks-dynamic-container {
+        min-height: 200px;
+    }
+
+    // Loading state shown during SSR and before client hydration
+    .tasks-loading-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+
+        .loading-text {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-md);
+        }
+    }
+}
+
+// Task Card overrides - reduce excessive gaps and paddings
+.fx-task-card-ant-toggle-wrapper {
+    padding: 8px 0 !important;
+    margin-top: 8px !important;
+}
+
+.fx-task-card-ant-summary .fx-task-card-ant-content-summary {
+    gap: 8px !important;
+    padding: 2px !important;
+}
+
+.fx-task-card-ant-content {
+    gap: 8px !important;
+}
+
+.fx-task-card-ant-content-summary {
+    gap: 8px !important;
+}
+
+// Summary mode task card - compact layout with duration/difficulty inline with earnings
+.fx-task-card-ant-summary {
+    .fx-task-card-ant-content-summary {
+        // Use CSS Grid to rearrange elements
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto auto auto auto !important;
+        grid-template-areas:
+            "title"
+            "desc"
+            "metarow"
+            "toggle" !important;
+        gap: 8px !important;
+        align-items: center !important;
+    }
+
+    // Title row spans full width
+    .fx-task-card-ant-header {
+        grid-area: title !important;
+    }
+
+    // Description spans full width
+    .fx-task-card-ant-description-truncated {
+        grid-area: desc !important;
+    }
+
+    // Meta row: Earnings | Task Type | Duration
+    .fx-task-card-ant-meta-row {
+        grid-area: metarow !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+
+    // Earnings on the left
+    .fx-task-card-ant-earnings-summary {
+        flex: 0 0 auto !important;
+    }
+
+    // Toggle button at the bottom
+    .fx-task-card-ant-toggle-wrapper {
+        grid-area: toggle !important;
+    }
+
+    // Compact duration styling
+    .fx-task-card-ant-duration {
+        display: inline-flex !important;
+        align-items: center !important;
+        padding: 6px 10px !important;
+        font-size: 0.8rem !important;
+        border-radius: 4px !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        white-space: nowrap !important;
+        gap: 4px !important;
+    }
+
+    // Compact difficulty badge in header
+    .fx-task-card-ant-difficulty {
+        padding: 4px 10px !important;
+        font-size: 0.7rem !important;
+        border-radius: 4px !important;
+    }
+}
+
+// Task type badge styles - rounded rectangle with different colors
+.fx-task-card-ant-task-type {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 6px 14px !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border-radius: 6px !important;
+    white-space: nowrap !important;
+}
+
+// Active task type - light green color
+.fx-task-card-ant-task-type-active {
+    background: rgba(82, 196, 26, 0.15) !important;
+    border: 1px solid rgba(82, 196, 26, 0.4) !important;
+    color: #73d13d !important;
+}
+
+// Passive task type - purple/violet color
+.fx-task-card-ant-task-type-passive {
+    background: rgba(147, 51, 234, 0.15) !important;
+    border: 1px solid rgba(147, 51, 234, 0.4) !important;
+    color: #c084fc !important;
+}
+
+// Easy difficulty - pinkish color (override green)
+.fx-task-card-ant-difficulty.fx-task-card-ant-difficulty-easy {
+    background: rgba(236, 72, 153, 0.15) !important;
+    color: #f472b6 !important;
+}
+
+// Also target it within summary cards
+.fx-task-card-ant .fx-task-card-ant-difficulty-easy {
+    background: rgba(236, 72, 153, 0.15) !important;
+    color: #f472b6 !important;
+}
+
+// Toggle button - unified blue button with icon + text
+.guide-card-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+
+    &:hover {
+        background: var(--color-primary-hover);
+        border-color: var(--color-primary-hover);
+    }
+
+    &:active {
+        background: var(--color-primary-active);
+        border-color: var(--color-primary-active);
+    }
+
+    // Reset icon wrapper - no visual separation
+    .guide-card-toggle-icon-circle {
+        display: contents; // Removes wrapper, children flow directly into parent
+
+        svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+    }
+
+    // Text - explicit white color
+    .guide-card-toggle-text {
+        font-size: inherit;
+        font-weight: inherit;
+        color: #fff !important;
+    }
+}

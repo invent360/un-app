@@ -1,0 +1,25 @@
+# Example terraform.tfvars for Americas region
+# Copy this file to terraform.tfvars and fill in the values
+
+project_id  = "your-gcp-project-id"
+region      = "us-central1"
+environment = "production"
+
+# K3s Configuration
+master_instance_type = "e2-small"
+worker_instance_type = "e2-small"
+worker_count         = 2
+k3s_version          = "v1.29.0+k3s1"
+# k3s_token          = "generate-a-secure-token"
+
+# SSH Configuration
+ssh_user       = "admin"
+# ssh_public_key = "ssh-rsa AAAA... user@host"
+ssh_allowed_ips = [
+  "YOUR.IP.ADDRESS.HERE/32"
+]
+
+# Database Configuration
+db_tier = "db-f1-micro"
+# db_password             = "generate-a-secure-password"
+# db_replication_password = "generate-another-secure-password"

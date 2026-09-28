@@ -1,0 +1,307 @@
+# Default values for uno-app
+# This is a YAML-formatted file.
+
+global:
+  namespace: uno-app
+
+# Region configuration
+region: americas
+provider: gcp
+databaseRole: primary  # primary or replica
+
+# Override names
+nameOverride: ""
+fullnameOverride: ""
+
+# Service Account
+serviceAccount:
+  create: true
+  name: "uno-app"
+  automountServiceAccountToken: false
+
+# Application configuration
+app:
+  replicaCount: 2
+
+  image:
+    repository: invent360/uno-app
+    tag: latest
+    pullPolicy: Always
+
+  # Resource requests and limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Environment variables
+  env:
+    leptosEnv: PROD
+    leptosSiteRoot: /app/site
+    rustLog: info
+    databaseMaxConnections: "10"
+    schedulerIntervalSecs: "60"
+    geoipDatabasePath: /data/GeoLite2-Country.mmdb
+
+  # Probes configuration
+  probes:
+    path: /api/v1/health
+    port: 3000
+    liveness:
+      initialDelaySeconds: 10
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+    startup:
+      initialDelaySeconds: 0
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 30
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 3000
+
+  # Node selector
+  nodeSelector: {}
+
+  # Tolerations
+  tolerations: []
+
+  # Pod anti-affinity
+  podAntiAffinity:
+    enabled: true
+    topologyKey: kubernetes.io/hostname
+
+  # Topology spread constraints
+  topologySpreadConstraints:
+    enabled: true
+    maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+
+  # Rolling update strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  # Security context
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    runAsNonRoot: true
+    fsGroup: 1000
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+# Horizontal Pod Autoscaler
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPU: 70
+  targetMemory: 80
+  scaleUp:
+    stabilizationWindowSeconds: 0
+    percentValue: 100
+    periodSeconds: 15
+  scaleDown:
+    stabilizationWindowSeconds: 300
+    percentValue: 10
+    periodSeconds: 60
+
+# Pod Disruption Budget
+pdb:
+  enabled: true
+  minAvailable: 1
+
+# Network Policies
+networkPolicy:
+  enabled: true
+  # PostgreSQL CIDR (private network)
+  postgresqlCIDR: "10.0.0.0/8"
+  # Cloudflare egress ports
+  cloudflareEgressPorts:
+    - 443
+    - 7844
+
+# Cloudflared tunnel configuration
+cloudflared:
+  enabled: true
+  namespace: cloudflared
+  replicaCount: 2
+
+  image:
+    repository: cloudflare/cloudflared
+    tag: latest
+    pullPolicy: Always
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+  securityContext:
+    runAsUser: 65532
+    runAsGroup: 65532
+    runAsNonRoot: true
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+  podAntiAffinity:
+    enabled: true
+    topologyKey: kubernetes.io/hostname
+
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+# Monitoring configuration (Grafana Agent)
+monitoring:
+  enabled: true
+  namespace: monitoring
+
+  grafanaAgent:
+    image:
+      repository: grafana/agent
+      tag: v0.38.0
+      pullPolicy: IfNotPresent
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+  grafanaCloud:
+    prometheusUrl: ""
+    lokiUrl: ""
+
+  # Scrape configurations
+  scrape:
+    interval: 60s
+    timeout: 10s
+
+  # Alert rules
+  alerts:
+    highErrorRate:
+      threshold: 0.01
+      duration: 5m
+    highLatency:
+      p95Threshold: 2
+      duration: 5m
+    podRestarts:
+      threshold: 3
+      duration: 1h
+    highCPU:
+      threshold: 80
+      duration: 10m
+    highMemory:
+      threshold: 85
+      duration: 10m
+
+# Database configuration
+database:
+  # Internal: in-cluster PostgreSQL (dev or self-managed prod)
+  internal:
+    enabled: false
+  # External: managed database service (Cloud SQL, RDS, etc.)
+  external:
+    enabled: true  # Default to external for safety
+
+# PostgreSQL sub-chart configuration (Bitnami)
+# Only deployed when database.internal.enabled=true
+db:
+  fullnameOverride: uno-db
+  # Authentication
+  auth:
+    username: uno_app
+    database: uno
+    existingSecret: "postgresql-credentials"
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+      replicationPasswordKey: replication-password
+
+  # Architecture: standalone (dev) or replication (prod HA)
+  architecture: standalone
+
+  # Primary configuration
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ""
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+      runAsNonRoot: true
+
+  # Read replicas (for HA mode)
+  readReplicas:
+    replicaCount: 0
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  # Metrics
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+
+  # Network policy
+  networkPolicy:
+    enabled: true
+    allowExternal: false
+
+  # Backup configuration
+  backup:
+    enabled: false
+    cronjob:
+      schedule: "0 2 * * *"
+      storage:
+        size: 10Gi

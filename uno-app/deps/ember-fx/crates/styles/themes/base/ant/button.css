@@ -1,0 +1,1133 @@
+/* ============================================
+   Ant Design - Button Component
+   ember-fx-components
+   Class naming: fx-btn-ant
+   ============================================ */
+
+/* Base button */
+.fx-btn-ant {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5715;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+  text-decoration: none;
+  white-space: nowrap;
+  font-family: inherit;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.fx-btn-ant:focus {
+  outline: none;
+}
+
+.fx-btn-ant:focus-visible {
+  box-shadow: 0 0 0 2px var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+}
+
+/* Button content wrapper */
+.fx-btn-ant-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ============================================
+   Variant: Default (no variant specified)
+   ============================================ */
+.fx-btn-ant-default {
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  border-color: var(--fx-color-border, #424242);
+}
+
+.fx-btn-ant-default:hover {
+  color: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-btn-ant-default:active {
+  color: var(--fx-color-primary-active, #0958d9);
+  border-color: var(--fx-color-primary-active, #0958d9);
+}
+
+/* ============================================
+   Variant: Primary
+   ============================================ */
+.fx-btn-ant-primary {
+  background: var(--fx-color-primary, #1677ff);
+  color: var(--fx-color-primary-content, #fff);
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-btn-ant-primary:hover {
+  background: var(--fx-color-primary-hover, #4096ff);
+  border-color: var(--fx-color-primary-hover, #4096ff);
+}
+
+.fx-btn-ant-primary:active {
+  background: var(--fx-color-primary-active, #0958d9);
+  border-color: var(--fx-color-primary-active, #0958d9);
+}
+
+/* ============================================
+   Variant: Secondary
+   ============================================ */
+.fx-btn-ant-secondary {
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  border-color: var(--fx-color-border, #424242);
+}
+
+.fx-btn-ant-secondary:hover {
+  color: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-btn-ant-secondary:active {
+  color: var(--fx-color-primary-active, #0958d9);
+  border-color: var(--fx-color-primary-active, #0958d9);
+}
+
+/* ============================================
+   Variant: Outline (Default in Ant Design)
+   ============================================ */
+.fx-btn-ant-outline {
+  background: transparent;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  border-color: var(--fx-color-border, #424242);
+}
+
+.fx-btn-ant-outline:hover {
+  color: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-btn-ant-outline:active {
+  color: var(--fx-color-primary-active, #0958d9);
+  border-color: var(--fx-color-primary-active, #0958d9);
+}
+
+/* ============================================
+   Variant: Ghost
+   ============================================ */
+.fx-btn-ant-ghost {
+  background: transparent;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  border-color: transparent;
+}
+
+.fx-btn-ant-ghost:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+}
+
+.fx-btn-ant-ghost:active {
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+}
+
+/* ============================================
+   Variant: Danger
+   ============================================ */
+.fx-btn-ant-danger {
+  background: var(--fx-color-error, #ff4d4f);
+  color: var(--fx-color-error-content, #ffffff);
+  border-color: var(--fx-color-error, #ff4d4f);
+}
+
+.fx-btn-ant-danger:hover {
+  background: var(--fx-color-error-hover, #ff7875);
+  border-color: var(--fx-color-error-hover, #ff7875);
+}
+
+.fx-btn-ant-danger:active {
+  background: var(--fx-color-error-active, #d9363e);
+  border-color: var(--fx-color-error-active, #d9363e);
+}
+
+/* ============================================
+   Variant: Link
+   ============================================ */
+.fx-btn-ant-link {
+  background: transparent;
+  color: var(--fx-color-primary, #1677ff);
+  border-color: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.fx-btn-ant-link:hover {
+  color: var(--fx-color-primary-hover, #4096ff);
+}
+
+.fx-btn-ant-link:active {
+  color: var(--fx-color-primary-active, #0958d9);
+}
+
+/* ============================================
+   Variant: Blue (Bright blue, high contrast)
+   ============================================ */
+.fx-btn-ant-blue {
+  background: var(--fx-color-primary-hover, #4096ff);
+  color: var(--fx-color-primary-content, #ffffff);
+  border-color: var(--fx-color-primary-hover, #4096ff);
+}
+
+.fx-btn-ant-blue:hover {
+  background: #69b1ff;
+  border-color: #69b1ff;
+}
+
+.fx-btn-ant-blue:active {
+  background: #0958d9;
+  border-color: #0958d9;
+}
+
+/* ============================================
+   Size Variants
+   ============================================ */
+.fx-btn-ant-xs {
+  padding: 0 7px;
+  font-size: 12px;
+  height: 22px;
+  border-radius: 4px;
+}
+
+.fx-btn-ant-sm {
+  padding: 0 7px;
+  font-size: 14px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.fx-btn-ant-md {
+  padding: 4px 15px;
+  font-size: 14px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.fx-btn-ant-lg {
+  padding: 7px 15px;
+  font-size: 16px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.fx-btn-ant-xl {
+  padding: 8px 20px;
+  font-size: 18px;
+  height: 48px;
+  border-radius: 8px;
+}
+
+/* ============================================
+   State Classes
+   ============================================ */
+.fx-btn-ant-disabled,
+.fx-btn-ant[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.fx-btn-ant-loading {
+  cursor: wait;
+  pointer-events: none;
+  position: relative;
+}
+
+.fx-btn-ant-loading .fx-btn-ant-content {
+  opacity: 0.65;
+}
+
+.fx-btn-ant-full {
+  width: 100%;
+}
+
+.fx-btn-ant-icon-only {
+  padding: 0;
+  aspect-ratio: 1;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+}
+
+.fx-btn-ant-icon-only .fx-btn-ant-content {
+  display: none;
+}
+
+.fx-btn-ant-icon-only .fx-btn-ant-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.fx-btn-ant-icon-only.fx-btn-ant-xs {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+}
+
+.fx-btn-ant-icon-only.fx-btn-ant-sm {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+
+.fx-btn-ant-icon-only.fx-btn-ant-lg {
+  width: 40px;
+  height: 40px;
+}
+
+.fx-btn-ant-icon-only.fx-btn-ant-xl {
+  width: 48px;
+  height: 48px;
+}
+
+/* ============================================
+   Loading Spinner
+   ============================================ */
+.fx-btn-ant-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: fx-btn-spin 1s linear infinite;
+  flex-shrink: 0;
+}
+
+.fx-btn-ant-xs .fx-btn-ant-spinner,
+.fx-btn-ant-sm .fx-btn-ant-spinner {
+  width: 12px;
+  height: 12px;
+}
+
+.fx-btn-ant-lg .fx-btn-ant-spinner {
+  width: 16px;
+  height: 16px;
+}
+
+.fx-btn-ant-xl .fx-btn-ant-spinner {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes fx-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   Button Shape Variants
+   ============================================ */
+.fx-btn-ant-circle {
+  border-radius: 50%;
+  padding: 0;
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.fx-btn-ant-circle.fx-btn-ant-xs {
+  min-width: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.fx-btn-ant-circle.fx-btn-ant-sm {
+  min-width: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.fx-btn-ant-circle.fx-btn-ant-lg {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+}
+
+.fx-btn-ant-circle.fx-btn-ant-xl {
+  min-width: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.fx-btn-ant-round {
+  border-radius: 32px;
+}
+
+.fx-btn-ant-round.fx-btn-ant-xs {
+  border-radius: 22px;
+}
+
+.fx-btn-ant-round.fx-btn-ant-sm {
+  border-radius: 24px;
+}
+
+.fx-btn-ant-round.fx-btn-ant-lg {
+  border-radius: 40px;
+}
+
+.fx-btn-ant-round.fx-btn-ant-xl {
+  border-radius: 48px;
+}
+
+/* ============================================
+   Button Group
+   ============================================ */
+.fx-btn-group-ant {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fx-btn-group-ant-vertical {
+  flex-direction: column;
+}
+
+.fx-btn-group-ant-attached {
+  gap: 0;
+}
+
+.fx-btn-group-ant-attached > .fx-btn-ant {
+  border-radius: 0;
+}
+
+.fx-btn-group-ant-attached > .fx-btn-ant:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.fx-btn-group-ant-attached > .fx-btn-ant:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* Remove double borders in attached group */
+.fx-btn-group-ant-attached > .fx-btn-ant:not(:first-child) {
+  margin-left: -1px;
+}
+
+.fx-btn-group-ant-attached.fx-btn-group-ant-vertical > .fx-btn-ant:first-child {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  border-bottom-left-radius: 0;
+}
+
+.fx-btn-group-ant-attached.fx-btn-group-ant-vertical > .fx-btn-ant:last-child {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  border-top-right-radius: 0;
+}
+
+.fx-btn-group-ant-attached.fx-btn-group-ant-vertical > .fx-btn-ant:not(:first-child) {
+  margin-left: 0;
+  margin-top: -1px;
+}
+
+/* Ghost button group - add subtle dividers */
+.fx-btn-group-ant-attached > .fx-btn-ant-ghost:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: var(--fx-color-border, #424242);
+}
+
+.fx-btn-group-ant-attached > .fx-btn-ant-ghost {
+  position: relative;
+}
+
+/* ============================================
+   Icon Button
+   ============================================ */
+.fx-btn-ant-icon {
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fx-btn-icon-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   Float Button
+   ============================================ */
+.fx-float-btn-ant {
+  position: absolute;
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: var(--fx-effect-shadow-lg, 0 6px 16px 0 rgba(0, 0, 0, 0.08));
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--fx-color-primary, #1677ff);
+  color: var(--fx-color-primary-content, #ffffff);
+  border: none;
+}
+
+.fx-float-btn-ant:hover {
+  transform: scale(1.05);
+  background: var(--fx-color-primary-hover, #4096ff);
+}
+
+.fx-float-btn-ant-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fx-float-btn-ant-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 11px;
+  line-height: 16px;
+  background: var(--fx-color-error, #ff4d4f);
+  color: var(--fx-color-error-content, #ffffff);
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Float Button Group */
+.fx-float-btn-group-ant {
+  position: absolute;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Speed Dial */
+.fx-speed-dial-ant {
+  position: absolute;
+  z-index: 99;
+}
+
+.fx-speed-dial-ant-trigger {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.fx-speed-dial-ant-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: absolute;
+}
+
+.fx-speed-dial-ant-action {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+/* Back Top */
+.fx-back-top-ant {
+  position: absolute;
+  z-index: 99;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #424242);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-back-top-ant-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.fx-back-top-ant:hover {
+  background: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+/* Split Button */
+.fx-split-btn-ant {
+  display: inline-flex;
+  position: relative;
+}
+
+/* Primary/main button - remove right border radius */
+.fx-split-btn-ant-primary {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Dropdown trigger button - remove left border radius, add divider */
+.fx-split-btn-ant-dropdown-btn {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  min-width: auto !important;
+}
+
+/* Primary/Danger/Blue variant - translucent white divider */
+.fx-split-btn-ant-dropdown-btn.fx-btn-ant-primary,
+.fx-split-btn-ant-dropdown-btn.fx-btn-ant-danger,
+.fx-split-btn-ant-dropdown-btn.fx-btn-ant-blue {
+  border-left: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Secondary/Outline/Default/Ghost variant - use border color divider */
+.fx-split-btn-ant-dropdown-btn.fx-btn-ant-secondary,
+.fx-split-btn-ant-dropdown-btn.fx-btn-ant-outline,
+.fx-split-btn-ant-dropdown-btn.fx-btn-ant-default,
+.fx-split-btn-ant-dropdown-btn.fx-btn-ant-ghost {
+  border-left: 1px solid var(--fx-color-border, #424242) !important;
+}
+
+.fx-split-btn-ant-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 160px;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: 6px;
+  box-shadow: var(--fx-effect-shadow-lg, 0 6px 16px 0 rgba(0, 0, 0, 0.08));
+  z-index: 1000;
+  display: none;
+}
+
+.fx-split-btn-ant-open .fx-split-btn-ant-menu {
+  display: block;
+}
+
+.fx-split-btn-ant-menu-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-split-btn-ant-menu-item:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+}
+
+.fx-split-btn-ant-menu-item:first-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.fx-split-btn-ant-menu-item:last-child {
+  border-radius: 0 0 6px 6px;
+}
+
+.fx-split-btn-ant-menu-divider {
+  height: 1px;
+  background: var(--fx-color-border, #424242);
+  margin: 4px 0;
+}
+
+/* ============================================
+   Dashed Variant (Legacy)
+   ============================================ */
+.fx-btn-ant-dashed {
+  background: transparent;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  border-color: var(--fx-color-border, #424242);
+  border-style: dashed;
+}
+
+.fx-btn-ant-dashed:hover {
+  color: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-btn-ant-dashed:active {
+  color: var(--fx-color-primary-active, #0958d9);
+  border-color: var(--fx-color-primary-active, #0958d9);
+}
+
+/* ============================================
+   Text Variant (Legacy)
+   ============================================ */
+.fx-btn-ant-text {
+  background: transparent;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  border-color: transparent;
+}
+
+.fx-btn-ant-text:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+}
+
+.fx-btn-ant-text:active {
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+}
+
+/* ============================================
+   MODERN API: Color Classes
+   ============================================ */
+
+/* Color: Default */
+.fx-btn-ant-color-default {
+  --btn-color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  --btn-color-hover: var(--fx-color-primary, #1677ff);
+  --btn-color-active: var(--fx-color-primary-active, #0958d9);
+  --btn-bg: var(--fx-color-bg-elevated, #1f1f1f);
+  --btn-bg-hover: var(--fx-color-bg-elevated, #1f1f1f);
+  --btn-bg-active: var(--fx-color-bg-elevated, #1f1f1f);
+  --btn-border: var(--fx-color-border, #424242);
+  --btn-border-hover: var(--fx-color-primary, #1677ff);
+  --btn-border-active: var(--fx-color-primary-active, #0958d9);
+}
+
+/* Color: Primary */
+.fx-btn-ant-color-primary {
+  --btn-color: var(--fx-color-primary-content, #ffffff);
+  --btn-color-hover: var(--fx-color-primary-content, #ffffff);
+  --btn-color-active: var(--fx-color-primary-content, #ffffff);
+  --btn-bg: var(--fx-color-primary, #1677ff);
+  --btn-bg-hover: var(--fx-color-primary-hover, #4096ff);
+  --btn-bg-active: var(--fx-color-primary-active, #0958d9);
+  --btn-border: var(--fx-color-primary, #1677ff);
+  --btn-border-hover: var(--fx-color-primary-hover, #4096ff);
+  --btn-border-active: var(--fx-color-primary-active, #0958d9);
+  --btn-text-color: var(--fx-color-primary, #1677ff);
+  --btn-text-hover: var(--fx-color-primary-hover, #4096ff);
+  --btn-text-active: var(--fx-color-primary-active, #0958d9);
+  --btn-fill-bg: rgba(22, 119, 255, 0.15);
+  --btn-fill-bg-hover: rgba(22, 119, 255, 0.25);
+}
+
+/* Color: Danger */
+.fx-btn-ant-color-danger {
+  --btn-color: var(--fx-color-error-content, #ffffff);
+  --btn-color-hover: var(--fx-color-error-content, #ffffff);
+  --btn-color-active: var(--fx-color-error-content, #ffffff);
+  --btn-bg: var(--fx-color-error, #ff4d4f);
+  --btn-bg-hover: var(--fx-color-error-hover, #ff7875);
+  --btn-bg-active: var(--fx-color-error-active, #d9363e);
+  --btn-border: var(--fx-color-error, #ff4d4f);
+  --btn-border-hover: var(--fx-color-error-hover, #ff7875);
+  --btn-border-active: var(--fx-color-error-active, #d9363e);
+  --btn-text-color: var(--fx-color-error, #ff4d4f);
+  --btn-text-hover: var(--fx-color-error-hover, #ff7875);
+  --btn-text-active: var(--fx-color-error-active, #d9363e);
+  --btn-fill-bg: rgba(255, 77, 79, 0.15);
+  --btn-fill-bg-hover: rgba(255, 77, 79, 0.25);
+}
+
+/* Preset Colors */
+.fx-btn-ant-color-pink {
+  --btn-color: var(--fx-color-primary-content, #ffffff);
+  --btn-bg: #eb2f96;
+  --btn-bg-hover: #f759ab;
+  --btn-bg-active: #c41d7f;
+  --btn-border: #eb2f96;
+  --btn-border-hover: #f759ab;
+  --btn-border-active: #c41d7f;
+  --btn-text-color: #eb2f96;
+  --btn-text-hover: #f759ab;
+  --btn-fill-bg: rgba(235, 47, 150, 0.15);
+  --btn-fill-bg-hover: rgba(235, 47, 150, 0.25);
+}
+
+.fx-btn-ant-color-purple {
+  --btn-color: var(--fx-color-primary-content, #ffffff);
+  --btn-bg: #722ed1;
+  --btn-bg-hover: #9254de;
+  --btn-bg-active: #531dab;
+  --btn-border: #722ed1;
+  --btn-border-hover: #9254de;
+  --btn-border-active: #531dab;
+  --btn-text-color: #722ed1;
+  --btn-text-hover: #9254de;
+  --btn-fill-bg: rgba(114, 46, 209, 0.15);
+  --btn-fill-bg-hover: rgba(114, 46, 209, 0.25);
+}
+
+.fx-btn-ant-color-cyan {
+  --btn-color: var(--fx-color-primary-content, #ffffff);
+  --btn-bg: #13c2c2;
+  --btn-bg-hover: #36cfc9;
+  --btn-bg-active: #08979c;
+  --btn-border: #13c2c2;
+  --btn-border-hover: #36cfc9;
+  --btn-border-active: #08979c;
+  --btn-text-color: #13c2c2;
+  --btn-text-hover: #36cfc9;
+  --btn-fill-bg: rgba(19, 194, 194, 0.15);
+  --btn-fill-bg-hover: rgba(19, 194, 194, 0.25);
+}
+
+.fx-btn-ant-color-blue {
+  --btn-color: var(--fx-color-primary-content, #ffffff);
+  --btn-bg: #1677ff;
+  --btn-bg-hover: #4096ff;
+  --btn-bg-active: #0958d9;
+  --btn-border: #1677ff;
+  --btn-border-hover: #4096ff;
+  --btn-border-active: #0958d9;
+  --btn-text-color: #1677ff;
+  --btn-text-hover: #4096ff;
+  --btn-fill-bg: rgba(22, 119, 255, 0.15);
+  --btn-fill-bg-hover: rgba(22, 119, 255, 0.25);
+}
+
+.fx-btn-ant-color-green {
+  --btn-color: var(--fx-color-success-content, #ffffff);
+  --btn-bg: #52c41a;
+  --btn-bg-hover: #73d13d;
+  --btn-bg-active: #389e0d;
+  --btn-border: #52c41a;
+  --btn-border-hover: #73d13d;
+  --btn-border-active: #389e0d;
+  --btn-text-color: #52c41a;
+  --btn-text-hover: #73d13d;
+  --btn-fill-bg: rgba(82, 196, 26, 0.15);
+  --btn-fill-bg-hover: rgba(82, 196, 26, 0.25);
+}
+
+.fx-btn-ant-color-orange {
+  --btn-color: var(--fx-color-warning-content, #ffffff);
+  --btn-bg: #fa8c16;
+  --btn-bg-hover: #ffa940;
+  --btn-bg-active: #d46b08;
+  --btn-border: #fa8c16;
+  --btn-border-hover: #ffa940;
+  --btn-border-active: #d46b08;
+  --btn-text-color: #fa8c16;
+  --btn-text-hover: #ffa940;
+  --btn-fill-bg: rgba(250, 140, 22, 0.15);
+  --btn-fill-bg-hover: rgba(250, 140, 22, 0.25);
+}
+
+.fx-btn-ant-color-red {
+  --btn-color: var(--fx-color-error-content, #ffffff);
+  --btn-bg: #f5222d;
+  --btn-bg-hover: #ff4d4f;
+  --btn-bg-active: #cf1322;
+  --btn-border: #f5222d;
+  --btn-border-hover: #ff4d4f;
+  --btn-border-active: #cf1322;
+  --btn-text-color: #f5222d;
+  --btn-text-hover: #ff4d4f;
+  --btn-fill-bg: rgba(245, 34, 45, 0.15);
+  --btn-fill-bg-hover: rgba(245, 34, 45, 0.25);
+}
+
+.fx-btn-ant-color-yellow {
+  --btn-color: rgba(0, 0, 0, 0.88);
+  --btn-bg: #fadb14;
+  --btn-bg-hover: #ffec3d;
+  --btn-bg-active: #d4b106;
+  --btn-border: #fadb14;
+  --btn-border-hover: #ffec3d;
+  --btn-border-active: #d4b106;
+  --btn-text-color: #d4b106;
+  --btn-text-hover: #fadb14;
+  --btn-fill-bg: rgba(250, 219, 20, 0.15);
+  --btn-fill-bg-hover: rgba(250, 219, 20, 0.25);
+}
+
+.fx-btn-ant-color-lime {
+  --btn-color: rgba(0, 0, 0, 0.88);
+  --btn-bg: #a0d911;
+  --btn-bg-hover: #bae637;
+  --btn-bg-active: #7cb305;
+  --btn-border: #a0d911;
+  --btn-border-hover: #bae637;
+  --btn-border-active: #7cb305;
+  --btn-text-color: #7cb305;
+  --btn-text-hover: #a0d911;
+  --btn-fill-bg: rgba(160, 217, 17, 0.15);
+  --btn-fill-bg-hover: rgba(160, 217, 17, 0.25);
+}
+
+.fx-btn-ant-color-magenta {
+  --btn-color: var(--fx-color-primary-content, #ffffff);
+  --btn-bg: #eb2f96;
+  --btn-bg-hover: #f759ab;
+  --btn-bg-active: #c41d7f;
+  --btn-border: #eb2f96;
+  --btn-border-hover: #f759ab;
+  --btn-border-active: #c41d7f;
+  --btn-text-color: #eb2f96;
+  --btn-text-hover: #f759ab;
+  --btn-fill-bg: rgba(235, 47, 150, 0.15);
+  --btn-fill-bg-hover: rgba(235, 47, 150, 0.25);
+}
+
+.fx-btn-ant-color-volcano {
+  --btn-color: var(--fx-color-primary-content, #ffffff);
+  --btn-bg: #fa541c;
+  --btn-bg-hover: #ff7a45;
+  --btn-bg-active: #d4380d;
+  --btn-border: #fa541c;
+  --btn-border-hover: #ff7a45;
+  --btn-border-active: #d4380d;
+  --btn-text-color: #fa541c;
+  --btn-text-hover: #ff7a45;
+  --btn-fill-bg: rgba(250, 84, 28, 0.15);
+  --btn-fill-bg-hover: rgba(250, 84, 28, 0.25);
+}
+
+.fx-btn-ant-color-gold {
+  --btn-color: rgba(0, 0, 0, 0.88);
+  --btn-bg: #faad14;
+  --btn-bg-hover: #ffc53d;
+  --btn-bg-active: #d48806;
+  --btn-border: #faad14;
+  --btn-border-hover: #ffc53d;
+  --btn-border-active: #d48806;
+  --btn-text-color: #d48806;
+  --btn-text-hover: #faad14;
+  --btn-fill-bg: rgba(250, 173, 20, 0.15);
+  --btn-fill-bg-hover: rgba(250, 173, 20, 0.25);
+}
+
+/* ============================================
+   MODERN API: Style Variant Classes
+   ============================================ */
+
+/* Variant: Solid */
+.fx-btn-ant-variant-solid {
+  background: var(--btn-bg);
+  color: var(--btn-color, #fff);
+  border-color: var(--btn-border);
+}
+
+.fx-btn-ant-variant-solid:hover {
+  background: var(--btn-bg-hover);
+  border-color: var(--btn-border-hover);
+}
+
+.fx-btn-ant-variant-solid:active {
+  background: var(--btn-bg-active);
+  border-color: var(--btn-border-active);
+}
+
+/* Variant: Outlined */
+.fx-btn-ant-variant-outlined {
+  background: transparent;
+  color: var(--btn-text-color, var(--fx-color-text, rgba(255, 255, 255, 0.85)));
+  border-color: var(--btn-border, var(--fx-color-border, #424242));
+}
+
+.fx-btn-ant-variant-outlined:hover {
+  color: var(--btn-text-hover, var(--fx-color-primary, #1677ff));
+  border-color: var(--btn-border-hover, var(--fx-color-primary, #1677ff));
+}
+
+.fx-btn-ant-variant-outlined:active {
+  color: var(--btn-text-active, var(--fx-color-primary-active, #0958d9));
+  border-color: var(--btn-border-active, var(--fx-color-primary-active, #0958d9));
+}
+
+/* Variant: Dashed */
+.fx-btn-ant-variant-dashed {
+  background: transparent;
+  color: var(--btn-text-color, var(--fx-color-text, rgba(255, 255, 255, 0.85)));
+  border-color: var(--btn-border, var(--fx-color-border, #424242));
+  border-style: dashed;
+}
+
+.fx-btn-ant-variant-dashed:hover {
+  color: var(--btn-text-hover, var(--fx-color-primary, #1677ff));
+  border-color: var(--btn-border-hover, var(--fx-color-primary, #1677ff));
+}
+
+.fx-btn-ant-variant-dashed:active {
+  color: var(--btn-text-active, var(--fx-color-primary-active, #0958d9));
+  border-color: var(--btn-border-active, var(--fx-color-primary-active, #0958d9));
+}
+
+/* Variant: Filled (light background) */
+.fx-btn-ant-variant-filled {
+  background: var(--btn-fill-bg, var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04)));
+  color: var(--btn-text-color, var(--fx-color-text, rgba(255, 255, 255, 0.85)));
+  border-color: transparent;
+}
+
+.fx-btn-ant-variant-filled:hover {
+  background: var(--btn-fill-bg-hover, var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06)));
+  color: var(--btn-text-hover, var(--fx-color-primary, #1677ff));
+}
+
+.fx-btn-ant-variant-filled:active {
+  background: var(--btn-fill-bg-hover);
+  color: var(--btn-text-active, var(--fx-color-primary-active, #0958d9));
+}
+
+/* Variant: Text */
+.fx-btn-ant-variant-text {
+  background: transparent;
+  color: var(--btn-text-color, var(--fx-color-text, rgba(255, 255, 255, 0.85)));
+  border-color: transparent;
+}
+
+.fx-btn-ant-variant-text:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+  color: var(--btn-text-hover, var(--fx-color-primary, #1677ff));
+}
+
+.fx-btn-ant-variant-text:active {
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+  color: var(--btn-text-active, var(--fx-color-primary-active, #0958d9));
+}
+
+/* Variant: Link */
+.fx-btn-ant-variant-link {
+  background: transparent;
+  color: var(--btn-text-color, var(--fx-color-primary, #1677ff));
+  border-color: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.fx-btn-ant-variant-link:hover {
+  color: var(--btn-text-hover, var(--fx-color-primary-hover, #4096ff));
+}
+
+.fx-btn-ant-variant-link:active {
+  color: var(--btn-text-active, var(--fx-color-primary-active, #0958d9));
+}
+
+/* ============================================
+   Ghost Modifier (transparent background)
+   ============================================ */
+.fx-btn-ant-ghost {
+  background: transparent !important;
+}
+
+.fx-btn-ant-ghost.fx-btn-ant-variant-solid,
+.fx-btn-ant-ghost.fx-btn-ant-primary,
+.fx-btn-ant-ghost.fx-btn-ant-danger,
+.fx-btn-ant-ghost.fx-btn-ant-blue {
+  color: var(--btn-border, var(--fx-color-primary, #1677ff));
+}
+
+.fx-btn-ant-ghost.fx-btn-ant-variant-solid:hover,
+.fx-btn-ant-ghost.fx-btn-ant-primary:hover,
+.fx-btn-ant-ghost.fx-btn-ant-danger:hover,
+.fx-btn-ant-ghost.fx-btn-ant-blue:hover {
+  color: var(--btn-border-hover, var(--fx-color-primary-hover, #4096ff));
+  border-color: var(--btn-border-hover, var(--fx-color-primary-hover, #4096ff));
+}
+
+/* ============================================
+   Block Modifier (full width)
+   ============================================ */
+.fx-btn-ant-block {
+  width: 100%;
+  display: flex;
+}
+
+/* ============================================
+   Icon Support
+   ============================================ */
+.fx-btn-ant-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fx-btn-ant-icon svg {
+  width: 1em;
+  height: 1em;
+}
+
+.fx-btn-ant-with-icon {
+  gap: 8px;
+}
+
+.fx-btn-ant-icon-end {
+  flex-direction: row-reverse;
+}
+
+/* ============================================
+   Default styles for color-default + variant-outlined
+   (fallback when modern API used without specific color)
+   ============================================ */
+.fx-btn-ant-color-default.fx-btn-ant-variant-outlined {
+  background: transparent;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  border-color: var(--fx-color-border, #424242);
+}
+
+.fx-btn-ant-color-default.fx-btn-ant-variant-outlined:hover {
+  color: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-btn-ant-color-default.fx-btn-ant-variant-solid {
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  border-color: var(--fx-color-border, #424242);
+}
+
+.fx-btn-ant-color-default.fx-btn-ant-variant-solid:hover {
+  color: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .fx-btn-ant {
+    transition: none;
+  }
+
+  .fx-btn-ant-spinner {
+    animation: none;
+  }
+}

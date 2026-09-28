@@ -1,0 +1,101 @@
+# Production High Availability Database Configuration
+# Use this overlay with any prod strategy for self-managed HA PostgreSQL
+#
+# Usage:
+#   helm upgrade --install uno-app . \
+#     -f values.yaml \
+#     -f values-strategy-europe.yaml \
+#     -f values-database-ha.yaml \
+#     -n uno-app
+#
+# Prerequisites:
+#   kubectl create secret generic postgresql-credentials \
+#     --from-literal=postgres-password=<ADMIN_PASSWORD> \
+#     --from-literal=password=<USER_PASSWORD> \
+#     --from-literal=replication-password=<REPLICATION_PASSWORD> \
+#     -n uno-app
+
+database:
+  internal:
+    enabled: true
+  external:
+    enabled: false
+
+# PostgreSQL HA configuration
+db:
+  fullnameOverride: uno-db
+  architecture: replication
+
+  auth:
+    existingSecret: "postgresql-credentials"
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+      replicationPasswordKey: replication-password
+
+  # Primary node configuration
+  primary:
+    persistence:
+      enabled: true
+      size: 50Gi
+      storageClass: ""  # Use "fast-ssd" or similar for production
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+    # Spread primary across nodes
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: db
+                app.kubernetes.io/component: primary
+            topologyKey: kubernetes.io/hostname
+
+  # Read replica configuration
+  readReplicas:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 50Gi
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    # Spread replicas across nodes/zones
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: db
+              topologyKey: kubernetes.io/hostname
+
+  # Enable Prometheus metrics
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+
+  # Network policy for security
+  networkPolicy:
+    enabled: true
+    allowExternal: false
+
+  # Backup configuration
+  backup:
+    enabled: true
+    cronjob:
+      schedule: "0 */6 * * *"  # Every 6 hours
+      storage:
+        size: 100Gi

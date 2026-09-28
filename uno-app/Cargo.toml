@@ -1,0 +1,180 @@
+[package]
+name = "uno-app"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Leptos framework
+leptos = { version = "0.8" }
+leptos_meta = { version = "0.8" }
+leptos_router = { version = "0.8" }
+leptos_actix = { version = "0.8", optional = true }
+
+# Actix web server
+actix-web = { version = "4", optional = true, features = ["macros"] }
+actix-files = { version = "0.6", optional = true }
+actix-rt = { version = "2", optional = true }
+actix-multipart = { version = "0.7", optional = true }
+futures-util = { version = "0.3", optional = true }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "chrono", "uuid", "migrate"], optional = true }
+deadpool-postgres = { version = "0.14", optional = true }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+
+# CSV parsing
+csv = { version = "1.3", optional = true }
+
+# Async runtime
+tokio = { version = "1", features = ["full"], optional = true }
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Async traits
+async-trait = "0.1"
+
+# Validation
+validator = { version = "0.18", features = ["derive"] }
+regex = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"], optional = true }
+
+# Localization
+phf = { version = "0.11", features = ["macros"] }
+
+# Flag icons
+ember-fx-icons = { path = "deps/ember-fx/crates/icons", features = ["flags", "tabler-document", "tabler-system"], optional = true }
+
+# UI Components (Carousel, Button, Modal, Card, Collapse, Spinner, Wizard, etc.)
+ember-fx-components = { path = "deps/ember-fx/crates/components", features = ["media", "button", "layout", "panel", "notification", "form", "input", "task", "guide"], optional = true }
+
+# Theme context and providers
+ember-fx-core = { path = "deps/ember-fx/crates/core", optional = true }
+
+# Utilities (a11y, DOM helpers)
+ember-fx-utils = { path = "deps/ember-fx/crates/utils", optional = true }
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+urlencoding = "2.1"
+uuid = { version = "1", features = ["v4", "serde", "js"] }
+rand = "0.9"
+hex = "0.4"
+sha2 = "0.10"
+
+# WASM
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = { version = "0.4", optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
+console_error_panic_hook = "0.1"
+web-sys = { version = "0.3", features = ["Window", "Document", "Element", "HtmlElement", "Navigator", "Clipboard", "Location", "Storage", "MediaQueryList"], optional = true }
+gloo-timers = { version = "0.3", features = ["futures"], optional = true }
+
+# Config
+dotenvy = { version = "0.15", optional = true }
+
+# License Management API
+uno-api = { path = "deps/uno-api", features = ["services", "auth"], optional = true }
+
+# GeoIP lookup
+maxminddb = { version = "0.24", optional = true }
+
+# File storage for cloud uploads (GCS, S3, etc.)
+file-storage = { path = "deps/file-storage", features = ["gcs"], optional = true }
+
+[features]
+default = []
+csr = ["leptos/csr", "dep:web-sys", "dep:wasm-bindgen-futures", "dep:gloo-timers", "dep:serde-wasm-bindgen", "dep:ember-fx-icons", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-utils", "ember-fx-components/csr", "ember-fx-core/csr"]
+hydrate = ["leptos/hydrate", "dep:web-sys", "dep:wasm-bindgen-futures", "dep:gloo-timers", "dep:serde-wasm-bindgen", "dep:ember-fx-icons", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-utils", "ember-fx-components/hydrate", "ember-fx-core/hydrate"]
+ssr = [
+    "dep:actix-web",
+    "dep:actix-files",
+    "dep:actix-rt",
+    "dep:actix-multipart",
+    "dep:futures-util",
+    "dep:leptos_actix",
+    "dep:sqlx",
+    "dep:deadpool-postgres",
+    "dep:csv",
+    "dep:tokio",
+    "dep:dotenvy",
+    "dep:tracing-subscriber",
+    "dep:ember-fx-icons",
+    "dep:ember-fx-components",
+    "dep:ember-fx-core",
+    "dep:ember-fx-utils",
+    "dep:uno-api",
+    "dep:maxminddb",
+    "dep:file-storage",
+    "ember-fx-components/ssr",
+    "ember-fx-core/ssr",
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+]
+
+# Optimized WASM profile
+[profile.wasm-release]
+inherits = "release"
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"
+
+# Release profile
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[package.metadata.leptos]
+bin-target = "uno-app"
+output-name = "uno-app"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "style/main.scss"
+assets-dir = "assets"
+site-addr = "0.0.0.0:3000"
+reload-port = 3001
+end2end-cmd = "npx playwright test"
+end2end-dir = "end2end"
+browserquery = "defaults"
+env = "DEV"
+bin-features = ["ssr"]
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+lib-profile-release = "wasm-release"
+
+# WASM-specific dependencies (getrandom needs wasm_js feature for WASM builds)
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.3", features = ["wasm_js"] }
+
+[dev-dependencies]
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+proptest = "1.4"
+test-case = "3.3"
+pretty_assertions = "1.4"
+mockall = "0.12"
+
+[[bin]]
+name = "migrate-images"
+path = "scripts/migrate_images_to_gcs.rs"
+required-features = ["ssr"]
+
+[[bin]]
+name = "generate-storage-updates"
+path = "scripts/generate_storage_url_updates.rs"
+required-features = ["ssr"]

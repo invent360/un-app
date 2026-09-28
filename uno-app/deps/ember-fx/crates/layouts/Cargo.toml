@@ -1,0 +1,33 @@
+[package]
+name = "ember-fx-layouts"
+description = "Modular app shell layouts for ember-fx"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default = ["csr", "ant"]
+csr = ["leptos/csr", "ember-fx-core/csr"]
+ssr = ["leptos/ssr", "ember-fx-core/ssr"]
+hydrate = ["leptos/hydrate", "ember-fx-core/hydrate"]
+
+# Design system features
+ant = ["ember-fx-styles/ant"]
+material = ["ember-fx-styles/material"]
+cupertino = ["ember-fx-styles/cupertino"]
+all-systems = ["ant", "material", "cupertino"]
+
+[dependencies]
+ember-fx-common = { workspace = true }
+ember-fx-core = { workspace = true }
+ember-fx-styles = { workspace = true }
+leptos = { workspace = true }
+leptos_router = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = { version = "0.3", features = ["Window"] }
+wasm-bindgen = "0.2"

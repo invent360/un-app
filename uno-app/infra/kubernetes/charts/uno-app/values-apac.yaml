@@ -1,0 +1,17 @@
+# APAC region values (DigitalOcean sgp1)
+# Read replica region
+
+region: apac
+provider: digitalocean
+databaseRole: replica
+
+app:
+  nodeSelector:
+    region: apac
+
+  resources:
+    limits:
+      memory: 384Mi
+
+hpa:
+  maxReplicas: 4

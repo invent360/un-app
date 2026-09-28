@@ -1,0 +1,352 @@
+{
+  "title": "Connectivity Verification (Scout And Runner): ScoutQuest",
+  "description": "Learn how to perform ScoutQuest tasks to research and submit international prepaid call plans for rewards",
+  "difficulty": "easy",
+  "duration_minutes": 10,
+  "steps": [
+    {
+      "order": 1,
+      "title": "Open Unetwork App",
+      "description": "Launch the Unetwork app. You'll see your dashboard displaying your Total Network Incentives, earnings, and Proof of Work status including Service Status, Switch Node, and Validation Node connections.",
+      "image": "0.png"
+    },
+    {
+      "order": 2,
+      "title": "Navigate to Tasks",
+      "description": "Tap the Tasks icon in the bottom navigation bar to view available Unetwork tasks. You'll see options including Connection to Unetwork, Caller ID Testing, SMS Testing, and Connectivity Verification.",
+      "image": "1.png"
+    },
+    {
+      "order": 3,
+      "title": "Select Connectivity Verification",
+      "description": "Tap on 'Connectivity Verification' to check signal strength in your area. This will open the Scout & Runner portal by APEX Telecom.",
+      "image": "1.png"
+    },
+    {
+      "order": 4,
+      "title": "Choose Sign In Method",
+      "description": "Select how you want to access Unetwork. You can either 'Sign In With Web3' using your Ethereum-compatible wallet, or 'Sign In with Email' to receive a one-time verification code.",
+      "image": "2.png"
+    },
+    {
+      "order": 5,
+      "title": "Enter Your Email",
+      "description": "If you chose email sign-in, enter your Unetwork account email address and tap 'Continue'. You can also download the Unetwork app from the App Store or Google Play if needed.",
+      "image": "3.png"
+    },
+    {
+      "order": 6,
+      "title": "Check Your Email",
+      "description": "Open your email inbox and find the message from Unetwork containing your one-time login code. The code is 6 digits and expires within one hour.",
+      "image": "4.png"
+    },
+    {
+      "order": 7,
+      "title": "Enter Verification Code",
+      "description": "Enter the 6-digit verification code from your email into the input fields. If you didn't receive the code, you can tap 'Resend' after the timer expires.",
+      "image": "5.png"
+    },
+    {
+      "order": 8,
+      "title": "Select Your License",
+      "description": "Choose which Unetwork license you want to use during the alpha testing phase. Each license shows your device type and current uptime percentage. Select one that meets the minimum 30% uptime requirement.",
+      "image": "6.png"
+    },
+    {
+      "order": 9,
+      "title": "Choose Scout Role",
+      "description": "Select how you'd like to participate. As a 'Scout', you'll research and validate call routes by finding qualifying SIMs and call plans. Tap 'Continue as Scout' to proceed with ScoutQuest.",
+      "image": "7.png"
+    },
+    {
+      "order": 10,
+      "title": "Understand ScoutQuest",
+      "description": "Review the ScoutQuest overview. Your task is to identify prepaid international call plans. You'll research SIMs/eSIMs, submit plan details for approval, and earn 5 UP per approved submission (up to 50 UP for 10 approvals). No purchase or calling required.",
+      "image": "8.png"
+    },
+    {
+      "order": 11,
+      "title": "Start a New Plan Submission",
+      "description": "Tap '+ new plan' to begin. In Step 1 (Getting Started), paste any information you have about the plan - carrier marketing copy, support chat text, screenshot text, URL, or notes. The system will extract details automatically.",
+      "image": "9.png"
+    },
+    {
+      "order": 12,
+      "title": "Paste Plan Information",
+      "description": "Paste the plan details into the text field. Include the carrier name, plan name, costs, included countries, minutes, and any add-ons. You can paste a URL or raw text. Then tap 'Parse data' to auto-extract or 'Continue manually'.",
+      "image": "10.png"
+    },
+    {
+      "order": 13,
+      "title": "Review Parsed Data",
+      "description": "Review the quick summary of extracted details including Carrier, Plan Name, Cost (SIM and plan), SIM Type, Plan URL, and Coverage. If anything needs correction, tap 'Back to edit'. Otherwise, tap 'Continue to review'.",
+      "image": "11.png"
+    },
+    {
+      "order": 14,
+      "title": "Edit Plan Details",
+      "description": "In Step 2 (Plan Details), verify and edit the extracted information. Fill in the URL link, Carrier or Brand Name, International Call Plan Name, Currency, SIM/eSIM Cost, and Call Plan Cost. Check the accuracy checkbox when done.",
+      "image": "12.png"
+    },
+    {
+      "order": 15,
+      "title": "Add International Add-On (If Required)",
+      "description": "If the plan requires an international prepaid add-on to make international calls, toggle the switch ON and enter the Add-On Call Plan Name and Add-On Cost. This applies to plans where international minutes are sold separately.",
+      "image": "13.png"
+    },
+    {
+      "order": 16,
+      "title": "Handle Similar Plans",
+      "description": "If a similar plan already exists in the system, you'll see a 'Similar plan found' modal. Review the existing plans listed. You can tap 'Back to edit' to modify your submission or 'Continue as new plan' if yours is genuinely different.",
+      "image": "14.png"
+    },
+    {
+      "order": 17,
+      "title": "Review Country Coverage",
+      "description": "In Step 3 (Select Country), review the pre-filled countries for this plan. The system auto-populates countries based on your submitted information. Remove any incorrect countries by tapping the X on each tag.",
+      "image": "15.png"
+    },
+    {
+      "order": 18,
+      "title": "Add Missing Countries",
+      "description": "If countries are missing, type in the search field to find and add them. You can also specify total minutes for these countries or toggle 'Unlimited' if the plan offers unlimited calling.",
+      "image": "16.png"
+    },
+    {
+      "order": 19,
+      "title": "Search and Add Countries",
+      "description": "Type country names to search and add them to your list. Click on a country from the dropdown to add it. Continue until all supported countries are included.",
+      "image": "17.png"
+    },
+    {
+      "order": 20,
+      "title": "Confirm Country Coverage",
+      "description": "Review your final country list and minutes allocation. Toggle 'Unlimited' if applicable. Check the confirmation box stating the country list is accurate and countries are not 'landline only'. Tap 'Confirm and continue'.",
+      "image": "18.png"
+    },
+    {
+      "order": 21,
+      "title": "Review Submission Summary",
+      "description": "In Step 4 (Submit Report), review your complete submission including Plan Details, Coverage (countries and minutes), and Cost breakdown. You can tap 'Edit' on any section to make changes.",
+      "image": "19.png"
+    },
+    {
+      "order": 22,
+      "title": "Upload Evidence",
+      "description": "Upload clear proof showing: Carrier or Brand name, Plan/SIM name (and add-on if applicable), Total cost (SIM, plan, and any add-ons), and Included voice minutes and countries. Upload JPG, PNG, or PDF files (max 5MB each).",
+      "image": "20.png"
+    },
+    {
+      "order": 23,
+      "title": "Confirm and Submit",
+      "description": "Before submitting, a final confirmation modal appears. Check both boxes: 'I confirm all details match my proof' and 'I understand incorrect information may lead to rejection'. Tap 'Confirm and submit' to send for review.",
+      "image": "21.png"
+    },
+    {
+      "order": 24,
+      "title": "Submission Successful",
+      "description": "After submission, you'll see a confirmation screen showing your submitted plan details. The status will show 'Review pending' as it awaits Admin review for accuracy and consistency. UPs are granted only after successful review and approval.",
+      "image": "24.png"
+    },
+    {
+      "order": 25,
+      "title": "Track Your Submissions",
+      "description": "View your submissions in the 'My Submissions' tab. Each submission shows the carrier, plan name, SIM cost, package cost, minutes, and region. Status badges indicate 'Pending' or 'Approved'. Use filters to sort by status or country.",
+      "image": "25.png"
+    },
+    {
+      "order": 26,
+      "title": "Monitor Approval Progress",
+      "description": "Track your progress toward the 50 UP reward goal. The dashboard shows 'Approved Plans Progress' with visual indicators for each of your 10 possible submissions. Your total UPs gained appears in the sidebar.",
+      "image": "26.png"
+    },
+    {
+      "order": 27,
+      "title": "Earn Rewards",
+      "description": "Once you've submitted 10 approved call plans, you'll earn the maximum 50 UP credited to your license. A congratulations message will display showing your achievement and total UP earned.",
+      "image": "22.png"
+    },
+    {
+      "order": 28,
+      "title": "View All Approved Submissions",
+      "description": "Your ScoutQuest Results dashboard displays all your submissions in a grid view. Each card shows the carrier, plan details, costs, and approval status. Continue adding new plans while ScoutQuest is active (check 'Time left to closing').",
+      "image": "27.png"
+    }
+  ]
+}
+{
+  "title": "Connectivity Verification (Scout And Runner): ScoutQuest",
+  "description": "Learn how to perform ScoutQuest tasks to research and submit international prepaid call plans for rewards",
+  "difficulty": "easy",
+  "duration_minutes": 10,
+  "steps": [
+    {
+      "order": 1,
+      "title": "Open Unetwork App",
+      "description": "Launch the Unetwork app. You'll see your dashboard displaying your Total Network Incentives, earnings, and Proof of Work status including Service Status, Switch Node, and Validation Node connections.",
+      "image": "0.png"
+    },
+    {
+      "order": 2,
+      "title": "Navigate to Tasks",
+      "description": "Tap the Tasks icon in the bottom navigation bar to view available Unetwork tasks. You'll see options including Connection to Unetwork, Caller ID Testing, SMS Testing, and Connectivity Verification.",
+      "image": "1.png"
+    },
+    {
+      "order": 3,
+      "title": "Select Connectivity Verification",
+      "description": "Tap on 'Connectivity Verification' to check signal strength in your area. This will open the Scout & Runner portal by APEX Telecom.",
+      "image": "1.png"
+    },
+    {
+      "order": 4,
+      "title": "Choose Sign In Method",
+      "description": "Select how you want to access Unetwork. You can either 'Sign In With Web3' using your Ethereum-compatible wallet, or 'Sign In with Email' to receive a one-time verification code.",
+      "image": "2.png"
+    },
+    {
+      "order": 5,
+      "title": "Enter Your Email",
+      "description": "If you chose email sign-in, enter your Unetwork account email address and tap 'Continue'. You can also download the Unetwork app from the App Store or Google Play if needed.",
+      "image": "3.png"
+    },
+    {
+      "order": 6,
+      "title": "Check Your Email",
+      "description": "Open your email inbox and find the message from Unetwork containing your one-time login code. The code is 6 digits and expires within one hour.",
+      "image": "4.png"
+    },
+    {
+      "order": 7,
+      "title": "Enter Verification Code",
+      "description": "Enter the 6-digit verification code from your email into the input fields. If you didn't receive the code, you can tap 'Resend' after the timer expires.",
+      "image": "5.png"
+    },
+    {
+      "order": 8,
+      "title": "Select Your License",
+      "description": "Choose which Unetwork license you want to use during the alpha testing phase. Each license shows your device type and current uptime percentage. Select one that meets the minimum 30% uptime requirement.",
+      "image": "6.png"
+    },
+    {
+      "order": 9,
+      "title": "Choose Scout Role",
+      "description": "Select how you'd like to participate. As a 'Scout', you'll research and validate call routes by finding qualifying SIMs and call plans. Tap 'Continue as Scout' to proceed with ScoutQuest.",
+      "image": "7.png"
+    },
+    {
+      "order": 10,
+      "title": "Understand ScoutQuest",
+      "description": "Review the ScoutQuest overview. Your task is to identify prepaid international call plans. You'll research SIMs/eSIMs, submit plan details for approval, and earn 5 UP per approved submission (up to 50 UP for 10 approvals). No purchase or calling required.",
+      "image": "8.png"
+    },
+    {
+      "order": 11,
+      "title": "Start a New Plan Submission",
+      "description": "Tap '+ new plan' to begin. In Step 1 (Getting Started), paste any information you have about the plan - carrier marketing copy, support chat text, screenshot text, URL, or notes. The system will extract details automatically.",
+      "image": "9.png"
+    },
+    {
+      "order": 12,
+      "title": "Paste Plan Information",
+      "description": "Paste the plan details into the text field. Include the carrier name, plan name, costs, included countries, minutes, and any add-ons. You can paste a URL or raw text. Then tap 'Parse data' to auto-extract or 'Continue manually'.",
+      "image": "10.png"
+    },
+    {
+      "order": 13,
+      "title": "Review Parsed Data",
+      "description": "Review the quick summary of extracted details including Carrier, Plan Name, Cost (SIM and plan), SIM Type, Plan URL, and Coverage. If anything needs correction, tap 'Back to edit'. Otherwise, tap 'Continue to review'.",
+      "image": "11.png"
+    },
+    {
+      "order": 14,
+      "title": "Edit Plan Details",
+      "description": "In Step 2 (Plan Details), verify and edit the extracted information. Fill in the URL link, Carrier or Brand Name, International Call Plan Name, Currency, SIM/eSIM Cost, and Call Plan Cost. Check the accuracy checkbox when done.",
+      "image": "12.png"
+    },
+    {
+      "order": 15,
+      "title": "Add International Add-On (If Required)",
+      "description": "If the plan requires an international prepaid add-on to make international calls, toggle the switch ON and enter the Add-On Call Plan Name and Add-On Cost. This applies to plans where international minutes are sold separately.",
+      "image": "13.png"
+    },
+    {
+      "order": 16,
+      "title": "Handle Similar Plans",
+      "description": "If a similar plan already exists in the system, you'll see a 'Similar plan found' modal. Review the existing plans listed. You can tap 'Back to edit' to modify your submission or 'Continue as new plan' if yours is genuinely different.",
+      "image": "14.png"
+    },
+    {
+      "order": 17,
+      "title": "Review Country Coverage",
+      "description": "In Step 3 (Select Country), review the pre-filled countries for this plan. The system auto-populates countries based on your submitted information. Remove any incorrect countries by tapping the X on each tag.",
+      "image": "15.png"
+    },
+    {
+      "order": 18,
+      "title": "Add Missing Countries",
+      "description": "If countries are missing, type in the search field to find and add them. You can also specify total minutes for these countries or toggle 'Unlimited' if the plan offers unlimited calling.",
+      "image": "16.png"
+    },
+    {
+      "order": 19,
+      "title": "Search and Add Countries",
+      "description": "Type country names to search and add them to your list. Click on a country from the dropdown to add it. Continue until all supported countries are included.",
+      "image": "17.png"
+    },
+    {
+      "order": 20,
+      "title": "Confirm Country Coverage",
+      "description": "Review your final country list and minutes allocation. Toggle 'Unlimited' if applicable. Check the confirmation box stating the country list is accurate and countries are not 'landline only'. Tap 'Confirm and continue'.",
+      "image": "18.png"
+    },
+    {
+      "order": 21,
+      "title": "Review Submission Summary",
+      "description": "In Step 4 (Submit Report), review your complete submission including Plan Details, Coverage (countries and minutes), and Cost breakdown. You can tap 'Edit' on any section to make changes.",
+      "image": "19.png"
+    },
+    {
+      "order": 22,
+      "title": "Upload Evidence",
+      "description": "Upload clear proof showing: Carrier or Brand name, Plan/SIM name (and add-on if applicable), Total cost (SIM, plan, and any add-ons), and Included voice minutes and countries. Upload JPG, PNG, or PDF files (max 5MB each).",
+      "image": "20.png"
+    },
+    {
+      "order": 23,
+      "title": "Confirm and Submit",
+      "description": "Before submitting, a final confirmation modal appears. Check both boxes: 'I confirm all details match my proof' and 'I understand incorrect information may lead to rejection'. Tap 'Confirm and submit' to send for review.",
+      "image": "21.png"
+    },
+    {
+      "order": 24,
+      "title": "Submission Successful",
+      "description": "After submission, you'll see a confirmation screen showing your submitted plan details. The status will show 'Review pending' as it awaits Admin review for accuracy and consistency. UPs are granted only after successful review and approval.",
+      "image": "24.png"
+    },
+    {
+      "order": 25,
+      "title": "Track Your Submissions",
+      "description": "View your submissions in the 'My Submissions' tab. Each submission shows the carrier, plan name, SIM cost, package cost, minutes, and region. Status badges indicate 'Pending' or 'Approved'. Use filters to sort by status or country.",
+      "image": "25.png"
+    },
+    {
+      "order": 26,
+      "title": "Monitor Approval Progress",
+      "description": "Track your progress toward the 50 UP reward goal. The dashboard shows 'Approved Plans Progress' with visual indicators for each of your 10 possible submissions. Your total UPs gained appears in the sidebar.",
+      "image": "26.png"
+    },
+    {
+      "order": 27,
+      "title": "Earn Rewards",
+      "description": "Once you've submitted 10 approved call plans, you'll earn the maximum 50 UP credited to your license. A congratulations message will display showing your achievement and total UP earned.",
+      "image": "22.png"
+    },
+    {
+      "order": 28,
+      "title": "View All Approved Submissions",
+      "description": "Your ScoutQuest Results dashboard displays all your submissions in a grid view. Each card shows the carrier, plan details, costs, and approval status. Continue adding new plans while ScoutQuest is active (check 'Time left to closing').",
+      "image": "27.png"
+    }
+  ]
+}

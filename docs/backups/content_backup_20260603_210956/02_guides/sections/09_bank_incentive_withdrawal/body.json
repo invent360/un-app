@@ -1,0 +1,110 @@
+{
+  "guide": {
+    "content_type": "guide",
+    "slug": "incentive-withdrawal-guide",
+    "status": "published",
+    "display_order": 2,
+    "is_featured": true,
+    "content": {
+      "title": "Incentive Withdrawal Guide",
+      "description": "Learn how to withdraw your generated Network Incentives as cryptocurrency or to your bank account using the Unetwork web management panel.",
+      "thumbnail": "/images/withdrawal/1.png",
+      "duration_minutes": 5,
+      "difficulty": "easy",
+      "direction": "ltr",
+      "requirements": [
+        "Active Unetwork account with earned incentives",
+        "Minimum $5.00 USD (5 UPs) available for withdrawal",
+        "Valid crypto wallet address (for crypto withdrawal)",
+        "Bank account details (for bank transfer withdrawal)"
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "title": "View Your Dashboard",
+          "description": "From your Unetwork dashboard, you can see your Total Network Incentives and earnings summary. This shows your cumulative rewards, today's earnings, and last 7 days performance. Navigate to the Withdrawals section from the sidebar menu to proceed with your withdrawal.",
+          "image": "/images/withdrawal/1.png"
+        },
+        {
+          "order": 2,
+          "title": "Access Withdrawals",
+          "description": "In the Withdrawals section, you can view your Redeemable Incentives (available to withdraw) and Total Incentives earned. The page shows your Previous Withdrawals history with transaction details and status. Click the 'Withdraw Incentives' button at the bottom to start a new withdrawal.\n\n**Note:** The minimum withdrawal amount is $5.00 USD (1 UP = $1.00 USD).",
+          "image": "/images/withdrawal/2.png"
+        },
+        {
+          "order": 3,
+          "title": "Enter Withdrawal Details",
+          "description": "On the Claim Incentive page, fill in your withdrawal details:\n\n- **Amount**: Enter the amount you wish to redeem (or click 'Max' for full balance)\n- **Wallet Address**: Enter your destination crypto wallet address\n- **Payout Type**: Select your preferred blockchain network (Ethereum, Binance Chain, Solana, Ripple XRP, or Cardano)\n- **Asset**: Choose the cryptocurrency asset (BNB, USDT, or USDC)\n\n**Important:** Enter a valid crypto address. Crypto sent to the wrong address cannot be recovered. Ensure you are using the correct network and a secure wallet.",
+          "image": "/images/withdrawal/3.png"
+        },
+        {
+          "order": 4,
+          "title": "Confirm Your Withdrawal",
+          "description": "Review your withdrawal details in the confirmation modal:\n\n- **Quote expires in**: Time remaining to confirm (the exchange rate is locked for this duration)\n- **Amount**: The USD amount being withdrawn\n- **Fee**: Transaction fee (if any)\n- **Asset**: The cryptocurrency you selected\n- **Asset Amount**: The exact amount of crypto you will receive\n\nClick 'Confirm' to complete your withdrawal. The transaction will be processed and you can track its status in your Previous Withdrawals list.",
+          "image": "/images/withdrawal/4.png"
+        },
+        {
+          "order": 5,
+          "title": "Bank Account Registration (Optional)",
+          "description": "If you prefer to withdraw directly to your bank account instead of crypto, navigate to the 'Bank Account Registration' tab. Select your Country of Residence from the dropdown menu. Available regions include:\n\n- **Asia**: India, Singapore, Malaysia, Thailand, Indonesia, Philippines, Vietnam\n- **Africa**: Nigeria, Kenya, South Africa, Ghana, Egypt\n- **South America**: Brazil\n\n**Note:** Changing your country will reset the form. Make sure to select the correct country before proceeding.",
+          "image": "/images/withdrawal/5.0.png"
+        },
+        {
+          "order": 6,
+          "title": "Enter Banking Details",
+          "description": "After selecting your country, complete the Bank Account Registration form with your details:\n\n- **Full Legal Name**: Enter your name exactly as it appears on your bank account\n- **Account Currency**: Select your local currency (e.g., PHP - Philippine Peso)\n- **Account Type**: Choose Personal or Business\n- **Banking Details**: Enter your bank account information including bank name, account number, and any required routing codes\n\nOnce registered, you can withdraw your incentives directly to your bank account.",
+          "image": "/images/withdrawal/5.2.png"
+        }
+      ]
+    },
+    "translations": {
+      "es": {
+        "title": "Guia de Retiro de Incentivos",
+        "description": "Aprende como retirar tus Incentivos de Red generados como criptomoneda o a tu cuenta bancaria usando el panel de gestion web de Unetwork.",
+        "direction": "ltr"
+      },
+      "ar": {
+        "title": "دليل سحب الحوافز",
+        "description": "تعلم كيفية سحب حوافز الشبكة المكتسبة كعملة مشفرة أو إلى حسابك المصرفي باستخدام لوحة إدارة الويب Unetwork.",
+        "direction": "rtl"
+      }
+    }
+  },
+  "image_mappings": {
+    "1.png": {
+      "step": 1,
+      "title": "Dashboard Overview",
+      "description": "Unetwork dashboard showing Total Network Incentives (13.14 UPs), Earnings section with Today (0.00) and Last 7 Days (4.70), and System Feed. Sidebar shows navigation: Homepage, Licenses, Messages, Withdrawals, Network Incentives."
+    },
+    "2.png": {
+      "step": 2,
+      "title": "Withdrawals Page",
+      "description": "Withdrawals section showing Redeemable Incentives (13.14 USD), Total Incentives (59.86 USD), with note '1 UPS = 1 USD'. Two tabs: Withdrawals and Bank Account Registration. Previous Withdrawals list showing completed transactions with wallet addresses and amounts. Bottom button: 'Withdraw Incentives'."
+    },
+    "3.png": {
+      "step": 3,
+      "title": "Claim Incentive Form",
+      "description": "Claim Incentive page with Withdraw Details showing Available to redeem ($13.14). Form fields: Amount input with Max button, Wallet Address field with warning about valid crypto addresses. Payout Type selection: Ethereum, Binance Chain (selected), Solana, Ripple XRP, Cardano. Asset selection: BNB, USDT (selected), USDC. Button: 'CONTINUE WITHDRAW'."
+    },
+    "4.png": {
+      "step": 4,
+      "title": "Confirm Withdrawal Modal",
+      "description": "Confirmation modal showing Quote expires in countdown (00:47), Amount ($13.14), Fee ($0.00), Asset (USDT), Asset Amount (13.137314). Button: 'Confirm'."
+    },
+    "5.0.png": {
+      "step": 5,
+      "title": "Bank Account Registration - Asia",
+      "description": "Bank Account Registration tab selected. Country of Residence dropdown open showing Asia region: India, Singapore, Malaysia (highlighted), Thailand, Indonesia, Philippines, Vietnam. Note: 'Changing your country will reset the form'."
+    },
+    "5.1.png": {
+      "step": 5,
+      "title": "Bank Account Registration - Africa/Americas",
+      "description": "Bank Account Registration tab selected. Country of Residence dropdown open showing Africa region: Nigeria, Kenya (highlighted), South Africa, Ghana, Egypt. South America section showing Brazil."
+    },
+    "5.2.png": {
+      "step": 6,
+      "title": "Banking Details Form",
+      "description": "Bank Account Registration form with Philippines selected as Country of Residence. Form fields: Full Legal Name (placeholder: e.g., John Michael Doe), Account Currency (PHP - Philippine Peso), Account Type (Personal), Banking Details section with instruction 'Enter your bank account information below'."
+    }
+  }
+}

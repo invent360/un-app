@@ -1,0 +1,5 @@
+# Cargo configuration for uno-app
+
+# Enable getrandom wasm_js feature for WASM targets
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']

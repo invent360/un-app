@@ -1,0 +1,137 @@
+{
+  "sections": [
+    {
+      "data": {},
+      "description": "Turn your smartphone into a passive income machine. No investment. No skills needed. Just install and earn.",
+      "display_order": 1,
+      "images": [],
+      "is_visible": true,
+      "section_type": "hero",
+      "title": "Your Phone can earn money"
+    },
+    {
+      "data": {
+        "steps": [
+          {
+            "description": "Install the free app from the App Store or Play Store. Takes less than 2 minutes.",
+            "icon": "download",
+            "order": 1,
+            "title": "Download app"
+          },
+          {
+            "description": "App runs automatically in the background. No interaction needed. Use your phone normally.",
+            "icon": "lightning",
+            "order": 2,
+            "title": "Let it run"
+          },
+          {
+            "description": "Withdraw to BTC, ETH, USDC anytime. Minimum $5. Your money, your choice.",
+            "icon": "wallet",
+            "order": 3,
+            "title": "Get paid"
+          }
+        ]
+      },
+      "description": "Start earning in 3 simple steps",
+      "display_order": 2,
+      "is_visible": true,
+      "links": [
+        {
+          "href": "https://play.google.com/store/apps/details?id=com.unetwork",
+          "is_visible": true,
+          "label": "Google Play",
+          "platform": "google_play",
+          "rel": "noopener noreferrer",
+          "sublabel": "Get it on",
+          "target": "_blank"
+        },
+        {
+          "href": "https://apps.apple.com/app/unetwork",
+          "is_visible": true,
+          "label": "App Store",
+          "platform": "app_store",
+          "rel": "noopener noreferrer",
+          "sublabel": "Download on the",
+          "target": "_blank"
+        },
+        {
+          "href": "/downloads/unetwork.apk",
+          "is_visible": true,
+          "label": "APK file",
+          "platform": "apk",
+          "rel": "noopener noreferrer",
+          "sublabel": "Direct download",
+          "target": "_blank"
+        }
+      ],
+      "section_type": "how_it_works",
+      "title": "How it works"
+    },
+    {
+      "data": {
+        "disclaimer": "Earnings vary based on location, uptime, and network demand. These are typical ranges, not guarantees.",
+        "tiers": [
+          {
+            "features": [
+              "Basic connection tasks",
+              "Minimal battery usage",
+              "~50MB data/month"
+            ],
+            "is_popular": false,
+            "max_earnings": 8.0,
+            "min_earnings": 5.0,
+            "name": "1 device",
+            "period": "month"
+          },
+          {
+            "features": [
+              "All task types enabled",
+              "Use old phones too",
+              "Higher uptime bonus"
+            ],
+            "is_popular": true,
+            "max_earnings": 25.0,
+            "min_earnings": 15.0,
+            "name": "2-3 devices",
+            "period": "month"
+          },
+          {
+            "features": [
+              "Maximum earnings",
+              "Priority support",
+              "Referral bonuses"
+            ],
+            "is_popular": false,
+            "max_earnings": 60.0,
+            "min_earnings": 40.0,
+            "name": "5+ devices",
+            "period": "month"
+          }
+        ]
+      },
+      "description": "Honest numbers from real users",
+      "display_order": 3,
+      "is_visible": true,
+      "section_type": "earnings",
+      "title": "Real earnings"
+    },
+    {
+      "data": {
+        "testimonials": [
+          {
+            "author_location": "India",
+            "author_name": "Raj",
+            "quote": "Finally a passive income app that actually pays. Transparent split, fast withdrawals. Been using for 4 months now.",
+            "rating": 5.0
+          }
+        ]
+      },
+      "description": "Join 500+ active earners in our community",
+      "display_order": 4,
+      "is_visible": true,
+      "section_type": "testimonials",
+      "title": "Real people. Real earnings."
+    }
+  ],
+  "title": "Home page"
+}

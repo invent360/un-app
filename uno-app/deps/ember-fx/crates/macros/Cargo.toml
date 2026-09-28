@@ -1,0 +1,18 @@
+[package]
+name = "ember-fx-macros"
+description = "Procedural and declarative macros for ember-fx"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+proc-macro = true
+
+[lints]
+workspace = true
+
+[dependencies]
+syn = { workspace = true, features = ["full", "parsing"] }
+quote = { workspace = true }
+proc-macro2 = { workspace = true }

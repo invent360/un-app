@@ -1,0 +1,2013 @@
+/* ============================================
+   Ant Design - Observability Components
+   ember-fx-components
+   Class naming: fx-{component}-ant-[variant]
+   ============================================ */
+
+/* =============================================================================
+   UptimeIndicator
+   ============================================================================= */
+
+.fx-uptime-indicator-ant {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.fx-uptime-indicator-ant-sm {
+  width: 48px;
+  height: 48px;
+}
+
+.fx-uptime-indicator-ant-md {
+  width: 64px;
+  height: 64px;
+}
+
+.fx-uptime-indicator-ant-lg {
+  width: 96px;
+  height: 96px;
+}
+
+.fx-uptime-indicator-ant-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.fx-uptime-indicator-ant-track {
+  fill: none;
+  stroke: var(--fx-color-bg-elevated, #2a2a2a);
+}
+
+.fx-uptime-indicator-ant-ring {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke 0.3s ease, stroke-dashoffset 0.5s ease;
+}
+
+.fx-uptime-indicator-ant-value {
+  position: absolute;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-uptime-indicator-ant-value-sm {
+  font-size: 10px;
+}
+
+.fx-uptime-indicator-ant-value-md {
+  font-size: 14px;
+}
+
+.fx-uptime-indicator-ant-value-lg {
+  font-size: 20px;
+}
+
+.fx-uptime-indicator-ant-healthy {
+  --fx-uptime-color: var(--fx-color-success, #52c41a);
+}
+
+.fx-uptime-indicator-ant-warning {
+  --fx-uptime-color: var(--fx-color-warning, #faad14);
+}
+
+.fx-uptime-indicator-ant-critical {
+  --fx-uptime-color: var(--fx-color-error, #ff4d4f);
+}
+
+/* =============================================================================
+   ActiveRoleBadges
+   ============================================================================= */
+
+.fx-role-badges-ant {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.fx-role-badges-ant-compact {
+  gap: 4px;
+}
+
+.fx-role-badge-ant {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--fx-border-radius-md, 6px);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border: 1px solid var(--fx-color-border, #303030);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.fx-role-badge-ant:hover {
+  border-color: var(--fx-role-color, var(--fx-color-border));
+  background: var(--fx-color-bg-container, #1f1f1f);
+}
+
+.fx-role-badge-ant-active {
+  border-color: var(--fx-role-color, var(--fx-color-primary));
+  box-shadow: 0 0 0 1px var(--fx-role-color, var(--fx-color-primary));
+  color: var(--fx-role-color, var(--fx-color-primary));
+}
+
+.fx-role-badge-ant-inactive {
+  opacity: 0.4;
+}
+
+.fx-role-badge-ant-icon {
+  font-size: 14px;
+}
+
+.fx-role-badge-ant-label {
+  color: inherit;
+}
+
+/* Role-specific colors */
+.fx-role-badge-ant-storage {
+  --fx-role-color: var(--fx-color-orange, #fa8c16);
+}
+
+.fx-role-badge-ant-relay {
+  --fx-role-color: var(--fx-color-cyan, #13c2c2);
+}
+
+.fx-role-badge-ant-compute {
+  --fx-role-color: var(--fx-color-purple, #722ed1);
+}
+
+.fx-role-badge-ant-dht {
+  --fx-role-color: var(--fx-color-geekblue, #2f54eb);
+}
+
+.fx-role-badge-ant-validator {
+  --fx-role-color: var(--fx-color-green, #52c41a);
+}
+
+.fx-role-badge-ant-bootstrap {
+  --fx-role-color: var(--fx-color-magenta, #eb2f96);
+}
+
+/* =============================================================================
+   NetworkHealthBanner
+   ============================================================================= */
+
+.fx-network-banner-ant {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-radius: var(--fx-border-radius-lg, 8px);
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #303030);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.fx-network-banner-ant:hover {
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+}
+
+.fx-network-banner-ant-healthy {
+  border-color: var(--fx-color-success, #52c41a);
+  background: rgba(82, 196, 26, 0.05);
+}
+
+.fx-network-banner-ant-degraded {
+  border-color: var(--fx-color-warning, #faad14);
+  background: rgba(250, 173, 20, 0.05);
+}
+
+.fx-network-banner-ant-critical {
+  border-color: var(--fx-color-error, #ff4d4f);
+  background: rgba(255, 77, 79, 0.05);
+}
+
+.fx-network-banner-ant-offline {
+  border-color: var(--fx-color-text-tertiary, #8c8c8c);
+  background: rgba(140, 140, 140, 0.05);
+}
+
+.fx-network-banner-ant-connecting {
+  border-color: var(--fx-color-info, #1890ff);
+  background: rgba(24, 144, 255, 0.05);
+}
+
+.fx-network-banner-ant-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fx-network-banner-ant-icon {
+  font-size: 20px;
+}
+
+.fx-network-banner-ant-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-network-banner-ant-message {
+  font-size: 14px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  margin-left: 8px;
+}
+
+.fx-network-banner-ant-details {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-network-banner-ant-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* =============================================================================
+   ConnectionCountIndicator
+   ============================================================================= */
+
+.fx-connection-count-ant {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-md, 6px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-connection-count-ant-compact {
+  padding: 4px 8px;
+  gap: 4px;
+}
+
+.fx-connection-count-ant-icon {
+  font-size: 16px;
+  color: var(--fx-color-primary, #1890ff);
+}
+
+.fx-connection-count-ant-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-connection-count-ant-compact .fx-connection-count-ant-value {
+  font-size: 16px;
+}
+
+.fx-connection-count-ant-label {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-connection-count-ant-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.fx-connection-count-ant-trend-up {
+  color: var(--fx-color-success, #52c41a);
+}
+
+.fx-connection-count-ant-trend-down {
+  color: var(--fx-color-error, #ff4d4f);
+}
+
+.fx-connection-count-ant-trend-flat {
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-connection-count-ant-below-target .fx-connection-count-ant-value {
+  color: var(--fx-color-warning, #faad14);
+}
+
+/* =============================================================================
+   EpochCountdownTimer
+   ============================================================================= */
+
+.fx-epoch-countdown-ant {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-epoch-countdown-ant-compact {
+  padding: 12px;
+  gap: 4px;
+}
+
+.fx-epoch-countdown-ant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fx-epoch-countdown-ant-label {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fx-epoch-countdown-ant-epoch {
+  font-size: 12px;
+  color: var(--fx-color-text-tertiary, #666);
+}
+
+.fx-epoch-countdown-ant-time {
+  font-size: 28px;
+  font-weight: 600;
+  font-family: var(--fx-font-mono, monospace);
+  color: var(--fx-color-text, #fff);
+  letter-spacing: 1px;
+}
+
+.fx-epoch-countdown-ant-compact .fx-epoch-countdown-ant-time {
+  font-size: 18px;
+}
+
+.fx-epoch-countdown-ant-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  overflow: hidden;
+}
+
+.fx-epoch-countdown-ant-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--fx-color-primary, #1890ff), var(--fx-color-info, #13c2c2));
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+/* =============================================================================
+   NodeStatusCard
+   ============================================================================= */
+
+.fx-node-status-card-ant {
+  position: relative;
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fx-node-status-card-ant:hover {
+  border-color: var(--fx-color-primary, #1890ff);
+  background: var(--fx-color-bg-container, #1f1f1f);
+}
+
+.fx-node-status-card-ant-dot {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.fx-node-status-card-ant-dot-online {
+  box-shadow: 0 0 8px var(--fx-color-success, #52c41a);
+  animation: fx-pulse 2s infinite;
+}
+
+.fx-node-status-card-ant-dot-offline {
+  animation: none;
+}
+
+.fx-node-status-card-ant-dot-syncing {
+  box-shadow: 0 0 8px var(--fx-color-info, #1890ff);
+  animation: fx-pulse 1s infinite;
+}
+
+.fx-node-status-card-ant-dot-error {
+  box-shadow: 0 0 8px var(--fx-color-error, #ff4d4f);
+}
+
+@keyframes fx-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.fx-node-status-card-ant-title {
+  font-size: 14px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  margin-bottom: 8px;
+}
+
+.fx-node-status-card-ant-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-node-status-card-ant-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-node-status-card-ant-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fx-node-status-card-ant-detail-label {
+  font-size: 11px;
+  color: var(--fx-color-text-tertiary, #666);
+  text-transform: uppercase;
+}
+
+.fx-node-status-card-ant-detail-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fx-color-text, #fff);
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================================
+   EarningsSummaryCard
+   ============================================================================= */
+
+.fx-earnings-card-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-earnings-card-ant-title {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.fx-earnings-card-ant-total {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.fx-earnings-card-ant-amount {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-earnings-card-ant-symbol {
+  font-size: 14px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-earnings-card-ant-fiat {
+  font-size: 12px;
+  color: var(--fx-color-text-tertiary, #666);
+  margin-top: 4px;
+}
+
+.fx-earnings-card-ant-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.fx-earnings-card-ant-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-earnings-card-ant-category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.fx-earnings-card-ant-category-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-earnings-card-ant-category-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fx-earnings-card-ant-category-icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.fx-earnings-card-ant-category-value {
+  font-weight: 500;
+  color: var(--fx-color-text, #fff);
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================================
+   ReputationGauge
+   ============================================================================= */
+
+.fx-reputation-gauge-ant {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.fx-reputation-gauge-ant-sm {
+  width: 120px;
+}
+
+.fx-reputation-gauge-ant-md {
+  width: 180px;
+}
+
+.fx-reputation-gauge-ant-lg {
+  width: 240px;
+}
+
+.fx-reputation-gauge-ant-svg {
+  width: 100%;
+}
+
+.fx-reputation-gauge-ant-track {
+  transition: stroke 0.3s ease;
+}
+
+.fx-reputation-gauge-ant-arc {
+  transition: stroke 0.3s ease, d 0.5s ease;
+}
+
+.fx-reputation-gauge-ant-score {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -20%);
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.fx-reputation-gauge-ant-sm .fx-reputation-gauge-ant-score {
+  font-size: 24px;
+}
+
+.fx-reputation-gauge-ant-lg .fx-reputation-gauge-ant-score {
+  font-size: 42px;
+}
+
+.fx-reputation-gauge-ant-label {
+  font-size: 11px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: -10px;
+}
+
+/* Color zone classes */
+.fx-reputation-gauge-ant-low .fx-reputation-gauge-ant-score {
+  color: var(--fx-color-error, #ff4d4f);
+}
+
+.fx-reputation-gauge-ant-medium .fx-reputation-gauge-ant-score {
+  color: var(--fx-color-warning, #faad14);
+}
+
+.fx-reputation-gauge-ant-high .fx-reputation-gauge-ant-score {
+  color: var(--fx-color-success, #52c41a);
+}
+
+/* =============================================================================
+   P1 Components - Resource Usage Gauge (Dial/Speedometer)
+   ============================================================================= */
+
+.fx-resource-gauge-ant {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.fx-resource-gauge-ant-sm { width: 100px; height: 100px; }
+.fx-resource-gauge-ant-md { width: 140px; height: 140px; }
+.fx-resource-gauge-ant-lg { width: 180px; height: 180px; }
+
+.fx-resource-gauge-ant-label {
+  font-size: 11px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.fx-resource-gauge-ant-svg {
+  width: 100%;
+  height: auto;
+}
+
+.fx-resource-gauge-ant-value {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-resource-gauge-ant-sm .fx-resource-gauge-ant-value { font-size: 14px; }
+.fx-resource-gauge-ant-lg .fx-resource-gauge-ant-value { font-size: 24px; }
+
+/* =============================================================================
+   BandwidthMeter
+   ============================================================================= */
+
+.fx-bandwidth-meter-ant {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-md, 6px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-bandwidth-meter-ant-compact {
+  padding: 8px 12px;
+  gap: 4px;
+}
+
+.fx-bandwidth-meter-ant-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fx-bandwidth-meter-ant-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-bandwidth-meter-ant-icon {
+  font-size: 14px;
+}
+
+.fx-bandwidth-meter-ant-icon-upload { color: var(--fx-color-success, #52c41a); }
+.fx-bandwidth-meter-ant-icon-download { color: var(--fx-color-info, #1890ff); }
+
+.fx-bandwidth-meter-ant-bar-container {
+  flex: 1;
+  height: 8px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fx-bandwidth-meter-ant-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.fx-bandwidth-meter-ant-bar-upload { background: var(--fx-color-success, #52c41a); }
+.fx-bandwidth-meter-ant-bar-download { background: var(--fx-color-info, #1890ff); }
+
+.fx-bandwidth-meter-ant-value {
+  min-width: 80px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fx-color-text, #fff);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================================
+   ComputeUtilizationBar
+   ============================================================================= */
+
+.fx-compute-util-ant {
+  padding: 12px 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-md, 6px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-compute-util-ant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.fx-compute-util-ant-label {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-compute-util-ant-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-compute-util-ant-bar-container {
+  height: 8px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.fx-compute-util-ant-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.fx-compute-util-ant-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.fx-compute-util-ant-stat {
+  font-size: 11px;
+  color: var(--fx-color-text-tertiary, #666);
+}
+
+.fx-compute-util-ant-stat-value {
+  font-weight: 500;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+/* =============================================================================
+   MemoryCacheStatus
+   ============================================================================= */
+
+.fx-memory-cache-ant {
+  padding: 12px 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-md, 6px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-memory-cache-ant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.fx-memory-cache-ant-label { font-size: 12px; color: var(--fx-color-text-secondary, #8c8c8c); }
+.fx-memory-cache-ant-hit-rate { font-size: 14px; font-weight: 500; }
+
+.fx-memory-cache-ant-bar-container {
+  height: 20px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.fx-memory-cache-ant-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  background: var(--fx-color-info, #1890ff);
+}
+
+.fx-memory-cache-ant-usage-text {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-memory-cache-ant-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--fx-color-text-tertiary, #666);
+}
+
+/* =============================================================================
+   QualityMultiplierCard
+   ============================================================================= */
+
+.fx-quality-mult-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+  text-align: center;
+}
+
+.fx-quality-mult-ant-title {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.fx-quality-mult-ant-value {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.fx-quality-mult-ant-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.fx-quality-mult-ant-bar-container {
+  margin-top: 12px;
+  height: 4px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: 2px;
+}
+
+.fx-quality-mult-ant-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+/* =============================================================================
+   ProofSuccessRateCard
+   ============================================================================= */
+
+.fx-proof-rate-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-proof-rate-ant-title {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.fx-proof-rate-ant-ring-container {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.fx-proof-rate-ant-ring {
+  width: 100px;
+  height: 100px;
+}
+
+.fx-proof-rate-ant-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-proof-rate-ant-stats {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 12px;
+  border-top: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-proof-rate-ant-stat {
+  text-align: center;
+}
+
+.fx-proof-rate-ant-stat-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-proof-rate-ant-stat-label {
+  font-size: 11px;
+  color: var(--fx-color-text-tertiary, #666);
+}
+
+/* =============================================================================
+   NetworkRankCard
+   ============================================================================= */
+
+.fx-rank-card-ant {
+  padding: 16px;
+  text-align: center;
+}
+
+.fx-rank-card-ant-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: var(--fx-border-radius-lg, 8px);
+  margin-bottom: 8px;
+}
+
+.fx-rank-card-ant-badge-hash {
+  font-size: 20px;
+  font-weight: 400;
+  opacity: 0.8;
+  color: inherit;
+}
+
+.fx-rank-card-ant-badge-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.fx-rank-card-ant-total {
+  font-size: 13px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-rank-card-ant-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.fx-rank-card-ant-percentile {
+  font-size: 13px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  margin-top: 4px;
+}
+
+/* =============================================================================
+   NATStatusIndicator
+   ============================================================================= */
+
+.fx-nat-status-ant {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-md, 6px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-nat-status-ant-compact {
+  padding: 4px 8px;
+  gap: 4px;
+}
+
+.fx-nat-status-ant-icon { font-size: 16px; }
+.fx-nat-status-ant-type { font-weight: 500; color: var(--fx-color-text, #fff); }
+.fx-nat-status-ant-label { font-size: 12px; color: var(--fx-color-text-tertiary, #666); }
+
+/* =============================================================================
+   PendingRewardsCard
+   ============================================================================= */
+
+.fx-pending-rewards-ant {
+  padding: 16px;
+}
+
+.fx-pending-rewards-ant-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.fx-pending-rewards-ant-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-pending-rewards-ant-symbol {
+  font-size: 14px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-pending-rewards-ant-fiat {
+  font-size: 12px;
+  color: var(--fx-color-text-tertiary, #666);
+  margin-top: 4px;
+}
+
+.fx-pending-rewards-ant-actions {
+  margin-top: 12px;
+}
+
+.fx-pending-rewards-ant-claim-btn {
+  width: 100%;
+  padding: 8px 16px;
+  background: var(--fx-color-primary, #1890ff);
+  color: #fff;
+  border: none;
+  border-radius: var(--fx-border-radius-md, 6px);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.fx-pending-rewards-ant-claim-btn:hover {
+  background: var(--fx-color-primary-hover, #40a9ff);
+}
+
+.fx-pending-rewards-ant-claim-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fx-pending-rewards-ant-countdown {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-pending-rewards-ant-countdown-value {
+  font-weight: 500;
+  color: var(--fx-color-warning, #faad14);
+}
+
+/* =============================================================================
+   TokenBalanceCard
+   ============================================================================= */
+
+.fx-token-balance-ant {
+  padding: 16px;
+}
+
+.fx-token-balance-ant-balance {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.fx-token-balance-ant-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-token-balance-ant-symbol {
+  font-size: 14px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-token-balance-ant-fiat {
+  font-size: 14px;
+  color: var(--fx-color-success, #52c41a);
+  margin-top: 4px;
+}
+
+.fx-token-balance-ant-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-token-balance-ant-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.fx-token-balance-ant-row-label {
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-token-balance-ant-row-value {
+  font-weight: 500;
+  color: var(--fx-color-text, #fff);
+}
+
+/* =============================================================================
+   VotingPowerCard
+   ============================================================================= */
+
+.fx-voting-power-ant {
+  padding: 16px;
+}
+
+.fx-voting-power-ant-power {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.fx-voting-power-ant-power-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--fx-color-primary, #1890ff);
+}
+
+.fx-voting-power-ant-power-label {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-voting-power-ant-bar-container {
+  height: 6px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.fx-voting-power-ant-bar {
+  height: 100%;
+  background: var(--fx-color-primary, #1890ff);
+  border-radius: 3px;
+}
+
+.fx-voting-power-ant-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fx-voting-power-ant-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.fx-voting-power-ant-stat-label { color: var(--fx-color-text-secondary, #8c8c8c); }
+.fx-voting-power-ant-stat-value { font-weight: 500; color: var(--fx-color-text, #fff); }
+.fx-voting-power-ant-stat-delegated { color: var(--fx-color-success, #52c41a); }
+.fx-voting-power-ant-stat-my-delegation { color: var(--fx-color-warning, #faad14); }
+
+.fx-voting-power-ant-proposals {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fx-color-border, #303030);
+  font-size: 13px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-voting-power-ant-proposals-count {
+  font-weight: 600;
+  color: var(--fx-color-primary, #1890ff);
+}
+
+/* =============================================================================
+   SlashingRiskGauge
+   ============================================================================= */
+
+.fx-slashing-risk-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+  text-align: center;
+}
+
+.fx-slashing-risk-ant-title {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.fx-slashing-risk-ant-gauge-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.fx-slashing-risk-ant-gauge {
+  width: 120px;
+  height: 80px;
+}
+
+.fx-slashing-risk-ant-gauge-content {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.fx-slashing-risk-ant-gauge-value {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.fx-slashing-risk-ant-gauge-label {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.fx-slashing-risk-ant-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-slashing-risk-ant-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.fx-slashing-risk-ant-detail-label { color: var(--fx-color-text-secondary, #8c8c8c); }
+.fx-slashing-risk-ant-detail-value { font-weight: 500; color: var(--fx-color-text, #fff); }
+.fx-slashing-risk-ant-detail-clean { color: var(--fx-color-success, #52c41a); }
+.fx-slashing-risk-ant-detail-at-risk { color: var(--fx-color-error, #ff4d4f); }
+
+/* =============================================================================
+   QuickActionPanel
+   ============================================================================= */
+
+.fx-quick-actions-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-quick-actions-ant-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fx-color-text, #fff);
+  margin-bottom: 12px;
+}
+
+.fx-quick-actions-ant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.fx-quick-actions-ant-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #303030);
+  border-radius: var(--fx-border-radius-md, 6px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fx-quick-actions-ant-btn:hover {
+  border-color: var(--fx-color-primary, #1890ff);
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+}
+
+.fx-quick-actions-ant-btn-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fx-quick-actions-ant-btn-icon-wrapper {
+  position: relative;
+}
+
+.fx-quick-actions-ant-btn-icon { font-size: 24px; }
+
+.fx-quick-actions-ant-btn-badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--fx-color-error, #ff4d4f);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fx-quick-actions-ant-btn-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-quick-actions-ant-btn-desc {
+  font-size: 10px;
+  color: var(--fx-color-text-tertiary, #666);
+}
+
+/* =============================================================================
+   GeographicBonusIndicator
+   ============================================================================= */
+
+.fx-geo-bonus-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-geo-bonus-ant-compact { padding: 12px; }
+
+.fx-geo-bonus-ant-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.fx-geo-bonus-ant-icon { font-size: 16px; }
+.fx-geo-bonus-ant-title { font-size: 12px; color: var(--fx-color-text-secondary, #8c8c8c); text-transform: uppercase; }
+
+.fx-geo-bonus-ant-bonus {
+  text-align: center;
+  margin: 12px 0;
+}
+
+.fx-geo-bonus-ant-multiplier {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.fx-geo-bonus-ant-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fx-geo-bonus-ant-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.fx-geo-bonus-ant-detail-label { color: var(--fx-color-text-secondary, #8c8c8c); }
+.fx-geo-bonus-ant-detail-value { font-weight: 500; color: var(--fx-color-text, #fff); }
+
+/* =============================================================================
+   FleetMembershipCard
+   ============================================================================= */
+
+.fx-fleet-card-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-fleet-card-ant-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fx-fleet-card-ant-icon { font-size: 16px; }
+.fx-fleet-card-ant-title { font-size: 12px; color: var(--fx-color-text-secondary, #8c8c8c); text-transform: uppercase; }
+
+.fx-fleet-card-ant-name {
+  margin-bottom: 8px;
+}
+
+.fx-fleet-card-ant-name code {
+  font-family: var(--fx-font-mono, monospace);
+  background: var(--fx-color-bg-container, #1f1f1f);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--fx-color-primary, #1890ff);
+}
+
+.fx-fleet-card-ant-role {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.fx-fleet-card-ant-role-icon { font-size: 16px; }
+.fx-fleet-card-ant-role-label { font-size: 14px; font-weight: 500; }
+
+.fx-fleet-card-ant-stats {
+  display: flex;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-fleet-card-ant-stat {
+  text-align: center;
+}
+
+.fx-fleet-card-ant-stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-fleet-card-ant-stat-online {
+  color: var(--fx-color-success, #52c41a);
+}
+
+.fx-fleet-card-ant-stat-label {
+  font-size: 11px;
+  color: var(--fx-color-text-tertiary, #666);
+}
+
+/* =============================================================================
+   FederationStatusPanel
+   ============================================================================= */
+
+.fx-federation-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-federation-ant-compact { padding: 12px; }
+
+.fx-federation-ant-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fx-federation-ant-icon { font-size: 16px; }
+.fx-federation-ant-title { font-size: 14px; font-weight: 500; color: var(--fx-color-text, #fff); flex: 1; }
+.fx-federation-ant-summary { font-size: 12px; color: var(--fx-color-text-secondary, #8c8c8c); }
+
+.fx-federation-ant-chains {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fx-federation-ant-chain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: var(--fx-border-radius-md, 6px);
+}
+
+.fx-federation-ant-chain-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fx-federation-ant-chain-icon { font-size: 18px; }
+.fx-federation-ant-chain-name { font-size: 14px; font-weight: 500; color: var(--fx-color-text, #fff); }
+
+.fx-federation-ant-chain-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.fx-federation-ant-chain-details {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--fx-color-text-tertiary, #666);
+}
+
+/* =============================================================================
+   RoutingTableStatus
+   ============================================================================= */
+
+.fx-routing-table-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-routing-table-ant-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fx-routing-table-ant-icon { font-size: 16px; }
+.fx-routing-table-ant-title { font-size: 14px; font-weight: 500; color: var(--fx-color-text, #fff); }
+
+.fx-routing-table-ant-summary { margin-bottom: 12px; }
+
+.fx-routing-table-ant-peer-count {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.fx-routing-table-ant-count-value { font-size: 24px; font-weight: 600; }
+.fx-routing-table-ant-count-label { font-size: 14px; color: var(--fx-color-text-secondary, #8c8c8c); }
+
+.fx-routing-table-ant-progress-container {
+  height: 6px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.fx-routing-table-ant-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.fx-routing-table-ant-refresh {
+  font-size: 11px;
+  color: var(--fx-color-text-tertiary, #666);
+  margin-top: 4px;
+}
+
+.fx-routing-table-ant-buckets { margin-top: 12px; }
+.fx-routing-table-ant-buckets-label { font-size: 11px; color: var(--fx-color-text-tertiary, #666); margin-bottom: 8px; }
+
+.fx-routing-table-ant-buckets-grid {
+  display: flex;
+  gap: 2px;
+  height: 40px;
+  align-items: flex-end;
+}
+
+.fx-routing-table-ant-bucket {
+  flex: 1;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: 2px 2px 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-width: 6px;
+}
+
+.fx-routing-table-ant-bucket-fill {
+  border-radius: 2px 2px 0 0;
+  transition: height 0.3s ease;
+}
+
+.fx-routing-table-ant-buckets-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--fx-color-text-tertiary, #666);
+  margin-top: 4px;
+}
+
+.fx-routing-table-ant-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-routing-table-ant-stat { text-align: center; }
+.fx-routing-table-ant-stat-value { font-size: 16px; font-weight: 600; color: var(--fx-color-text, #fff); }
+.fx-routing-table-ant-stat-full { color: var(--fx-color-success, #52c41a); }
+.fx-routing-table-ant-stat-empty { color: var(--fx-color-warning, #faad14); }
+.fx-routing-table-ant-stat-label { font-size: 11px; color: var(--fx-color-text-tertiary, #666); }
+
+/* =============================================================================
+   StakeManagerPanel
+   ============================================================================= */
+
+.fx-stake-manager-ant {
+  padding: 20px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-stake-manager-ant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.fx-stake-manager-ant-icon { font-size: 20px; }
+.fx-stake-manager-ant-title { font-size: 16px; font-weight: 600; color: var(--fx-color-text, #fff); flex: 1; margin-left: 8px; }
+.fx-stake-manager-ant-apy { font-size: 14px; font-weight: 500; color: var(--fx-color-success, #52c41a); }
+
+.fx-stake-manager-ant-balances {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.fx-stake-manager-ant-balance-card {
+  padding: 12px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: var(--fx-border-radius-md, 6px);
+  text-align: center;
+}
+
+.fx-stake-manager-ant-balance-label { font-size: 11px; color: var(--fx-color-text-tertiary, #666); margin-bottom: 4px; }
+.fx-stake-manager-ant-balance-value { font-size: 16px; font-weight: 600; }
+.fx-stake-manager-ant-staked { color: var(--fx-color-primary, #1890ff); }
+.fx-stake-manager-ant-available { color: var(--fx-color-text, #fff); }
+.fx-stake-manager-ant-rewards { color: var(--fx-color-success, #52c41a); }
+
+.fx-stake-manager-ant-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fx-stake-manager-ant-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #303030);
+  border-radius: var(--fx-border-radius-md, 6px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fx-stake-manager-ant-action-btn:hover {
+  border-color: var(--fx-color-primary, #1890ff);
+}
+
+.fx-stake-manager-ant-action-icon { font-size: 18px; }
+.fx-stake-manager-ant-action-label { font-size: 11px; font-weight: 500; color: var(--fx-color-text, #fff); }
+
+.fx-stake-manager-ant-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(250, 173, 20, 0.1);
+  border-radius: var(--fx-border-radius-md, 6px);
+  font-size: 12px;
+  color: var(--fx-color-warning, #faad14);
+  margin-bottom: 16px;
+}
+
+.fx-stake-manager-ant-validators {
+  border-top: 1px solid var(--fx-color-border, #303030);
+  padding-top: 16px;
+}
+
+.fx-stake-manager-ant-validators-header {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fx-color-text, #fff);
+  margin-bottom: 12px;
+}
+
+.fx-stake-manager-ant-validators-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fx-stake-manager-ant-validator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: var(--fx-border-radius-md, 6px);
+}
+
+.fx-stake-manager-ant-validator-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fx-stake-manager-ant-validator-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.fx-stake-manager-ant-validator-name { font-size: 14px; font-weight: 500; color: var(--fx-color-text, #fff); }
+
+.fx-stake-manager-ant-validator-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.fx-stake-manager-ant-validator-apy { color: var(--fx-color-success, #52c41a); }
+.fx-stake-manager-ant-validator-commission { color: var(--fx-color-text-tertiary, #666); }
+
+.fx-stake-manager-ant-validator-delegation {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fx-color-primary, #1890ff);
+}
+
+/* =============================================================================
+   NetworkTopologyGraph
+   ============================================================================= */
+
+.fx-topology-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-topology-ant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.fx-topology-ant-title { font-size: 14px; font-weight: 500; color: var(--fx-color-text, #fff); }
+.fx-topology-ant-count { font-size: 12px; color: var(--fx-color-text-secondary, #8c8c8c); }
+
+.fx-topology-ant-container {
+  display: flex;
+  justify-content: center;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: var(--fx-border-radius-md, 6px);
+  padding: 16px;
+}
+
+.fx-topology-ant-svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.fx-topology-ant-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fx-color-border, #303030);
+}
+
+.fx-topology-ant-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+}
+
+.fx-topology-ant-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* =============================================================================
+   NotificationCenter
+   ============================================================================= */
+
+.fx-notification-center-ant {
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: var(--fx-border-radius-lg, 8px);
+  border: 1px solid var(--fx-color-border, #303030);
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.fx-notification-center-ant-compact { padding: 12px; max-height: 300px; }
+
+.fx-notification-center-ant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.fx-notification-center-ant-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fx-notification-center-ant-icon { font-size: 18px; }
+.fx-notification-center-ant-title { font-size: 14px; font-weight: 500; color: var(--fx-color-text, #fff); }
+
+.fx-notification-center-ant-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  background: var(--fx-color-error, #ff4d4f);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fx-notification-center-ant-clear-btn {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.fx-notification-center-ant-clear-btn:hover {
+  color: var(--fx-color-primary, #1890ff);
+}
+
+.fx-notification-center-ant-filters {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.fx-notification-center-ant-filter {
+  padding: 4px 8px;
+  font-size: 12px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #303030);
+  border-radius: var(--fx-border-radius-sm, 4px);
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fx-notification-center-ant-filter:hover {
+  border-color: var(--fx-color-primary, #1890ff);
+}
+
+.fx-notification-center-ant-filter-active {
+  background: var(--fx-color-primary, #1890ff);
+  border-color: var(--fx-color-primary, #1890ff);
+  color: #fff;
+}
+
+.fx-notification-center-ant-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fx-notification-center-ant-empty {
+  text-align: center;
+  padding: 24px;
+  color: var(--fx-color-text-tertiary, #666);
+  font-size: 13px;
+}
+
+.fx-notification-center-ant-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: var(--fx-border-radius-md, 6px);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.fx-notification-center-ant-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.fx-notification-center-ant-item-read {
+  opacity: 0.6;
+}
+
+.fx-notification-center-ant-item-indicator {
+  width: 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.fx-notification-center-ant-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-notification-center-ant-item-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.fx-notification-center-ant-item-category { font-size: 14px; }
+.fx-notification-center-ant-item-title { font-size: 13px; font-weight: 500; color: var(--fx-color-text, #fff); flex: 1; }
+.fx-notification-center-ant-item-time { font-size: 11px; color: var(--fx-color-text-tertiary, #666); }
+
+.fx-notification-center-ant-item-message {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #8c8c8c);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fx-notification-center-ant-item-action {
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--fx-color-primary, #1890ff);
+  color: #fff;
+  border: none;
+  border-radius: var(--fx-border-radius-sm, 4px);
+  cursor: pointer;
+}
+
+.fx-notification-center-ant-item-dismiss {
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: none;
+  color: var(--fx-color-text-tertiary, #666);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fx-notification-center-ant-item-dismiss:hover {
+  color: var(--fx-color-error, #ff4d4f);
+}

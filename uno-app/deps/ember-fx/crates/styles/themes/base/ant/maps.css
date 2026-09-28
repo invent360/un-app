@@ -1,0 +1,520 @@
+/* ============================================
+   Ant Design - Dashboard Components
+   ember-fx-components
+   HexagonalWorldMap, ProgressRing, ArcFlowLines,
+   GradientProgressBar, CityMarker, ActivityList
+   ============================================ */
+
+/* ============================================
+   CSS Custom Properties for Dashboard
+   ============================================ */
+:root {
+  /* Dashboard component variables */
+  --fx-hex-grid-color: rgba(255, 255, 255, 0.1);
+  --fx-hex-hover-scale: 1.05;
+  --fx-hex-base-color: #2a3f5f;
+  --fx-hex-base-stroke: #1a2840;
+  --fx-ring-bg-opacity: 0.2;
+  --fx-ring-transition: 0.5s ease;
+  --fx-arc-default-color: var(--fx-color-primary, #1890ff);
+  --fx-arc-animation-duration: 1s;
+  --fx-marker-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --fx-marker-hover-scale: 1.1;
+  --fx-activity-item-height: 40px;
+  --fx-activity-progress-height: 4px;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --fx-hex-grid-color: rgba(255, 255, 255, 0.05);
+  --fx-hex-base-color: #3a5a8f;
+  --fx-hex-base-stroke: #2a4a7f;
+  --fx-marker-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --fx-hex-grid-color: rgba(0, 0, 0, 0.05);
+  --fx-hex-base-color: #c5d5ef;
+  --fx-hex-base-stroke: #a5c0e5;
+  --fx-marker-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   HexagonalWorldMap
+   ============================================ */
+.fx-hexmap-ant {
+  position: relative;
+  background: var(--fx-color-bg, #141414);
+  border-radius: var(--fx-radius-lg, 8px);
+  overflow: hidden;
+}
+
+.fx-hexmap-ant svg {
+  display: block;
+}
+
+.fx-hexmap-ant .hex-cells path {
+  transition: opacity 0.2s ease, stroke-width 0.2s ease;
+}
+
+.fx-hexmap-ant .hex-cells path:hover {
+  filter: brightness(1.1);
+}
+
+.fx-hexmap-ant .location-markers g {
+  transition: transform 0.2s ease;
+}
+
+.fx-hexmap-ant .world-outlines path {
+  pointer-events: none;
+}
+
+.fx-hexmap-ant .base-hex-layer path {
+  pointer-events: none;
+}
+
+/* Legend */
+.fx-hexmap-legend-ant {
+  display: inline-block;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #434343);
+  border-radius: var(--fx-radius-md, 6px);
+  padding: 12px;
+}
+
+/* ============================================
+   ProgressRing
+   ============================================ */
+.fx-progressring-ant {
+  display: inline-block;
+}
+
+.fx-progressring-ant svg {
+  display: block;
+}
+
+.fx-progressring-ant path {
+  transition: stroke-dashoffset var(--fx-ring-transition);
+}
+
+.fx-progressring-ant text {
+  font-family: var(--fx-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+
+/* ============================================
+   ArcFlowLines
+   ============================================ */
+.fx-arcflow-ant {
+  position: relative;
+}
+
+.fx-arcflow-ant svg {
+  display: block;
+}
+
+.fx-arcflow-ant path {
+  transition: opacity 0.2s ease, stroke-width 0.2s ease;
+}
+
+/* Animated dash flow */
+.fx-arcflow-ant-arc-animated {
+  stroke-dasharray: 8 4;
+  animation: fx-dash-flow var(--fx-arc-animation-duration) linear infinite;
+}
+
+@keyframes fx-dash-flow {
+  to { stroke-dashoffset: -12; }
+}
+
+/* Pulse animation */
+.fx-arcflow-ant-arc-pulse {
+  animation: fx-arc-pulse 2s ease-in-out infinite;
+}
+
+@keyframes fx-arc-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* ============================================
+   GradientProgressBar
+   ============================================ */
+.fx-progressbar-ant {
+  width: 100%;
+}
+
+.fx-progressbar-ant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.fx-progressbar-ant-label {
+  font-size: 14px;
+  color: var(--fx-color-text-secondary, #888);
+}
+
+.fx-progressbar-ant-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-progressbar-ant-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  overflow: hidden;
+}
+
+.fx-progressbar-ant-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.fx-progressbar-ant-segments {
+  display: flex;
+  height: 100%;
+}
+
+.fx-progressbar-ant-segment {
+  height: 100%;
+  display: inline-block;
+}
+
+/* ============================================
+   CityMarker
+   ============================================ */
+.fx-citymarker-ant {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transform: translate(-50%, -100%);
+  transition: transform 0.2s ease;
+  z-index: 10;
+}
+
+.fx-citymarker-ant:hover {
+  z-index: 20;
+}
+
+/* Size variants */
+.fx-citymarker-ant-sm .fx-citymarker-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.fx-citymarker-ant-md .fx-citymarker-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.fx-citymarker-ant-lg .fx-citymarker-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.fx-citymarker-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--fx-marker-shadow);
+}
+
+.fx-citymarker-icon svg {
+  fill: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-citymarker-label {
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #434343);
+  border-radius: 6px;
+  padding: 4px 8px;
+  box-shadow: var(--fx-marker-shadow);
+}
+
+.fx-citymarker-name {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--fx-color-text-secondary, #888);
+  white-space: nowrap;
+}
+
+.fx-citymarker-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+  white-space: nowrap;
+}
+
+.fx-citymarker-connector {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 2px;
+  height: 8px;
+  transform: translateX(-50%);
+}
+
+/* ============================================
+   ActivityList
+   ============================================ */
+.fx-activitylist-ant {
+  width: 100%;
+}
+
+.fx-activitylist-ant h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-activitylist-ant ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fx-activitylist-ant li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  min-height: var(--fx-activity-item-height);
+  border-bottom: 1px solid var(--fx-color-border, #303030);
+  transition: background 0.2s ease;
+}
+
+.fx-activitylist-ant li:last-child {
+  border-bottom: none;
+}
+
+.fx-activitylist-ant li:hover {
+  background: var(--fx-color-fill-quaternary, rgba(255, 255, 255, 0.02));
+}
+
+.fx-activitylist-ant-icon {
+  font-size: 16px;
+  width: 24px;
+  text-align: center;
+}
+
+.fx-activitylist-ant-name {
+  flex: 1;
+  font-size: 14px;
+  color: var(--fx-color-text, #fff);
+}
+
+.fx-activitylist-ant-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fx-color-text, #fff);
+  min-width: 80px;
+  text-align: right;
+}
+
+.fx-activitylist-ant-percentage {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, #888);
+  min-width: 40px;
+  text-align: right;
+}
+
+.fx-activitylist-ant-progress {
+  width: 80px;
+  height: var(--fx-activity-progress-height);
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.fx-activitylist-ant-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* Trend indicators */
+.fx-activitylist-ant-trend-up {
+  color: var(--fx-color-success, #52c41a);
+}
+
+.fx-activitylist-ant-trend-down {
+  color: var(--fx-color-error, #ff4d4f);
+}
+
+.fx-activitylist-ant-trend-neutral {
+  color: var(--fx-color-text-secondary, #888);
+}
+
+/* ============================================
+   StatCard Enhancements
+   ============================================ */
+.fx-statcard-ant {
+  position: relative;
+  background: var(--fx-color-bg-container, #1f1f1f);
+  border-radius: var(--fx-radius-lg, 8px);
+  padding: 20px;
+  transition: box-shadow 0.2s ease;
+}
+
+.fx-statcard-ant:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.fx-statcard-ant-bordered {
+  border: 1px solid var(--fx-color-border, #434343);
+}
+
+.fx-statcard-ant-with-icon {
+  /* Icon variant has different layout */
+}
+
+.fx-statcard-ant-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 12px;
+}
+
+.fx-statcard-ant-icon svg {
+  fill: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-statcard-ant-sm .fx-statcard-ant-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.fx-statcard-ant-md .fx-statcard-ant-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.fx-statcard-ant-lg .fx-statcard-ant-icon {
+  width: 64px;
+  height: 64px;
+}
+
+.fx-statcard-ant-title {
+  font-size: 14px;
+  color: var(--fx-color-text-secondary, #888);
+  font-weight: 500;
+}
+
+.fx-statcard-ant-value-sm {
+  font-size: 20px;
+}
+
+.fx-statcard-ant-value-md {
+  font-size: 28px;
+}
+
+.fx-statcard-ant-value-lg {
+  font-size: 36px;
+}
+
+.fx-statcard-ant-subtitle {
+  font-size: 12px;
+  color: var(--fx-color-text-tertiary, #666);
+}
+
+.fx-statcard-ant-progress {
+  margin-top: 16px;
+}
+
+.fx-statcard-ant-progress-track {
+  height: 4px;
+  background: var(--fx-color-bg-elevated, #2a2a2a);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.fx-statcard-ant-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--fx-color-primary), var(--fx-color-success));
+  transition: width 0.5s ease;
+}
+
+/* Loading state */
+.fx-statcard-ant-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: var(--fx-radius-lg, 8px);
+  z-index: 10;
+}
+
+/* ============================================
+   Dashboard Layout Helpers
+   ============================================ */
+.fx-dashboard-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.fx-dashboard-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.fx-dashboard-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.fx-dashboard-grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .fx-dashboard-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .fx-dashboard-grid-4,
+  .fx-dashboard-grid-3,
+  .fx-dashboard-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   Spinner Animation (for loading states)
+   ============================================ */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .fx-arcflow-ant-arc-animated,
+  .fx-arcflow-ant-arc-pulse,
+  .fx-progressbar-ant-fill,
+  .fx-activitylist-ant-progress-fill,
+  .fx-statcard-ant-progress-fill,
+  .fx-citymarker-ant,
+  .fx-hexmap-ant .hex-cells path,
+  .fx-hexmap-ant .location-markers g {
+    transition: none;
+    animation: none;
+  }
+}

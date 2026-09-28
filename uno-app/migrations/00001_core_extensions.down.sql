@@ -1,0 +1,3 @@
+-- Extensions are typically not dropped as other databases may use them
+-- DROP EXTENSION IF EXISTS "pgcrypto";
+-- DROP EXTENSION IF EXISTS "uuid-ossp";

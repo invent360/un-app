@@ -1,0 +1,850 @@
+// ============================================
+// RTL (Right-to-Left) Stylesheet
+// ============================================
+// Complete RTL support for Arabic and other RTL languages.
+// This file is imported by main.scss and applies when:
+// - <html dir="rtl">
+// - <body class="rtl">
+// - [data-locale="ar"]
+//
+// Conventions:
+// - All directional properties are mirrored
+// - Text alignment reversed
+// - Flexbox directions reversed
+// - Margins/paddings swapped where needed
+
+// ============================================
+// Base RTL Styles
+// ============================================
+
+[dir="rtl"],
+.rtl,
+[data-locale="ar"],
+[data-locale="he"],
+[data-locale="fa"],
+[data-locale="ur"] {
+    direction: rtl;
+    text-align: right;
+
+    // ============================================
+    // Typography
+    // ============================================
+
+    // Paragraph and text alignment
+    p, h1, h2, h3, h4, h5, h6 {
+        text-align: right;
+    }
+
+    // Lists
+    ul, ol {
+        padding-right: var(--spacing-lg);
+        padding-left: 0;
+    }
+
+    li {
+        text-align: right;
+    }
+
+    // ============================================
+    // Layout Components
+    // ============================================
+
+    // Flexbox - reverse row direction
+    .app-wrapper,
+    .header-content,
+    .header-desktop,
+    .nav-links,
+    .footer-content,
+    .footer-links,
+    .footer-bottom {
+        flex-direction: row-reverse;
+    }
+
+    // Grid layouts remain mostly the same, but text flows RTL
+    .feature-grid,
+    .variant-grid,
+    .task-grid,
+    .stats-overview,
+    .contact-options,
+    .earnings-grid,
+    .testimonials-grid,
+    .faq-grid {
+        direction: rtl;
+    }
+
+    // ============================================
+    // Header
+    // ============================================
+
+    .site-header {
+        .header-content {
+            flex-direction: row-reverse;
+        }
+
+        .logo {
+            .logo-text {
+                margin-right: 0;
+                margin-left: var(--spacing-sm);
+            }
+        }
+
+        .main-nav .nav-links {
+            flex-direction: row-reverse;
+        }
+
+        .hamburger-btn {
+            margin-left: 0;
+            margin-right: auto;
+        }
+
+        .mobile-menu {
+            .mobile-nav-links a {
+                text-align: right;
+            }
+
+            .mobile-actions {
+                flex-direction: row-reverse;
+            }
+        }
+
+        .header-cta-btn {
+            flex-direction: row-reverse;
+        }
+    }
+
+    // ============================================
+    // Footer
+    // ============================================
+
+    .site-footer,
+    .footer {
+        .footer-content {
+            direction: rtl;
+        }
+
+        .footer-brand {
+            text-align: right;
+
+            .logo {
+                flex-direction: row-reverse;
+            }
+        }
+
+        .footer-column {
+            text-align: right;
+
+            a {
+                display: block;
+                text-align: right;
+            }
+        }
+    }
+
+    // ============================================
+    // Cards
+    // ============================================
+
+    .card,
+    .variant-card,
+    .feature-card,
+    .task-card,
+    .stat-card,
+    .contact-card {
+        text-align: right;
+    }
+
+    .variant-card {
+        .featured-badge {
+            right: auto;
+            left: var(--spacing-md);
+        }
+
+        .card-header {
+            text-align: right;
+        }
+
+        .card-body {
+            text-align: right;
+
+            .share-info {
+                text-align: right;
+            }
+        }
+    }
+
+    // ============================================
+    // Buttons
+    // ============================================
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-ghost {
+        flex-direction: row-reverse;
+
+        svg, .icon {
+            margin-left: var(--spacing-xs);
+            margin-right: 0;
+        }
+    }
+
+    .copy-btn {
+        &.copied::before {
+            content: "\2713"; // Checkmark doesn't need RTL
+        }
+    }
+
+    // ============================================
+    // Forms & Inputs
+    // ============================================
+
+    input,
+    textarea,
+    select {
+        text-align: right;
+    }
+
+    .search-input {
+        padding-right: var(--spacing-md);
+        padding-left: var(--spacing-xl);
+
+        &::placeholder {
+            text-align: right;
+        }
+    }
+
+    // Input with icon
+    .input-with-icon {
+        flex-direction: row-reverse;
+
+        .input-icon {
+            right: auto;
+            left: var(--spacing-md);
+        }
+    }
+
+    // Checkbox and radio labels
+    input[type="checkbox"],
+    input[type="radio"] {
+        margin-left: var(--spacing-sm);
+        margin-right: 0;
+    }
+
+    // ============================================
+    // Progress & Urgency Bars
+    // ============================================
+
+    .urgency-bar {
+        .progress-container {
+            direction: rtl;
+        }
+
+        .progress-fill {
+            float: right;
+        }
+
+        .progress-labels {
+            flex-direction: row-reverse;
+        }
+    }
+
+    .distribution-bar {
+        .claimed-portion {
+            float: right;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        }
+    }
+
+    // ============================================
+    // Wizard
+    // ============================================
+
+    .wizard-overlay {
+        .wizard-container {
+            text-align: right;
+        }
+    }
+
+    .wizard-header {
+        flex-direction: row-reverse;
+
+        .wizard-title {
+            text-align: right;
+        }
+
+        .wizard-close {
+            margin-left: 0;
+            margin-right: auto;
+        }
+    }
+
+    .wizard-footer {
+        flex-direction: row-reverse;
+
+        .footer-left,
+        .footer-right {
+            flex-direction: row-reverse;
+        }
+    }
+
+    // Wizard Progress Steps
+    .wizard-progress {
+        .progress-steps {
+            flex-direction: row-reverse;
+        }
+
+        .progress-step {
+            .step-row {
+                flex-direction: row-reverse;
+            }
+        }
+    }
+
+    // Wizard content
+    .wizard-welcome {
+        text-align: right;
+
+        .welcome-hero {
+            text-align: right;
+        }
+    }
+
+    .wizard-variants {
+        .variants-title,
+        .variants-subtitle {
+            text-align: right;
+        }
+    }
+
+    .wizard-variant-card {
+        flex-direction: row-reverse;
+
+        .variant-info {
+            flex-direction: row-reverse;
+        }
+    }
+
+    .wizard-review {
+        .review-title {
+            text-align: right;
+        }
+
+        .review-row {
+            flex-direction: row-reverse;
+        }
+
+        .review-terms {
+            flex-direction: row-reverse;
+
+            input[type="checkbox"] {
+                margin-left: var(--spacing-sm);
+                margin-right: 0;
+            }
+        }
+    }
+
+    .wizard-success {
+        text-align: right;
+
+        .success-license-key {
+            .key-display {
+                flex-direction: row-reverse;
+            }
+        }
+
+        .success-next-steps {
+            .steps-list li {
+                flex-direction: row-reverse;
+
+                .step-number {
+                    margin-left: var(--spacing-sm);
+                    margin-right: 0;
+                }
+            }
+        }
+    }
+
+    // ============================================
+    // Accordions
+    // ============================================
+
+    .learn-accordion-item,
+    .task-accordion-item,
+    .faq-item {
+        .learn-accordion-header,
+        .task-accordion-header,
+        summary {
+            flex-direction: row-reverse;
+            text-align: right;
+        }
+
+        .accordion-icon {
+            margin-left: 0;
+            margin-right: auto;
+            transform: rotate(180deg);
+
+            &.open {
+                transform: rotate(225deg);
+            }
+        }
+    }
+
+    details summary::marker {
+        display: none;
+    }
+
+    // ============================================
+    // Tables
+    // ============================================
+
+    table {
+        direction: rtl;
+    }
+
+    th, td {
+        text-align: right;
+    }
+
+    .compare-table {
+        th:first-child,
+        td:first-child {
+            text-align: right;
+        }
+    }
+
+    .comparison-table {
+        th, td {
+            text-align: right;
+        }
+    }
+
+    // ============================================
+    // Stats Page
+    // ============================================
+
+    .stats-overview {
+        .stat-card {
+            text-align: right;
+        }
+    }
+
+    .stats-detail {
+        text-align: right;
+    }
+
+    .distribution-labels {
+        flex-direction: row-reverse;
+    }
+
+    // ============================================
+    // FAQ Page
+    // ============================================
+
+    .faq-page {
+        .faq-categories {
+            flex-direction: row-reverse;
+        }
+
+        .faq-item {
+            text-align: right;
+
+            summary {
+                text-align: right;
+            }
+
+            p {
+                text-align: right;
+            }
+        }
+    }
+
+    // ============================================
+    // Contact Page
+    // ============================================
+
+    .contact-options {
+        .contact-card {
+            text-align: right;
+        }
+    }
+
+    // ============================================
+    // Tasks Page
+    // ============================================
+
+    .task-grid {
+        .task-card {
+            text-align: right;
+
+            .task-earnings {
+                flex-direction: row-reverse;
+            }
+        }
+    }
+
+    .device-comparison {
+        text-align: right;
+    }
+
+    // ============================================
+    // Claim Page
+    // ============================================
+
+    .claim-page {
+        text-align: right;
+    }
+
+    .license-reveal {
+        text-align: right;
+
+        .key-display {
+            flex-direction: row-reverse;
+        }
+
+        .download-section {
+            text-align: right;
+
+            .steps-list {
+                padding-right: var(--spacing-lg);
+                padding-left: 0;
+            }
+        }
+    }
+
+    // ============================================
+    // Modals
+    // ============================================
+
+    .modal-overlay {
+        .modal-container {
+            text-align: right;
+        }
+
+        .modal-header {
+            flex-direction: row-reverse;
+
+            .modal-close {
+                margin-left: 0;
+                margin-right: auto;
+            }
+        }
+
+        .modal-footer {
+            flex-direction: row-reverse;
+        }
+    }
+
+    // ============================================
+    // Chat Widget
+    // ============================================
+
+    .chat-widget {
+        left: var(--spacing-md);
+        right: auto;
+    }
+
+    .chat-window {
+        left: var(--spacing-md);
+        right: auto;
+
+        .chat-header {
+            flex-direction: row-reverse;
+        }
+
+        .chat-messages {
+            .message {
+                &.user {
+                    text-align: left;
+                    margin-left: 0;
+                    margin-right: auto;
+                }
+
+                &.bot {
+                    text-align: right;
+                    margin-right: 0;
+                    margin-left: auto;
+                }
+            }
+        }
+
+        .chat-input {
+            flex-direction: row-reverse;
+
+            input {
+                text-align: right;
+            }
+        }
+    }
+
+    // ============================================
+    // Locale Popup
+    // ============================================
+
+    .locale-popup {
+        text-align: right;
+
+        .locale-options {
+            flex-direction: row-reverse;
+        }
+    }
+
+    // ============================================
+    // Language Selector
+    // ============================================
+
+    .language-selector {
+        .selector-btn {
+            flex-direction: row-reverse;
+        }
+
+        .selector-dropdown {
+            left: 0;
+            right: auto;
+
+            .locale-option {
+                flex-direction: row-reverse;
+                text-align: right;
+
+                .flag-icon {
+                    margin-left: var(--spacing-sm);
+                    margin-right: 0;
+                }
+            }
+        }
+    }
+
+    // ============================================
+    // Theme Switcher
+    // ============================================
+
+    .theme-toggle {
+        margin-left: var(--spacing-sm);
+        margin-right: 0;
+    }
+
+    // ============================================
+    // Carousel
+    // ============================================
+
+    .fx-carousel-ant {
+        direction: rtl;
+
+        .fx-carousel-ant-arrow-prev {
+            right: var(--spacing-md);
+            left: auto;
+        }
+
+        .fx-carousel-ant-arrow-next {
+            left: var(--spacing-md);
+            right: auto;
+        }
+
+        .fx-carousel-ant-thumbnails {
+            flex-direction: row-reverse;
+        }
+    }
+
+    // ============================================
+    // Testimonials
+    // ============================================
+
+    .testimonial {
+        text-align: right;
+
+        .testimonial-content {
+            text-align: right;
+        }
+
+        .testimonial-author {
+            flex-direction: row-reverse;
+
+            .author-info {
+                text-align: right;
+            }
+        }
+    }
+
+    // ============================================
+    // Landing Page
+    // ============================================
+
+    .landing-page {
+        direction: rtl;
+        text-align: right;
+
+        .hero {
+            text-align: right;
+
+            .hero-content {
+                flex-direction: row-reverse;
+            }
+
+            .hero-text {
+                text-align: right;
+            }
+
+            .hero-cta {
+                flex-direction: row-reverse;
+            }
+
+            .hero-benefits {
+                flex-direction: row-reverse;
+
+                .benefit {
+                    flex-direction: row-reverse;
+                }
+            }
+        }
+
+        .section-title,
+        .section-subtitle {
+            text-align: right;
+        }
+
+        .steps {
+            flex-direction: row-reverse;
+
+            .step {
+                text-align: right;
+            }
+
+            .step-arrow {
+                transform: rotate(180deg);
+            }
+        }
+
+        .earnings-card {
+            text-align: right;
+
+            .earnings-card-features {
+                text-align: right;
+
+                li::before {
+                    margin-left: var(--spacing-xs);
+                    margin-right: 0;
+                }
+            }
+        }
+
+        .cta-steps {
+            flex-direction: row-reverse;
+        }
+
+        .app-buttons {
+            flex-direction: row-reverse;
+        }
+
+        .app-button {
+            flex-direction: row-reverse;
+
+            .app-button-text {
+                text-align: right;
+            }
+        }
+    }
+
+    // ============================================
+    // Toasts & Notifications
+    // ============================================
+
+    .fx-toast-ant {
+        direction: rtl;
+        text-align: right;
+
+        .fx-toast-ant-content {
+            flex-direction: row-reverse;
+        }
+
+        .fx-toast-ant-close {
+            margin-left: 0;
+            margin-right: auto;
+        }
+    }
+
+    // ============================================
+    // Icons & Arrows
+    // ============================================
+
+    // Flip directional icons
+    .icon-arrow-right,
+    .icon-chevron-right,
+    .icon-caret-right {
+        transform: rotate(180deg);
+    }
+
+    .icon-arrow-left,
+    .icon-chevron-left,
+    .icon-caret-left {
+        transform: rotate(180deg);
+    }
+
+    // Select arrow indicator
+    select {
+        background-position: left var(--spacing-sm) center;
+        padding-left: var(--spacing-xl);
+        padding-right: var(--spacing-md);
+    }
+
+    // ============================================
+    // Utilities
+    // ============================================
+
+    // Force LTR for specific content (e.g., code, numbers)
+    .ltr,
+    code,
+    pre,
+    .license-key,
+    .phone-number,
+    .email,
+    .url {
+        direction: ltr;
+        unicode-bidi: isolate;
+    }
+
+    // Text alignment utilities
+    .text-start {
+        text-align: right;
+    }
+
+    .text-end {
+        text-align: left;
+    }
+
+    // Margin utilities (swap left/right)
+    .ms-auto {
+        margin-left: 0 !important;
+        margin-right: auto !important;
+    }
+
+    .me-auto {
+        margin-right: 0 !important;
+        margin-left: auto !important;
+    }
+
+    // Padding utilities (swap left/right)
+    .ps-0 {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .pe-0 {
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+    }
+}
+
+// ============================================
+// RTL-specific Arabic Typography
+// ============================================
+
+[data-locale="ar"] {
+    // Arabic font stack
+    font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
+
+    // Slightly larger line height for Arabic script
+    line-height: 1.8;
+
+    // Arabic numbers (use Western numerals for consistency)
+    .use-arabic-numerals {
+        font-feature-settings: "tnum" on;
+    }
+}

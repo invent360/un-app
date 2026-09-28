@@ -1,0 +1,32 @@
+{
+  "title": "Connectivity Verification Activation Guide",
+  "description": "Learn how to enable connectivity verification on your device",
+  "difficulty": "easy",
+  "duration_minutes": 2,
+  "steps": [
+    {
+      "order": 1,
+      "title": "Open Unetwork Tasks",
+      "description": "Launch the Unetwork app and navigate to the Tasks section using the bottom navigation bar.",
+      "image": null
+    },
+    {
+      "order": 2,
+      "title": "Select Connectivity Verification",
+      "description": "Tap on 'Connectivity Verification' from the list of available tasks to view details.",
+      "image": null
+    },
+    {
+      "order": 3,
+      "title": "Enable the Task",
+      "description": "Review the requirements and tap 'Enable' to start connectivity verification. The task will run automatically in the background.",
+      "image": null
+    },
+    {
+      "order": 4,
+      "title": "Optional: Grant Location Permission",
+      "description": "For more accurate coverage mapping, grant location permission when prompted. This helps associate connectivity data with geographic areas.",
+      "image": null
+    }
+  ]
+}

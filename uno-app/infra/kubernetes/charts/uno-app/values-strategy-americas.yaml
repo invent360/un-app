@@ -1,0 +1,58 @@
+# Americas Deployment Strategy
+# Single region serving North and South America
+# Cost: ~$294/month
+#
+# Cloudflare geo-routing configuration:
+#   WNAM (Western North America) → Americas pool
+#   ENAM (Eastern North America) → Americas pool
+#   SAM (South America) → Americas pool
+#   Fallback: Americas pool
+
+region: americas
+provider: gcp
+databaseRole: primary  # Cloud SQL primary database
+
+# Deployment target
+app:
+  replicaCount: 2
+
+  # GCP e2-medium equivalent resources
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  nodeSelector:
+    region: americas
+
+# Standard scaling for single continent
+hpa:
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPU: 70
+  targetMemory: 80
+
+# Enable all components
+cloudflared:
+  enabled: true
+  replicaCount: 2
+
+monitoring:
+  enabled: true
+
+# Strategy metadata
+strategy:
+  name: americas
+  regionsServed:
+    - WNAM   # Western North America
+    - ENAM   # Eastern North America
+    - SAM    # South America
+  estimatedMonthlyCost: 294
+  latencyNote: "~20-80ms for Americas"
+  benefits:
+    - "Managed Cloud SQL with HA"
+    - "GCP reliability and SLAs"
+    - "Integrated monitoring (Cloud Logging)"

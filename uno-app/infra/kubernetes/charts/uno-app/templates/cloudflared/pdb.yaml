@@ -1,0 +1,14 @@
+{{- if and .Values.cloudflared.enabled .Values.cloudflared.pdb.enabled -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cloudflared-pdb
+  namespace: {{ .Values.cloudflared.namespace }}
+  labels:
+    {{- include "cloudflared.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.cloudflared.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "cloudflared.selectorLabels" . | nindent 6 }}
+{{- end }}

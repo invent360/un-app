@@ -1,0 +1,32 @@
+{
+  "title": "Entropy Contribution Activation Guide",
+  "description": "Step-by-step guide to enable Entropy Contribution on your device",
+  "difficulty": "easy",
+  "duration_minutes": 2,
+  "steps": [
+    {
+      "order": 1,
+      "title": "Navigate to Tasks",
+      "description": "From the main dashboard, tap the Tasks icon in the bottom navigation bar to access the Unetwork Tasks menu.",
+      "image": "0.png"
+    },
+    {
+      "order": 2,
+      "title": "Locate Entropy Contribution",
+      "description": "In the Unetwork Tasks screen, scroll down to find 'Entropy Contribution'. This feature allows your device to contribute high-quality randomness used to help secure online systems. It runs in the background and can be turned off anytime.",
+      "image": "1.png"
+    },
+    {
+      "order": 3,
+      "title": "Enable Entropy Contribution",
+      "description": "Tap the toggle switch to enable Entropy Contribution. The status will briefly show 'Starting' as the service initializes.",
+      "image": "2.png"
+    },
+    {
+      "order": 4,
+      "title": "Confirm Activation",
+      "description": "Once initialization is complete, the status will change to 'Active' with a green indicator. Your device is now contributing entropy to help secure online systems.",
+      "image": "3.png"
+    }
+  ]
+}

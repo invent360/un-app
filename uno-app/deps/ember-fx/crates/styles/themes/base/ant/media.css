@@ -1,0 +1,597 @@
+/* Media Components - Carousel
+ * Ant Design Theme
+ */
+
+/* ============================================
+   Carousel Component
+   ============================================ */
+
+.fx-carousel-ant {
+  position: relative;
+  width: 100%;
+  background: #141414;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Focus state for keyboard navigation */
+.fx-carousel-ant:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+.fx-carousel-ant:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Header */
+.fx-carousel-ant-header {
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fx-carousel-ant-title {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.fx-carousel-ant-description {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Viewport */
+.fx-carousel-ant-viewport {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+}
+
+/* Size variants */
+.fx-carousel-ant-sm .fx-carousel-ant-viewport {
+  height: 300px;
+}
+
+.fx-carousel-ant-md .fx-carousel-ant-viewport {
+  height: 400px;
+}
+
+.fx-carousel-ant-lg .fx-carousel-ant-viewport {
+  height: 500px;
+}
+
+/* Track (slide container) */
+.fx-carousel-ant-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade effect */
+.fx-carousel-ant-effect-fade .fx-carousel-ant-track {
+  display: block;
+  position: relative;
+}
+
+.fx-carousel-ant-effect-fade .fx-carousel-ant-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.fx-carousel-ant-effect-fade .fx-carousel-ant-slide-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Slides */
+.fx-carousel-ant-slide {
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+}
+
+.fx-carousel-ant-slide-image,
+.fx-carousel-ant-slide-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Slide overlay content */
+.fx-carousel-ant-slide-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 20px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  pointer-events: none;
+}
+
+.fx-carousel-ant-slide-title {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--fx-color-primary-content, #ffffff);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.fx-carousel-ant-slide-description {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Navigation arrows */
+.fx-carousel-ant-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  color: var(--fx-color-primary-content, #ffffff);
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.fx-carousel-ant-arrow:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.fx-carousel-ant-arrow:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+.fx-carousel-ant-arrow:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.fx-carousel-ant-arrow-prev {
+  left: 16px;
+}
+
+.fx-carousel-ant-arrow-next {
+  right: 16px;
+}
+
+.fx-carousel-ant-arrow-disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.fx-carousel-ant-arrow svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Thumbnails */
+.fx-carousel-ant-thumbnails {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.6);
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.fx-carousel-ant-thumbnails::-webkit-scrollbar {
+  height: 6px;
+}
+
+.fx-carousel-ant-thumbnails::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fx-carousel-ant-thumbnails::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.fx-carousel-ant-thumbnail {
+  position: relative;
+  flex-shrink: 0;
+  width: 120px;
+  height: 70px;
+  padding: 0;
+  background: #2a2a2a;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.fx-carousel-ant-thumbnail:hover {
+  border-color: rgba(24, 144, 255, 0.5);
+  transform: scale(1.02);
+}
+
+.fx-carousel-ant-thumbnail:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+.fx-carousel-ant-thumbnail:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.fx-carousel-ant-thumbnail-active {
+  border-color: #1890ff;
+}
+
+.fx-carousel-ant-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fx-carousel-ant-thumbnail-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 6px;
+  font-size: 11px;
+  color: var(--fx-color-primary-content, #ffffff);
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Thumbnail positions */
+.fx-carousel-ant-thumbs-top {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.fx-carousel-ant-thumbs-left {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.fx-carousel-ant-thumbs-left .fx-carousel-ant-thumbnails {
+  flex-direction: column;
+  width: 140px;
+  height: auto;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.fx-carousel-ant-thumbs-left .fx-carousel-ant-thumbnail {
+  width: 100%;
+  height: 80px;
+}
+
+.fx-carousel-ant-thumbs-right {
+  display: flex;
+}
+
+.fx-carousel-ant-thumbs-right .fx-carousel-ant-thumbnails {
+  flex-direction: column;
+  width: 140px;
+  height: auto;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.fx-carousel-ant-thumbs-right .fx-carousel-ant-thumbnail {
+  width: 100%;
+  height: 80px;
+}
+
+/* No thumbnails */
+.fx-carousel-ant-thumbs-none .fx-carousel-ant-thumbnails {
+  display: none;
+}
+
+/* ============================================
+   Pagination Dots
+   ============================================ */
+
+.fx-carousel-ant-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+}
+
+.fx-carousel-ant-pagination-top {
+  order: -1;
+}
+
+.fx-carousel-ant-pagination-bottom {
+  order: 1;
+}
+
+.fx-carousel-ant-dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.fx-carousel-ant-dot:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.2);
+}
+
+.fx-carousel-ant-dot-active {
+  background: #1890ff;
+}
+
+.fx-carousel-ant-dot:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+.fx-carousel-ant-dot:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Slide Info Counter */
+.fx-carousel-ant-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.fx-carousel-ant-info-current {
+  font-weight: 600;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+/* ============================================
+   Centered Mode
+   ============================================ */
+
+.fx-carousel-ant-centered .fx-carousel-ant-slide {
+  opacity: 0.5;
+  transform: scale(0.9);
+  transition: opacity 0.4s, transform 0.4s;
+}
+
+.fx-carousel-ant-centered .fx-carousel-ant-slide-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ============================================
+   Draggable Mode
+   ============================================ */
+
+.fx-carousel-ant-draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.fx-carousel-ant-dragging {
+  cursor: grabbing;
+}
+
+.fx-carousel-ant-dragging .fx-carousel-ant-track {
+  transition: none;
+}
+
+/* ============================================
+   RTL Support
+   ============================================ */
+
+.fx-carousel-ant-rtl {
+  direction: rtl;
+}
+
+.fx-carousel-ant-rtl .fx-carousel-ant-arrow-prev {
+  left: auto;
+  right: 16px;
+}
+
+.fx-carousel-ant-rtl .fx-carousel-ant-arrow-next {
+  right: auto;
+  left: 16px;
+}
+
+/* ============================================
+   Auto Height
+   ============================================ */
+
+.fx-carousel-ant-auto-height .fx-carousel-ant-viewport {
+  height: auto;
+}
+
+.fx-carousel-ant-auto-height .fx-carousel-ant-slide {
+  height: auto;
+}
+
+/* ============================================
+   Snap Scroll Mode
+   ============================================ */
+
+.fx-carousel-ant-snap .fx-carousel-ant-track {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.fx-carousel-ant-snap .fx-carousel-ant-track::-webkit-scrollbar {
+  display: none;
+}
+
+.fx-carousel-ant-slide-snap {
+  scroll-snap-align: start;
+}
+
+.fx-carousel-ant-centered .fx-carousel-ant-slide-snap {
+  scroll-snap-align: center;
+}
+
+/* ============================================
+   Testimonial Cards
+   ============================================ */
+
+.fx-carousel-ant-testimonial {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  padding: 32px 24px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+
+.fx-carousel-ant-testimonial-content {
+  flex: 1;
+  margin-bottom: 24px;
+}
+
+.fx-carousel-ant-testimonial-content p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.9);
+  font-style: italic;
+}
+
+.fx-carousel-ant-testimonial-content p::before {
+  content: '"';
+  font-size: 24px;
+  color: #1890ff;
+  margin-right: 4px;
+}
+
+.fx-carousel-ant-testimonial-content p::after {
+  content: '"';
+  font-size: 24px;
+  color: #1890ff;
+  margin-left: 4px;
+}
+
+.fx-carousel-ant-testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fx-carousel-ant-testimonial-avatar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--fx-color-primary, #1890ff), var(--fx-color-secondary, #722ed1));
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--fx-color-primary-content, #ffffff);
+  flex-shrink: 0;
+}
+
+.fx-carousel-ant-testimonial-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-carousel-ant-testimonial-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.fx-carousel-ant-testimonial-location {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.fx-carousel-ant-testimonial-rating {
+  display: flex;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.fx-carousel-ant-star {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.fx-carousel-ant-star-filled {
+  color: #fadb14;
+}
+
+/* Testimonial slide overrides - auto height */
+.fx-carousel-ant:has(.fx-carousel-ant-testimonial) .fx-carousel-ant-viewport {
+  height: auto;
+  min-height: 280px;
+}
+
+.fx-carousel-ant:has(.fx-carousel-ant-testimonial) .fx-carousel-ant-slide {
+  padding: 16px;
+  background: transparent;
+  align-items: stretch;
+}
+
+/* Multiple slides gap */
+.fx-carousel-ant:has(.fx-carousel-ant-testimonial) .fx-carousel-ant-track {
+  gap: 0;
+}
+
+/* ============================================
+   Reduced Motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-carousel-ant-track,
+  .fx-carousel-ant-arrow,
+  .fx-carousel-ant-thumbnail,
+  .fx-carousel-ant-effect-fade .fx-carousel-ant-slide,
+  .fx-carousel-ant-centered .fx-carousel-ant-slide,
+  .fx-carousel-ant-dot {
+    transition: none;
+  }
+}

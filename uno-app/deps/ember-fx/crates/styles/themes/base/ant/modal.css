@@ -1,0 +1,601 @@
+/* ============================================
+   Ant Design - Modal Component (Enhanced)
+   ember-fx-components
+   Full modal system with confirm dialogs
+   ============================================ */
+
+/* --- Design Tokens --- */
+:root {
+  --fx-modal-icon-size: 22px;
+  --fx-modal-confirm-icon-size: 22px;
+  --fx-modal-body-padding: 24px;
+  --fx-modal-header-padding: 16px 24px;
+  --fx-modal-footer-padding: 12px 24px;
+  --fx-modal-border-radius: 8px;
+  --fx-modal-animation-duration: 0.3s;
+  --fx-modal-mask-animation-duration: 0.15s;
+}
+
+/* ============================================
+   Base Modal Structure
+   ============================================ */
+
+/* Root wrapper - contains mask and modal */
+.fx-modal-ant-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.fx-modal-ant-root-visible,
+.fx-modal-ant-open {
+  pointer-events: auto;
+}
+
+/* Mask/Backdrop */
+.fx-modal-ant-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--fx-modal-mask-animation-duration) ease,
+              visibility var(--fx-modal-mask-animation-duration) ease;
+}
+
+.fx-modal-ant-open .fx-modal-ant-mask,
+.fx-modal-ant-mask-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modal Wrap (Positioning Container) */
+.fx-modal-ant-wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 1001;
+  overflow: auto;
+  padding: 24px;
+  padding-top: 100px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--fx-modal-animation-duration) ease,
+              visibility var(--fx-modal-animation-duration) ease;
+  pointer-events: none;
+}
+
+.fx-modal-ant-open .fx-modal-ant-wrap,
+.fx-modal-ant-wrap-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Centered modal */
+.fx-modal-ant-wrap-centered,
+.fx-modal-ant-centered .fx-modal-ant-wrap {
+  align-items: center;
+  padding-top: 24px;
+}
+
+/* ============================================
+   Modal Container
+   ============================================ */
+
+.fx-modal-ant {
+  position: relative;
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  margin: 0 auto;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border-radius: var(--fx-modal-border-radius);
+  box-shadow: var(--fx-effect-shadow-xl, 0 12px 40px rgba(0, 0, 0, 0.12));
+  transform: scale(0.9);
+  opacity: 0;
+  transition: transform var(--fx-modal-animation-duration) cubic-bezier(0.08, 0.82, 0.17, 1),
+              opacity var(--fx-modal-animation-duration) cubic-bezier(0.08, 0.82, 0.17, 1);
+  pointer-events: auto;
+}
+
+.fx-modal-ant-open .fx-modal-ant,
+.fx-modal-ant-visible {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Modal content (all inner elements) */
+.fx-modal-ant-content {
+  position: relative;
+  pointer-events: auto;
+}
+
+/* ============================================
+   Size Variants
+   ============================================ */
+
+.fx-modal-ant-sm {
+  width: 400px;
+}
+
+.fx-modal-ant-default {
+  width: 520px;
+}
+
+.fx-modal-ant-lg {
+  width: 800px;
+}
+
+.fx-modal-ant-xl {
+  width: 1000px;
+}
+
+.fx-modal-ant-fullscreen {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+}
+
+.fx-modal-ant-fullscreen .fx-modal-ant-body {
+  max-height: calc(100vh - 120px);
+}
+
+/* ============================================
+   Modal Header
+   ============================================ */
+
+.fx-modal-ant-header {
+  display: flex;
+  align-items: center;
+  padding: var(--fx-modal-header-padding);
+  border-bottom: 1px solid var(--fx-color-border-secondary, #303030);
+}
+
+.fx-modal-ant-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  word-wrap: break-word;
+}
+
+/* ============================================
+   Close Button
+   ============================================ */
+
+.fx-modal-ant-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.fx-modal-ant-close:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-modal-ant-close:focus-visible {
+  outline: 2px solid var(--fx-color-primary, #1677ff);
+  outline-offset: 2px;
+}
+
+.fx-modal-ant-close-x {
+  display: block;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  text-align: center;
+}
+
+/* ============================================
+   Modal Body
+   ============================================ */
+
+.fx-modal-ant-body {
+  padding: var(--fx-modal-body-padding);
+  font-size: 14px;
+  line-height: 1.5715;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  word-wrap: break-word;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Modal without header */
+.fx-modal-ant-no-header .fx-modal-ant-body {
+  padding-top: 32px;
+}
+
+/* Modal without footer */
+.fx-modal-ant-no-footer .fx-modal-ant-body {
+  padding-bottom: 32px;
+}
+
+/* ============================================
+   Modal Footer
+   ============================================ */
+
+.fx-modal-ant-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: var(--fx-modal-footer-padding);
+  border-top: 1px solid var(--fx-color-border-secondary, #303030);
+}
+
+/* Footer buttons */
+.fx-modal-ant-footer .fx-btn-ant,
+.fx-modal-ant-footer button {
+  min-width: 64px;
+  height: 32px;
+  padding: 4px 15px;
+  font-size: 14px;
+  line-height: 1.5715;
+  border-radius: 6px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* ============================================
+   Confirm Modal Styles
+   ============================================ */
+
+.fx-modal-ant-confirm {
+  width: 416px;
+}
+
+.fx-modal-ant-confirm .fx-modal-ant-header {
+  display: none;
+}
+
+.fx-modal-ant-confirm .fx-modal-ant-body {
+  padding: 32px 32px 24px;
+}
+
+.fx-modal-ant-confirm .fx-modal-ant-close {
+  top: 16px;
+  right: 16px;
+}
+
+/* Confirm body wrapper - horizontal layout */
+.fx-modal-ant-confirm-body-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+}
+
+/* ============================================
+   Confirm Icons
+   ============================================ */
+
+.fx-modal-ant-confirm-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  font-size: var(--fx-modal-confirm-icon-size);
+  line-height: 1;
+  margin-top: 1px;
+}
+
+.fx-modal-ant-confirm-icon svg {
+  width: var(--fx-modal-confirm-icon-size);
+  height: var(--fx-modal-confirm-icon-size);
+}
+
+/* Type-specific icon colors */
+.fx-modal-ant-confirm-icon-info {
+  color: var(--fx-color-info, #1677ff);
+}
+
+.fx-modal-ant-confirm-icon-success {
+  color: var(--fx-color-success, #52c41a);
+}
+
+.fx-modal-ant-confirm-icon-warning,
+.fx-modal-ant-confirm-icon-confirm {
+  color: var(--fx-color-warning, #faad14);
+}
+
+.fx-modal-ant-confirm-icon-error {
+  color: var(--fx-color-error, #ff4d4f);
+}
+
+/* ============================================
+   Confirm Content
+   ============================================ */
+
+.fx-modal-ant-confirm-paragraph {
+  flex: 1;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fx-modal-ant-confirm-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  word-wrap: break-word;
+}
+
+.fx-modal-ant-confirm-content {
+  font-size: 14px;
+  line-height: 1.5715;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+  word-wrap: break-word;
+}
+
+/* ============================================
+   Confirm Buttons
+   ============================================ */
+
+.fx-modal-ant-confirm-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.fx-modal-ant-confirm-btns .fx-btn-ant,
+.fx-modal-ant-confirm-btns button {
+  min-width: 64px;
+  height: 32px;
+  padding: 4px 15px;
+  font-size: 14px;
+  line-height: 1.5715;
+  border-radius: 6px;
+  border: 1px solid var(--fx-color-border, #424242);
+  background: transparent;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  pointer-events: auto;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-modal-ant-confirm-btns button:hover {
+  border-color: var(--fx-color-primary, #1677ff);
+  color: var(--fx-color-primary, #1677ff);
+}
+
+/* Primary/OK button in confirm */
+.fx-modal-ant-confirm-btns .fx-btn-ant-primary,
+.fx-modal-ant-confirm-btns button:last-child {
+  background: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-modal-ant-confirm-btns .fx-btn-ant-primary:hover,
+.fx-modal-ant-confirm-btns button:last-child:hover {
+  background: var(--fx-color-primary-hover, #4096ff);
+  border-color: var(--fx-color-primary-hover, #4096ff);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+/* Danger button */
+.fx-modal-ant-confirm-btns .fx-btn-ant-danger {
+  background: var(--fx-color-error, #ff4d4f);
+  border-color: var(--fx-color-error, #ff4d4f);
+  color: var(--fx-color-error-content, #ffffff);
+}
+
+.fx-modal-ant-confirm-btns .fx-btn-ant-danger:hover {
+  background: var(--fx-color-error-hover, #ff7875);
+  border-color: var(--fx-color-error-hover, #ff7875);
+}
+
+/* ============================================
+   Animation Variants
+   ============================================ */
+
+/* Zoom animation keyframes */
+@keyframes fx-modal-zoom-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fx-modal-zoom-out {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* Fade animation */
+@keyframes fx-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fx-modal-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Slide down animation */
+.fx-modal-ant-slide-down .fx-modal-ant {
+  transform: translateY(-100px);
+}
+
+.fx-modal-ant-slide-down.fx-modal-ant-open .fx-modal-ant {
+  transform: translateY(0);
+}
+
+/* ============================================
+   Loading State
+   ============================================ */
+
+.fx-modal-ant-loading .fx-modal-ant-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fx-modal-ant-loading-block {
+  height: 16px;
+  background: linear-gradient(90deg,
+    var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06)) 25%,
+    var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04)) 37%,
+    var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06)) 63%);
+  background-size: 400% 100%;
+  border-radius: var(--fx-radius-sm, 4px);
+  animation: fx-modal-loading 1.4s ease infinite;
+}
+
+@keyframes fx-modal-loading {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+@media (max-width: 576px) {
+  .fx-modal-ant {
+    max-width: calc(100vw - 16px);
+    margin: 8px auto;
+  }
+
+  .fx-modal-ant-wrap {
+    padding: 8px;
+    padding-top: 50px;
+  }
+
+  .fx-modal-ant-wrap-centered {
+    padding-top: 8px;
+  }
+
+  .fx-modal-ant-confirm {
+    width: calc(100vw - 16px);
+  }
+
+  .fx-modal-ant-body {
+    padding: 16px;
+  }
+
+  .fx-modal-ant-confirm .fx-modal-ant-body {
+    padding: 24px 16px 16px;
+  }
+
+  .fx-modal-ant-header {
+    padding: 12px 16px;
+  }
+
+  .fx-modal-ant-footer {
+    padding: 8px 16px;
+  }
+}
+
+/* ============================================
+   RTL Support
+   ============================================ */
+
+[dir="rtl"] .fx-modal-ant-close {
+  right: auto;
+  left: 16px;
+}
+
+[dir="rtl"] .fx-modal-ant-footer {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .fx-modal-ant-confirm-btns {
+  flex-direction: row-reverse;
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-modal-ant,
+  .fx-modal-ant-mask,
+  .fx-modal-ant-wrap {
+    transition: none;
+  }
+
+  .fx-modal-ant-loading-block {
+    animation: none;
+  }
+}
+
+/* ============================================
+   Focus Visible States
+   ============================================ */
+
+.fx-modal-ant:focus-visible {
+  outline: none;
+}
+
+.fx-modal-ant-body:focus-visible {
+  outline: none;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+
+.fx-modal-ant-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fx-modal-ant-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fx-modal-ant-body::-webkit-scrollbar-thumb {
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+  border-radius: 3px;
+}
+
+.fx-modal-ant-body::-webkit-scrollbar-thumb:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.12));
+}

@@ -1,0 +1,35 @@
+{
+  "title": "Connectivity Verification",
+  "description": "Check signal strength in your area and help map global network coverage. Your device performs automated connectivity tests to measure network quality, latency, and availability. This data helps improve network infrastructure worldwide.",
+  "images": ["images/0.png"],
+  "status": "active",
+  "difficulty": "easy",
+  "duration": "Continuous",
+  "earnings": [
+    {
+      "name": "1 Device",
+      "min_earnings": 3.0,
+      "max_earnings": 6.0,
+      "period": "month",
+      "features": ["Automatic tests", "Low resource usage", "Background operation"],
+      "is_popular": false
+    },
+    {
+      "name": "2-3 Devices",
+      "min_earnings": 9.0,
+      "max_earnings": 18.0,
+      "period": "month",
+      "features": ["Multiple locations", "Better coverage data", "Increased earnings"],
+      "is_popular": true
+    },
+    {
+      "name": "5+ Devices",
+      "min_earnings": 15.0,
+      "max_earnings": 30.0,
+      "period": "month",
+      "features": ["Maximum coverage", "Priority support", "Referral bonuses"],
+      "is_popular": false
+    }
+  ],
+  "requirements": ["Internet connectivity", "Location permission (optional)"]
+}

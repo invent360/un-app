@@ -1,0 +1,104 @@
+{
+  "name": "sky",
+  "displayName": "Sky",
+  "colorScheme": "dark",
+  "designSystem": "ant",
+  "variant": "sky",
+  "colors": {
+    "primary": "#0ea5e9",
+    "primaryHover": "#38bdf8",
+    "primaryActive": "#0284c7",
+    "primaryContent": "#ffffff",
+
+    "secondary": "#8b5cf6",
+    "secondaryContent": "#ffffff",
+
+    "accent": "#06b6d4",
+    "accentContent": "#ffffff",
+
+    "neutral": "#475569",
+    "neutralContent": "#e2e8f0",
+
+    "base-100": "#0f172a",
+    "base-200": "#1e293b",
+    "base-300": "#334155",
+    "baseContent": "#e2e8f0",
+
+    "bgContainer": "#0f172a",
+    "bgElevated": "#1e293b",
+    "bgLayout": "#0f172a",
+    "bgSpotlight": "#1e293b",
+    "bgTextHover": "rgba(14, 165, 233, 0.12)",
+    "bgContainerDisabled": "#334155",
+
+    "info": "#0ea5e9",
+    "infoContent": "#ffffff",
+
+    "success": "#22c55e",
+    "successContent": "#ffffff",
+
+    "warning": "#f59e0b",
+    "warningContent": "#000000",
+
+    "error": "#ef4444",
+    "errorContent": "#ffffff",
+
+    "border": "#475569",
+    "borderHover": "#64748b",
+
+    "text": "rgba(226, 232, 240, 0.9)",
+    "textSecondary": "rgba(226, 232, 240, 0.65)",
+    "textTertiary": "rgba(226, 232, 240, 0.45)",
+    "textDisabled": "rgba(226, 232, 240, 0.25)",
+
+    "landingBg1": "#0f172a",
+    "landingBg2": "#1e293b",
+    "landingBg3": "#334155",
+    "landingCardBg": "rgba(30, 41, 59, 0.7)",
+    "landingCardBgHover": "rgba(51, 65, 85, 0.8)",
+    "landingGradientStart": "rgba(15, 23, 42, 0.95)",
+    "landingGradientEnd": "rgba(30, 41, 59, 0.95)",
+    "landingCardGradientStart": "rgba(30, 41, 59, 0.6)",
+    "landingCardGradientEnd": "rgba(51, 65, 85, 0.7)",
+    "landingCardGradientStartStrong": "rgba(30, 41, 59, 0.85)",
+    "landingCardGradientEndStrong": "rgba(51, 65, 85, 0.9)",
+
+    "glowPrimary": "rgba(14, 165, 233, 0.4)",
+    "glowPrimarySoft": "rgba(14, 165, 233, 0.15)",
+    "glowPrimaryStrong": "rgba(14, 165, 233, 0.6)",
+    "glowRadialBg": "rgba(14, 165, 233, 0.08)",
+    "glowRadialBgSoft": "rgba(14, 165, 233, 0.05)",
+    "glowRadialBgFaint": "rgba(14, 165, 233, 0.04)",
+    "borderGlow": "rgba(14, 165, 233, 0.5)",
+    "borderGlowWeak": "rgba(14, 165, 233, 0.3)",
+
+    "phoneScreenBg1": "#1e293b",
+    "phoneScreenBg2": "#0f172a",
+    "highlightGradientEnd": "#38bdf8"
+  },
+  "radius": {
+    "xs": "4px",
+    "sm": "6px",
+    "md": "8px",
+    "lg": "12px",
+    "xl": "16px",
+    "full": "9999px"
+  },
+  "spacing": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "effects": {
+    "shadowSm": "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
+    "shadow": "0 2px 8px 0 rgba(0, 0, 0, 0.4)",
+    "shadowMd": "0 4px 12px 0 rgba(0, 0, 0, 0.5)",
+    "shadowLg": "0 8px 24px 0 rgba(0, 0, 0, 0.6)",
+    "blur": "8px",
+    "blurLg": "16px"
+  }
+}

@@ -1,0 +1,142 @@
+name: Infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infrastructure/terraform/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infrastructure/terraform/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+      environment:
+        description: 'Environment to target'
+        required: true
+        default: 'americas'
+        type: choice
+        options:
+          - americas
+          - europe
+          - apac
+          - global
+
+env:
+  TF_VERSION: '1.6.0'
+  TF_INPUT: false
+
+jobs:
+  # ===========================================================================
+  # Terraform Plan
+  # ===========================================================================
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'americas' }}-plan
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set environment
+        id: env
+        run: |
+          ENV="${{ github.event.inputs.environment || 'americas' }}"
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          if [ "$ENV" == "global" ]; then
+            echo "tf_dir=infrastructure/terraform/global" >> $GITHUB_OUTPUT
+          else
+            echo "tf_dir=infrastructure/terraform/environments/$ENV" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Init
+        run: |
+          cd ${{ steps.env.outputs.tf_dir }}
+          terraform init
+
+      - name: Terraform Validate
+        run: |
+          cd ${{ steps.env.outputs.tf_dir }}
+          terraform validate
+
+      - name: Terraform Plan
+        run: |
+          cd ${{ steps.env.outputs.tf_dir }}
+          terraform plan -out=tfplan
+
+      - name: Upload plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ steps.env.outputs.environment }}
+          path: ${{ steps.env.outputs.tf_dir }}/tfplan
+
+  # ===========================================================================
+  # Terraform Apply
+  # ===========================================================================
+  apply:
+    name: Terraform Apply
+    needs: plan
+    if: github.event.inputs.action == 'apply'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}-apply
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set environment
+        id: env
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          if [ "$ENV" == "global" ]; then
+            echo "tf_dir=infrastructure/terraform/global" >> $GITHUB_OUTPUT
+          else
+            echo "tf_dir=infrastructure/terraform/environments/$ENV" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ steps.env.outputs.environment }}
+          path: ${{ steps.env.outputs.tf_dir }}
+
+      - name: Terraform Init
+        run: |
+          cd ${{ steps.env.outputs.tf_dir }}
+          terraform init
+
+      - name: Terraform Apply
+        run: |
+          cd ${{ steps.env.outputs.tf_dir }}
+          terraform apply tfplan

@@ -1,0 +1,140 @@
+{
+  "name": "lara-dark",
+  "displayName": "Lara Dark",
+  "colorScheme": "dark",
+  "designSystem": "prime",
+  "default": true,
+  "colors": {
+    "primary": "#818cf8",
+    "primaryBg": "rgba(129, 140, 248, 0.16)",
+    "primaryBgHover": "rgba(129, 140, 248, 0.24)",
+    "primaryBorder": "#818cf8",
+    "primaryBorderHover": "#a5b4fc",
+    "primaryHover": "#a5b4fc",
+    "primaryActive": "#6366f1",
+    "primaryContent": "#ffffff",
+
+    "secondary": "#64748b",
+    "secondaryContent": "#ffffff",
+
+    "accent": "#22d3ee",
+    "accentContent": "#000000",
+
+    "neutral": "#475569",
+    "neutralContent": "#ffffff",
+
+    "base-100": "#0f172a",
+    "base-200": "#1e293b",
+    "base-300": "#334155",
+    "baseContent": "rgba(248, 250, 252, 0.87)",
+
+    "bgContainer": "#1e293b",
+    "bgElevated": "#334155",
+    "bgLayout": "#0f172a",
+    "bgSpotlight": "#334155",
+    "bgTextHover": "rgba(255, 255, 255, 0.08)",
+    "bgContainerDisabled": "#1e293b",
+
+    "info": "#3b82f6",
+    "infoContent": "#ffffff",
+
+    "success": "#22c55e",
+    "successBg": "rgba(34, 197, 94, 0.16)",
+    "successBorder": "#22c55e",
+    "successContent": "#ffffff",
+
+    "warning": "#f59e0b",
+    "warningBg": "rgba(245, 158, 11, 0.16)",
+    "warningBorder": "#f59e0b",
+    "warningContent": "#000000",
+
+    "error": "#ef4444",
+    "errorBg": "rgba(239, 68, 68, 0.16)",
+    "errorBorder": "#ef4444",
+    "errorContent": "#ffffff",
+
+    "border": "#334155",
+    "borderHover": "#818cf8",
+    "borderSecondary": "#1e293b",
+
+    "fill": "rgba(255, 255, 255, 0.18)",
+    "fillSecondary": "rgba(255, 255, 255, 0.12)",
+    "fillTertiary": "rgba(255, 255, 255, 0.08)",
+
+    "text": "rgba(248, 250, 252, 0.87)",
+    "textSecondary": "rgba(148, 163, 184, 1)",
+    "textTertiary": "rgba(100, 116, 139, 1)",
+    "textDisabled": "rgba(71, 85, 105, 1)",
+
+    "link": "#818cf8",
+    "linkHover": "#a5b4fc",
+    "linkActive": "#6366f1",
+
+    "landingBg1": "#020617",
+    "landingBg2": "#0f172a",
+    "landingBg3": "#1e293b",
+    "landingCardBg": "rgba(30, 41, 59, 0.8)",
+    "landingCardBgHover": "rgba(51, 65, 85, 0.9)",
+    "landingGradientStart": "rgba(15, 23, 42, 0.9)",
+    "landingGradientEnd": "rgba(2, 6, 23, 0.95)",
+    "landingCardGradientStart": "rgba(30, 41, 59, 0.6)",
+    "landingCardGradientEnd": "rgba(15, 23, 42, 0.8)",
+    "landingCardGradientStartStrong": "rgba(51, 65, 85, 0.8)",
+    "landingCardGradientEndStrong": "rgba(30, 41, 59, 0.9)",
+
+    "glowPrimary": "rgba(129, 140, 248, 0.4)",
+    "glowPrimarySoft": "rgba(129, 140, 248, 0.15)",
+    "glowPrimaryStrong": "rgba(129, 140, 248, 0.6)",
+    "glowRadialBg": "rgba(129, 140, 248, 0.08)",
+    "glowRadialBgSoft": "rgba(129, 140, 248, 0.05)",
+    "glowRadialBgFaint": "rgba(129, 140, 248, 0.04)",
+    "borderGlow": "rgba(129, 140, 248, 0.5)",
+    "borderGlowWeak": "rgba(129, 140, 248, 0.3)",
+
+    "phoneScreenBg1": "#1e293b",
+    "phoneScreenBg2": "#0f172a",
+    "highlightGradientEnd": "#a5b4fc"
+  },
+  "radius": {
+    "xs": "4px",
+    "sm": "6px",
+    "md": "8px",
+    "lg": "12px",
+    "xl": "16px",
+    "full": "9999px"
+  },
+  "spacing": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "effects": {
+    "shadowSm": "0 1px 2px 0 rgba(0, 0, 0, 0.5)",
+    "shadow": "0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px -1px rgba(0, 0, 0, 0.5)",
+    "shadowMd": "0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5)",
+    "shadowLg": "0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5)",
+    "blur": "8px",
+    "blurLg": "16px"
+  },
+  "motion": {
+    "unit": "0.1s",
+    "base": "0s",
+    "easeOut": "cubic-bezier(0, 0, 0.2, 1)",
+    "easeInOut": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "easeOutBack": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+    "easeInBack": "cubic-bezier(0.36, 0, 0.66, -0.56)"
+  },
+  "font": {
+    "family": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "familyCode": "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+    "size": "14px",
+    "sizeSm": "12px",
+    "sizeLg": "16px",
+    "sizeXl": "20px"
+  },
+  "lineWidth": "1px"
+}

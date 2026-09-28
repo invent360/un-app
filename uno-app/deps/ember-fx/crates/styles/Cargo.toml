@@ -1,0 +1,29 @@
+[package]
+name = "ember-fx-styles"
+description = "CSS compilation and theme registry for ember-fx"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+build = "build.rs"
+
+[lints]
+workspace = true
+
+[features]
+default = ["ant"]
+ant = []
+material = []
+cupertino = []
+daisyui = []
+prime = []
+flutter = []
+all-systems = ["ant", "material", "cupertino", "daisyui", "prime", "flutter"]
+
+[dependencies]
+ember-fx-common = { workspace = true }
+
+[build-dependencies]
+lightningcss = { workspace = true }
+walkdir = { workspace = true }
+serde_json = { workspace = true }

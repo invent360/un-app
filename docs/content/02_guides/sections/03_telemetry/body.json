@@ -1,0 +1,26 @@
+{
+  "title": "Telemetry Activation Guide",
+  "description": "Learn how to enable telemetry collection on your device",
+  "difficulty": "easy",
+  "duration_minutes": 2,
+  "steps": [
+    {
+      "order": 1,
+      "title": "Open the Unetwork App",
+      "description": "Launch the Unetwork app on your mobile device. You'll see the main dashboard with your current status and available tasks.",
+      "image": null
+    },
+    {
+      "order": 2,
+      "title": "Navigate to Tasks",
+      "description": "Tap on the Tasks icon in the bottom navigation bar to view all available earning opportunities.",
+      "image": null
+    },
+    {
+      "order": 3,
+      "title": "Telemetry is Always Active",
+      "description": "Connection to Unetwork is enabled by default and keeps your device continuously connected to participate in ongoing Unetwork tasks. No additional setup required!",
+      "image": null
+    }
+  ]
+}

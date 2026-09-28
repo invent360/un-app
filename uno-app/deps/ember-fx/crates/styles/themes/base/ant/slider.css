@@ -1,0 +1,483 @@
+/* ============================================
+   Ant Design - Slider Components
+   ember-fx-components
+   Slider, RangeSlider
+   ============================================ */
+
+/* ============================================
+   Base Slider
+   ============================================ */
+.fx-slider-ant {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+  touch-action: none;
+  user-select: none;
+}
+
+.fx-slider-ant-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+/* ============================================
+   Rail (Background Track)
+   ============================================ */
+.fx-slider-ant-rail {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.fx-slider-ant-disabled .fx-slider-ant-rail {
+  cursor: not-allowed;
+}
+
+/* ============================================
+   Track (Filled Portion)
+   ============================================ */
+.fx-slider-ant-track {
+  position: absolute;
+  height: 4px;
+  background: var(--fx-color-primary, #1677ff);
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.fx-slider-ant:hover .fx-slider-ant-track {
+  background: var(--fx-color-primary-hover, #4096ff);
+}
+
+.fx-slider-ant-disabled .fx-slider-ant-track {
+  background: var(--fx-color-fill, rgba(255, 255, 255, 0.18));
+}
+
+/* Range slider track */
+.fx-slider-ant-range .fx-slider-ant-track {
+  left: 0;
+}
+
+.fx-slider-ant-track-draggable {
+  cursor: grab;
+}
+
+.fx-slider-ant-track-dragging {
+  cursor: grabbing;
+}
+
+/* ============================================
+   Handle (Thumb)
+   ============================================ */
+.fx-slider-ant-handle {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  background: var(--fx-color-bg-container, #ffffff);
+  border: 2px solid var(--fx-color-primary, #1677ff);
+  border-radius: 50%;
+  cursor: grab;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  z-index: 1;
+  outline: none;
+}
+
+.fx-slider-ant-handle:hover,
+.fx-slider-ant-handle-focused {
+  border-color: var(--fx-color-primary-hover, #4096ff);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.fx-slider-ant-handle:active,
+.fx-slider-ant-handle-dragging {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.fx-slider-ant-handle-focused {
+  box-shadow: 0 0 0 4px var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+}
+
+.fx-slider-ant-handle-active {
+  z-index: 2;
+}
+
+/* Disabled handle */
+.fx-slider-ant-disabled .fx-slider-ant-handle {
+  border-color: var(--fx-color-fill, rgba(255, 255, 255, 0.18));
+  cursor: not-allowed;
+}
+
+.fx-slider-ant-disabled .fx-slider-ant-handle:hover {
+  transform: none;
+}
+
+/* ============================================
+   Marks
+   ============================================ */
+.fx-slider-ant-marks {
+  position: absolute;
+  top: 18px;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.fx-slider-ant-mark {
+  position: absolute;
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.fx-slider-ant-mark-active {
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+/* Mark dots */
+.fx-slider-ant-dot {
+  position: absolute;
+  top: -14px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 2px solid var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.fx-slider-ant-dot-active {
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+/* ============================================
+   Step Dots
+   ============================================ */
+.fx-slider-ant-dots {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  pointer-events: none;
+}
+
+.fx-slider-ant-dot-step {
+  position: absolute;
+  top: -2px;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border-secondary, #303030);
+  border-radius: 50%;
+}
+
+.fx-slider-ant-dot-step-active {
+  border-color: var(--fx-color-primary, #1677ff);
+  background: var(--fx-color-primary, #1677ff);
+}
+
+/* ============================================
+   Tooltip
+   ============================================ */
+.fx-slider-ant-tooltip {
+  position: absolute;
+  padding: 4px 8px;
+  background: var(--fx-color-tooltip-bg, rgba(0, 0, 0, 0.85));
+  color: var(--fx-color-tooltip-text, #ffffff);
+  font-size: 12px;
+  border-radius: var(--fx-radius-sm, 4px);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.fx-slider-ant-tooltip-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Tooltip placements */
+.fx-slider-ant-tooltip-top {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+}
+
+.fx-slider-ant-tooltip-bottom {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+}
+
+.fx-slider-ant-tooltip-left {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 8px;
+}
+
+.fx-slider-ant-tooltip-right {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+}
+
+/* ============================================
+   Value Display
+   ============================================ */
+.fx-slider-ant-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  min-width: 40px;
+  text-align: right;
+}
+
+/* ============================================
+   Size Variants
+   ============================================ */
+
+/* Small */
+.fx-slider-ant-small .fx-slider-ant-rail,
+.fx-slider-ant-small .fx-slider-ant-track {
+  height: 2px;
+}
+
+.fx-slider-ant-small .fx-slider-ant-handle {
+  width: 10px;
+  height: 10px;
+}
+
+.fx-slider-ant-small .fx-slider-ant-marks {
+  top: 14px;
+}
+
+.fx-slider-ant-small .fx-slider-ant-dot {
+  top: -10px;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+}
+
+/* Large */
+.fx-slider-ant-large .fx-slider-ant-rail,
+.fx-slider-ant-large .fx-slider-ant-track {
+  height: 6px;
+  border-radius: 3px;
+}
+
+.fx-slider-ant-large .fx-slider-ant-handle {
+  width: 18px;
+  height: 18px;
+}
+
+.fx-slider-ant-large .fx-slider-ant-marks {
+  top: 22px;
+}
+
+.fx-slider-ant-large .fx-slider-ant-dot {
+  top: -18px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+}
+
+/* ============================================
+   Vertical Slider
+   ============================================ */
+.fx-slider-ant-vertical {
+  flex-direction: column;
+  width: auto;
+  height: 200px;
+  padding: 0 8px;
+}
+
+.fx-slider-ant-vertical .fx-slider-ant-rail {
+  width: 4px;
+  height: 100%;
+}
+
+.fx-slider-ant-vertical .fx-slider-ant-track {
+  width: 4px;
+  height: auto;
+  left: 0;
+  bottom: 0;
+}
+
+.fx-slider-ant-vertical .fx-slider-ant-handle {
+  top: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.fx-slider-ant-vertical .fx-slider-ant-marks {
+  top: 0;
+  left: 18px;
+  right: auto;
+  height: 100%;
+}
+
+.fx-slider-ant-vertical .fx-slider-ant-mark {
+  transform: translateY(50%);
+}
+
+.fx-slider-ant-vertical .fx-slider-ant-dot {
+  top: auto;
+  left: -14px;
+}
+
+.fx-slider-ant-vertical .fx-slider-ant-dots {
+  width: 4px;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+
+.fx-slider-ant-vertical .fx-slider-ant-dot-step {
+  top: auto;
+  left: -1px;
+  margin-left: 0;
+  margin-bottom: -3px;
+}
+
+/* Vertical size variants */
+.fx-slider-ant-vertical.fx-slider-ant-small .fx-slider-ant-rail,
+.fx-slider-ant-vertical.fx-slider-ant-small .fx-slider-ant-track {
+  width: 2px;
+}
+
+.fx-slider-ant-vertical.fx-slider-ant-large .fx-slider-ant-rail,
+.fx-slider-ant-vertical.fx-slider-ant-large .fx-slider-ant-track {
+  width: 6px;
+}
+
+/* ============================================
+   Reverse Direction
+   ============================================ */
+.fx-slider-ant-reverse .fx-slider-ant-track {
+  right: 0;
+  left: auto;
+}
+
+.fx-slider-ant-vertical.fx-slider-ant-reverse .fx-slider-ant-track {
+  top: 0;
+  bottom: auto;
+}
+
+/* ============================================
+   Disabled State
+   ============================================ */
+.fx-slider-ant-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.fx-slider-ant-disabled * {
+  cursor: not-allowed !important;
+}
+
+/* ============================================
+   Native Slider (input[type="range"])
+   ============================================ */
+.fx-slider-ant-native {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    var(--fx-color-primary, #1677ff) 0%,
+    var(--fx-color-primary, #1677ff) var(--slider-value, 0%),
+    var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06)) var(--slider-value, 0%),
+    var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06)) 100%
+  );
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.fx-slider-ant-native::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--fx-color-bg-container, #ffffff);
+  border: 2px solid var(--fx-color-primary, #1677ff);
+  border-radius: 50%;
+  cursor: grab;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fx-slider-ant-native::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.fx-slider-ant-native::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.2);
+}
+
+.fx-slider-ant-native::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--fx-color-bg-container, #ffffff);
+  border: 2px solid var(--fx-color-primary, #1677ff);
+  border-radius: 50%;
+  cursor: grab;
+  transition: transform 0.2s;
+}
+
+.fx-slider-ant-native::-moz-range-thumb:hover {
+  transform: scale(1.1);
+}
+
+.fx-slider-ant-native::-moz-range-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.2);
+}
+
+.fx-slider-ant-native:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+}
+
+.fx-slider-ant-native:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.fx-slider-ant-native:disabled::-webkit-slider-thumb {
+  cursor: not-allowed;
+  border-color: var(--fx-color-fill, rgba(255, 255, 255, 0.18));
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .fx-slider-ant-track,
+  .fx-slider-ant-handle,
+  .fx-slider-ant-tooltip,
+  .fx-slider-ant-native::-webkit-slider-thumb,
+  .fx-slider-ant-native::-moz-range-thumb {
+    transition: none;
+  }
+}

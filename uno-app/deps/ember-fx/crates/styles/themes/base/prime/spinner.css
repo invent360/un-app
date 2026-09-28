@@ -1,0 +1,254 @@
+/* ============================================
+   Prime Design - Progress Spinner Components
+   ember-fx-components
+   PrimeProgressSpinner, LoadingOverlay, InlineSpinner
+   ============================================ */
+
+/* ============================================
+   PrimeProgressSpinner (SVG-based)
+   ============================================ */
+.fx-spin-prime {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+}
+
+/* Size variants */
+.fx-spin-prime-sm {
+  width: 50px;
+  height: 50px;
+}
+
+.fx-spin-prime-default {
+  width: 100px;
+  height: 100px;
+}
+
+.fx-spin-prime-lg {
+  width: 150px;
+  height: 150px;
+}
+
+/* SVG container - rotation animation */
+.fx-spin-prime-svg {
+  width: 100%;
+  height: 100%;
+  animation: fx-spin-prime-rotate 2s linear infinite;
+  transform-origin: center center;
+}
+
+/* Circle stroke - dash and color animations */
+.fx-spin-prime-circle {
+  stroke-dasharray: 89, 200;
+  stroke-dashoffset: 0;
+  stroke: currentColor;
+  animation:
+    fx-spin-prime-dash 1.5s ease-in-out infinite,
+    fx-spin-prime-color 6s ease-in-out infinite;
+  stroke-linecap: round;
+}
+
+/* Single color variant (no color cycling) */
+.fx-spin-prime-circle-single {
+  animation: fx-spin-prime-dash 1.5s ease-in-out infinite;
+  stroke: var(--fx-color-primary, #8b5cf6);
+}
+
+/* Rotation animation (2s linear infinite) */
+@keyframes fx-spin-prime-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dash animation (1.5s ease-in-out infinite) - creates chasing effect */
+@keyframes fx-spin-prime-dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -124px;
+  }
+}
+
+/* Color cycle animation (6s ease-in-out infinite) */
+@keyframes fx-spin-prime-color {
+  0%, 100% {
+    stroke: #dc2626; /* red-600 */
+  }
+  25% {
+    stroke: #3b82f6; /* blue-500 */
+  }
+  50% {
+    stroke: #22c55e; /* green-500 */
+  }
+  75% {
+    stroke: #f97316; /* orange-500 */
+  }
+}
+
+/* ============================================
+   LoadingOverlay (Full-page centered)
+   ============================================ */
+.fx-loading-overlay-prime {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.85); /* slate-900 with transparency */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.fx-loading-overlay-prime-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.fx-loading-overlay-prime-message {
+  font-size: 16px;
+  font-weight: 500;
+  color: #e2e8f0; /* slate-200 */
+  text-align: center;
+  max-width: 280px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Light theme variant */
+.theme-light .fx-loading-overlay-prime {
+  background: rgba(248, 250, 252, 0.9); /* slate-50 with transparency */
+}
+
+.theme-light .fx-loading-overlay-prime-message {
+  color: #334155; /* slate-700 */
+}
+
+/* ============================================
+   InlineSpinner (for buttons/actions)
+   ============================================ */
+.fx-inline-spinner-prime {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fx-inline-spinner-prime-icon {
+  display: inline-block;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-right-color: currentColor;
+  border-radius: 50%;
+  animation: fx-inline-spinner-rotate 0.75s linear infinite;
+}
+
+.fx-inline-spinner-prime-text {
+  font-size: 14px;
+  color: inherit;
+}
+
+@keyframes fx-inline-spinner-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   Ant Design Fallback Styles
+   (for when design_system is "ant" but using Prime spinner)
+   ============================================ */
+.fx-spin-ant-svg {
+  width: 100%;
+  height: 100%;
+  animation: fx-spin-prime-rotate 2s linear infinite;
+  transform-origin: center center;
+}
+
+.fx-spin-ant-circle {
+  stroke-dasharray: 89, 200;
+  stroke-dashoffset: 0;
+  stroke: var(--fx-color-primary, #1677ff);
+  animation:
+    fx-spin-prime-dash 1.5s ease-in-out infinite,
+    fx-spin-ant-color 6s ease-in-out infinite;
+  stroke-linecap: round;
+}
+
+@keyframes fx-spin-ant-color {
+  0%, 100% {
+    stroke: #dc2626;
+  }
+  25% {
+    stroke: #1677ff;
+  }
+  50% {
+    stroke: #52c41a;
+  }
+  75% {
+    stroke: #faad14;
+  }
+}
+
+.fx-loading-overlay-ant {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.fx-loading-overlay-ant-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.fx-loading-overlay-ant-message {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  text-align: center;
+  max-width: 280px;
+  margin: 0;
+}
+
+.fx-inline-spinner-ant {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fx-inline-spinner-ant-icon {
+  display: inline-block;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-right-color: currentColor;
+  border-radius: 50%;
+  animation: fx-inline-spinner-rotate 0.75s linear infinite;
+}
+
+.fx-inline-spinner-ant-text {
+  font-size: 14px;
+  color: inherit;
+}

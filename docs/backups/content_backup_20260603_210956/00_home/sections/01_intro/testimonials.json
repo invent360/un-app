@@ -1,0 +1,33 @@
+{
+          "section_type": "testimonials",
+          "display_order": 4,
+          "is_visible": true,
+          "title": "Real People. Real Earnings.",
+          "subtitle": "Join 500+ active earners in our community",
+          "testimonials": [
+            {
+              "quote": "Finally a passive income app that actually pays. Transparent split, fast withdrawals. Been using for 4 months now.",
+              "author_name": "Raj",
+              "author_location": "India",
+              "author_avatar": null,
+              "rating": 5,
+              "is_featured": false
+            },
+            {
+              "quote": "Started with one phone, now running 5. Earning about $85/month passively. The referral program is a nice bonus too!",
+              "author_name": "Sofia",
+              "author_location": "Brazil",
+              "author_avatar": null,
+              "rating": 5,
+              "is_featured": true
+            },
+            {
+              "quote": "Love how straightforward it is. Download, activate, earn. No complicated setup. Been recommending to all my friends.",
+              "author_name": "Chen",
+              "author_location": "Singapore",
+              "author_avatar": null,
+              "rating": 4,
+              "is_featured": false
+            }
+          ]
+        }

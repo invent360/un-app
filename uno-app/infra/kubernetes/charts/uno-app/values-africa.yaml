@@ -1,0 +1,18 @@
+# Africa region values
+# NOTE: No dedicated Africa data center - deploys to Hetzner Europe (nbg1)
+# Traffic is routed via Cloudflare NSAF region to Europe pool
+# Consider AWS af-south-1 or GCP Johannesburg for dedicated presence
+
+region: africa
+provider: hetzner  # Physically hosted in Europe
+databaseRole: replica
+
+app:
+  nodeSelector:
+    region: europe  # Deploys to Europe nodes
+
+hpa:
+  maxReplicas: 4
+
+# Latency note: ~150-300ms additional latency for African users
+# compared to having a regional data center presence

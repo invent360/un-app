@@ -1,0 +1,402 @@
+/* ============================================
+   Ant Design - Utility Classes
+   ember-fx-components
+   Responsive utilities, flex, grid helpers
+   ============================================ */
+
+/* ============================================
+   CSS Custom Properties - Breakpoints
+   ============================================ */
+:root {
+  --fx-breakpoint-sm: 640px;
+  --fx-breakpoint-md: 768px;
+  --fx-breakpoint-lg: 1024px;
+  --fx-breakpoint-xl: 1280px;
+  --fx-breakpoint-2xl: 1536px;
+}
+
+/* ============================================
+   Container
+   ============================================ */
+.fx-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--fx-spacing-md, 16px);
+  padding-right: var(--fx-spacing-md, 16px);
+}
+
+@media (min-width: 640px) {
+  .fx-container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .fx-container {
+    max-width: 768px;
+    padding-left: var(--fx-spacing-lg, 24px);
+    padding-right: var(--fx-spacing-lg, 24px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .fx-container {
+    max-width: 1024px;
+    padding-left: var(--fx-spacing-xl, 32px);
+    padding-right: var(--fx-spacing-xl, 32px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .fx-container {
+    max-width: 1280px;
+  }
+}
+
+/* Full-width container */
+.fx-container-fluid {
+  width: 100%;
+  padding-left: var(--fx-spacing-md, 16px);
+  padding-right: var(--fx-spacing-md, 16px);
+}
+
+/* ============================================
+   Flex Utilities
+   ============================================ */
+.fx-flex {
+  display: flex;
+}
+
+.fx-inline-flex {
+  display: inline-flex;
+}
+
+.fx-flex-col {
+  flex-direction: column;
+}
+
+.fx-flex-row {
+  flex-direction: row;
+}
+
+.fx-flex-wrap {
+  flex-wrap: wrap;
+}
+
+.fx-flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+.fx-flex-1 {
+  flex: 1 1 0%;
+}
+
+.fx-flex-auto {
+  flex: 1 1 auto;
+}
+
+.fx-flex-none {
+  flex: none;
+}
+
+/* Alignment */
+.fx-items-start {
+  align-items: flex-start;
+}
+
+.fx-items-center {
+  align-items: center;
+}
+
+.fx-items-end {
+  align-items: flex-end;
+}
+
+.fx-items-stretch {
+  align-items: stretch;
+}
+
+.fx-justify-start {
+  justify-content: flex-start;
+}
+
+.fx-justify-center {
+  justify-content: center;
+}
+
+.fx-justify-end {
+  justify-content: flex-end;
+}
+
+.fx-justify-between {
+  justify-content: space-between;
+}
+
+.fx-justify-around {
+  justify-content: space-around;
+}
+
+.fx-justify-evenly {
+  justify-content: space-evenly;
+}
+
+/* ============================================
+   Grid Utilities
+   ============================================ */
+.fx-grid {
+  display: grid;
+}
+
+.fx-grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.fx-grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fx-grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fx-grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.fx-grid-cols-6 {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.fx-grid-cols-12 {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+/* Column span */
+.fx-col-span-1 { grid-column: span 1 / span 1; }
+.fx-col-span-2 { grid-column: span 2 / span 2; }
+.fx-col-span-3 { grid-column: span 3 / span 3; }
+.fx-col-span-4 { grid-column: span 4 / span 4; }
+.fx-col-span-6 { grid-column: span 6 / span 6; }
+.fx-col-span-12 { grid-column: span 12 / span 12; }
+.fx-col-span-full { grid-column: 1 / -1; }
+
+/* ============================================
+   Gap Utilities
+   ============================================ */
+.fx-gap-0 { gap: 0; }
+.fx-gap-xxs { gap: var(--fx-spacing-xxs, 4px); }
+.fx-gap-xs { gap: var(--fx-spacing-xs, 8px); }
+.fx-gap-sm { gap: var(--fx-spacing-sm, 12px); }
+.fx-gap-md { gap: var(--fx-spacing-md, 16px); }
+.fx-gap-lg { gap: var(--fx-spacing-lg, 24px); }
+.fx-gap-xl { gap: var(--fx-spacing-xl, 32px); }
+
+/* ============================================
+   Spacing Utilities
+   ============================================ */
+/* Padding */
+.fx-p-0 { padding: 0; }
+.fx-p-xs { padding: var(--fx-spacing-xs, 8px); }
+.fx-p-sm { padding: var(--fx-spacing-sm, 12px); }
+.fx-p-md { padding: var(--fx-spacing-md, 16px); }
+.fx-p-lg { padding: var(--fx-spacing-lg, 24px); }
+.fx-p-xl { padding: var(--fx-spacing-xl, 32px); }
+
+.fx-px-xs { padding-left: var(--fx-spacing-xs, 8px); padding-right: var(--fx-spacing-xs, 8px); }
+.fx-px-sm { padding-left: var(--fx-spacing-sm, 12px); padding-right: var(--fx-spacing-sm, 12px); }
+.fx-px-md { padding-left: var(--fx-spacing-md, 16px); padding-right: var(--fx-spacing-md, 16px); }
+.fx-px-lg { padding-left: var(--fx-spacing-lg, 24px); padding-right: var(--fx-spacing-lg, 24px); }
+
+.fx-py-xs { padding-top: var(--fx-spacing-xs, 8px); padding-bottom: var(--fx-spacing-xs, 8px); }
+.fx-py-sm { padding-top: var(--fx-spacing-sm, 12px); padding-bottom: var(--fx-spacing-sm, 12px); }
+.fx-py-md { padding-top: var(--fx-spacing-md, 16px); padding-bottom: var(--fx-spacing-md, 16px); }
+.fx-py-lg { padding-top: var(--fx-spacing-lg, 24px); padding-bottom: var(--fx-spacing-lg, 24px); }
+
+/* Margin */
+.fx-m-0 { margin: 0; }
+.fx-m-auto { margin: auto; }
+.fx-mx-auto { margin-left: auto; margin-right: auto; }
+.fx-my-auto { margin-top: auto; margin-bottom: auto; }
+
+.fx-m-xs { margin: var(--fx-spacing-xs, 8px); }
+.fx-m-sm { margin: var(--fx-spacing-sm, 12px); }
+.fx-m-md { margin: var(--fx-spacing-md, 16px); }
+.fx-m-lg { margin: var(--fx-spacing-lg, 24px); }
+
+/* ============================================
+   Width Utilities
+   ============================================ */
+.fx-w-full { width: 100%; }
+.fx-w-auto { width: auto; }
+.fx-w-screen { width: 100vw; }
+.fx-max-w-full { max-width: 100%; }
+.fx-min-w-0 { min-width: 0; }
+
+/* ============================================
+   Height Utilities
+   ============================================ */
+.fx-h-full { height: 100%; }
+.fx-h-auto { height: auto; }
+.fx-h-screen { height: 100vh; }
+.fx-min-h-screen { min-height: 100vh; }
+
+/* ============================================
+   Text Utilities
+   ============================================ */
+.fx-text-left { text-align: left; }
+.fx-text-center { text-align: center; }
+.fx-text-right { text-align: right; }
+
+.fx-text-sm { font-size: var(--fx-font-size-sm, 12px); }
+.fx-text-base { font-size: var(--fx-font-size, 14px); }
+.fx-text-lg { font-size: var(--fx-font-size-lg, 16px); }
+.fx-text-xl { font-size: var(--fx-font-size-xl, 20px); }
+
+.fx-font-normal { font-weight: 400; }
+.fx-font-medium { font-weight: 500; }
+.fx-font-semibold { font-weight: 600; }
+.fx-font-bold { font-weight: 700; }
+
+.fx-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================
+   Visibility Utilities
+   ============================================ */
+.fx-hidden {
+  display: none;
+}
+
+.fx-visible {
+  visibility: visible;
+}
+
+.fx-invisible {
+  visibility: hidden;
+}
+
+/* ============================================
+   Responsive Visibility
+   ============================================ */
+/* Hide on mobile (< 768px) */
+@media (max-width: 767px) {
+  .fx-hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Show only on mobile */
+@media (min-width: 768px) {
+  .fx-show-mobile-only {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop (>= 768px) */
+@media (min-width: 768px) {
+  .fx-hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Show only on desktop */
+@media (max-width: 767px) {
+  .fx-show-desktop-only {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   Responsive Grid (Mobile First)
+   ============================================ */
+@media (min-width: 640px) {
+  .fx-sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fx-sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fx-sm\:flex-row { flex-direction: row; }
+}
+
+@media (min-width: 768px) {
+  .fx-md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fx-md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fx-md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .fx-md\:flex-row { flex-direction: row; }
+}
+
+@media (min-width: 1024px) {
+  .fx-lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fx-lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .fx-lg\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+/* ============================================
+   Overflow Utilities
+   ============================================ */
+.fx-overflow-hidden { overflow: hidden; }
+.fx-overflow-auto { overflow: auto; }
+.fx-overflow-scroll { overflow: scroll; }
+.fx-overflow-x-auto { overflow-x: auto; }
+.fx-overflow-y-auto { overflow-y: auto; }
+
+/* ============================================
+   Position Utilities
+   ============================================ */
+.fx-relative { position: relative; }
+.fx-absolute { position: absolute; }
+.fx-fixed { position: fixed; }
+.fx-sticky { position: sticky; }
+
+.fx-inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+.fx-top-0 { top: 0; }
+.fx-right-0 { right: 0; }
+.fx-bottom-0 { bottom: 0; }
+.fx-left-0 { left: 0; }
+
+/* ============================================
+   Z-Index Utilities
+   ============================================ */
+.fx-z-0 { z-index: 0; }
+.fx-z-10 { z-index: 10; }
+.fx-z-20 { z-index: 20; }
+.fx-z-30 { z-index: 30; }
+.fx-z-40 { z-index: 40; }
+.fx-z-50 { z-index: 50; }
+
+/* ============================================
+   Border Radius Utilities
+   ============================================ */
+.fx-rounded-none { border-radius: 0; }
+.fx-rounded-sm { border-radius: var(--fx-radius-sm, 4px); }
+.fx-rounded { border-radius: var(--fx-radius-md, 6px); }
+.fx-rounded-lg { border-radius: var(--fx-radius-lg, 8px); }
+.fx-rounded-xl { border-radius: var(--fx-radius-xl, 12px); }
+.fx-rounded-full { border-radius: var(--fx-radius-full, 9999px); }
+
+/* ============================================
+   Cursor Utilities
+   ============================================ */
+.fx-cursor-pointer { cursor: pointer; }
+.fx-cursor-default { cursor: default; }
+.fx-cursor-not-allowed { cursor: not-allowed; }
+
+/* ============================================
+   Transition Utilities
+   ============================================ */
+.fx-transition {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.fx-transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.fx-duration-150 { transition-duration: 150ms; }
+.fx-duration-200 { transition-duration: 200ms; }
+.fx-duration-300 { transition-duration: 300ms; }

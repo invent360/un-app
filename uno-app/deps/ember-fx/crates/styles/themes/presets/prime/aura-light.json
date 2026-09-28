@@ -1,0 +1,139 @@
+{
+  "name": "aura-light",
+  "displayName": "Aura Light",
+  "colorScheme": "light",
+  "designSystem": "prime",
+  "colors": {
+    "primary": "#8b5cf6",
+    "primaryBg": "rgba(139, 92, 246, 0.1)",
+    "primaryBgHover": "rgba(139, 92, 246, 0.16)",
+    "primaryBorder": "#8b5cf6",
+    "primaryBorderHover": "#7c3aed",
+    "primaryHover": "#7c3aed",
+    "primaryActive": "#6d28d9",
+    "primaryContent": "#ffffff",
+
+    "secondary": "#71717a",
+    "secondaryContent": "#ffffff",
+
+    "accent": "#06b6d4",
+    "accentContent": "#ffffff",
+
+    "neutral": "#d4d4d8",
+    "neutralContent": "#18181b",
+
+    "base-100": "#ffffff",
+    "base-200": "#fafafa",
+    "base-300": "#f4f4f5",
+    "baseContent": "rgba(24, 24, 27, 0.87)",
+
+    "bgContainer": "#ffffff",
+    "bgElevated": "#ffffff",
+    "bgLayout": "#fafafa",
+    "bgSpotlight": "#f4f4f5",
+    "bgTextHover": "rgba(0, 0, 0, 0.04)",
+    "bgContainerDisabled": "#f4f4f5",
+
+    "info": "#3b82f6",
+    "infoContent": "#ffffff",
+
+    "success": "#22c55e",
+    "successBg": "rgba(34, 197, 94, 0.1)",
+    "successBorder": "#22c55e",
+    "successContent": "#ffffff",
+
+    "warning": "#f59e0b",
+    "warningBg": "rgba(245, 158, 11, 0.1)",
+    "warningBorder": "#f59e0b",
+    "warningContent": "#000000",
+
+    "error": "#ef4444",
+    "errorBg": "rgba(239, 68, 68, 0.1)",
+    "errorBorder": "#ef4444",
+    "errorContent": "#ffffff",
+
+    "border": "#e4e4e7",
+    "borderHover": "#8b5cf6",
+    "borderSecondary": "#f4f4f5",
+
+    "fill": "rgba(0, 0, 0, 0.06)",
+    "fillSecondary": "rgba(0, 0, 0, 0.04)",
+    "fillTertiary": "rgba(0, 0, 0, 0.02)",
+
+    "text": "rgba(24, 24, 27, 0.87)",
+    "textSecondary": "rgba(82, 82, 91, 1)",
+    "textTertiary": "rgba(113, 113, 122, 1)",
+    "textDisabled": "rgba(161, 161, 170, 1)",
+
+    "link": "#8b5cf6",
+    "linkHover": "#7c3aed",
+    "linkActive": "#6d28d9",
+
+    "landingBg1": "#ffffff",
+    "landingBg2": "#fafafa",
+    "landingBg3": "#f4f4f5",
+    "landingCardBg": "rgba(255, 255, 255, 0.9)",
+    "landingCardBgHover": "rgba(255, 255, 255, 1)",
+    "landingGradientStart": "rgba(250, 250, 250, 0.9)",
+    "landingGradientEnd": "rgba(255, 255, 255, 0.95)",
+    "landingCardGradientStart": "rgba(255, 255, 255, 0.6)",
+    "landingCardGradientEnd": "rgba(250, 250, 250, 0.8)",
+    "landingCardGradientStartStrong": "rgba(255, 255, 255, 0.8)",
+    "landingCardGradientEndStrong": "rgba(250, 250, 250, 0.9)",
+
+    "glowPrimary": "rgba(139, 92, 246, 0.25)",
+    "glowPrimarySoft": "rgba(139, 92, 246, 0.1)",
+    "glowPrimaryStrong": "rgba(139, 92, 246, 0.4)",
+    "glowRadialBg": "rgba(139, 92, 246, 0.05)",
+    "glowRadialBgSoft": "rgba(139, 92, 246, 0.03)",
+    "glowRadialBgFaint": "rgba(139, 92, 246, 0.02)",
+    "borderGlow": "rgba(139, 92, 246, 0.35)",
+    "borderGlowWeak": "rgba(139, 92, 246, 0.2)",
+
+    "phoneScreenBg1": "#fafafa",
+    "phoneScreenBg2": "#ffffff",
+    "highlightGradientEnd": "#7c3aed"
+  },
+  "radius": {
+    "xs": "6px",
+    "sm": "8px",
+    "md": "12px",
+    "lg": "16px",
+    "xl": "20px",
+    "full": "9999px"
+  },
+  "spacing": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "effects": {
+    "shadowSm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    "shadow": "0 2px 4px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06)",
+    "shadowMd": "0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06)",
+    "shadowLg": "0 12px 24px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06)",
+    "blur": "8px",
+    "blurLg": "20px"
+  },
+  "motion": {
+    "unit": "0.15s",
+    "base": "0s",
+    "easeOut": "cubic-bezier(0.16, 1, 0.3, 1)",
+    "easeInOut": "cubic-bezier(0.65, 0, 0.35, 1)",
+    "easeOutBack": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+    "easeInBack": "cubic-bezier(0.36, 0, 0.66, -0.56)"
+  },
+  "font": {
+    "family": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "familyCode": "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+    "size": "14px",
+    "sizeSm": "12px",
+    "sizeLg": "16px",
+    "sizeXl": "20px"
+  },
+  "lineWidth": "1px"
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 334.8 84">
+  <!-- Generator: Adobe Illustrator 30.2.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 1)  -->
+  <defs>
+    <style>
+      .st0 {
+        isolation: isolate;
+      }
+
+      .st1 {
+        fill: url(#radial-gradient);
+        fill-opacity: .2;
+      }
+    </style>
+    <radialGradient id="radial-gradient" cx="-1575.7" cy="11.9" fx="-1575.7" fy="11.9" r="1" gradientTransform="translate(293745.1 -994.9) scale(186.3 83.7)" gradientUnits="userSpaceOnUse">
+      <stop offset=".3" stop-color="#79f"/>
+      <stop offset="1" stop-color="#79f" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g id="Layer_1-2">
+    <rect width="334.5" height="84" rx="8" ry="8"/>
+    <rect class="st1" x=".2" width="334.5" height="84" rx="8" ry="8"/>
+    <image class="st0" width="7304" height="1016" transform="translate(21.2 21.7) scale(0)" xlink:href="../../../../UNETWORK/LOGO/UNETWORK_WHITE_HORIZ.png"/>
+  </g>
+</svg>

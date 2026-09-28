@@ -1,0 +1,13 @@
+[package]
+name = "ember-fx-common"
+description = "Shared types, traits, and constants for ember-fx"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { workspace = true }

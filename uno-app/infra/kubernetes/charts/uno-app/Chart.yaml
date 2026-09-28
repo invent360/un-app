@@ -1,0 +1,20 @@
+apiVersion: v2
+name: uno-app
+description: A Helm chart for uno-app deployment with cloudflared tunnel and monitoring
+type: application
+version: 1.0.0
+appVersion: "latest"
+keywords:
+  - uno-app
+  - cloudflared
+  - monitoring
+  - grafana-agent
+maintainers:
+  - name: UNetwork Team
+
+dependencies:
+  - name: postgresql
+    alias: db
+    version: "16.4.1"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: database.internal.enabled

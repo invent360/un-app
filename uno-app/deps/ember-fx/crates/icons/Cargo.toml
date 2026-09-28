@@ -1,0 +1,63 @@
+[package]
+name = "ember-fx-icons"
+description = "SVG icon system for ember-fx"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default = []
+
+# Existing icon sets
+heroicons = []
+lucide = []
+phosphor = []
+crypto = []
+animals = []
+nature = []
+finance = []
+commerce = []
+social = []
+flags = []
+
+# Tabler Icons - comprehensive icon library
+tabler = []
+tabler-arrows = ["tabler"]
+tabler-system = ["tabler"]
+tabler-communication = ["tabler"]
+tabler-media = ["tabler"]
+tabler-document = ["tabler"]
+tabler-commerce = ["tabler"]
+tabler-map = ["tabler"]
+tabler-charts = ["tabler"]
+tabler-brand = ["tabler"]
+tabler-design = ["tabler"]
+tabler-devices = ["tabler"]
+
+tabler-all = [
+    "tabler-arrows",
+    "tabler-system",
+    "tabler-communication",
+    "tabler-media",
+    "tabler-document",
+    "tabler-commerce",
+    "tabler-map",
+    "tabler-charts",
+    "tabler-brand",
+    "tabler-design",
+    "tabler-devices",
+]
+
+# All icons from all sets
+all-icons = [
+    "heroicons", "lucide", "phosphor", "crypto", "animals",
+    "nature", "finance", "commerce", "social", "flags",
+    "tabler-all",
+]
+
+[dependencies]
+leptos = { workspace = true }

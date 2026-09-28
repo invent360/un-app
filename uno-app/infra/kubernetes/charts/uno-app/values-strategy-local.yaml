@@ -1,0 +1,122 @@
+# Local Development Configuration
+# For testing with minikube, k3d, kind, or Docker Desktop Kubernetes
+#
+# Usage:
+#   helm upgrade --install uno-app . -f values.yaml -f values-strategy-local.yaml -n uno-app --create-namespace
+#   or: ./infra/scripts/bootstrap.sh deploy-strategy local
+
+region: local
+provider: local
+databaseRole: primary
+
+# Reduced replicas for local testing
+app:
+  replicaCount: 1
+
+  image:
+    # Pull from Docker Hub
+    repository: katson360/uno-app
+    tag: local
+    pullPolicy: IfNotPresent  # Pull from registry if not present
+
+  # App probes (matches Dockerfile HEALTHCHECK)
+  probes:
+    path: /api/v1/health
+    port: 3000
+
+  # Reduced resources for local development
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Development environment
+  env:
+    leptosEnv: DEV
+    rustLog: debug
+    databaseMaxConnections: "5"
+
+  # Security context matching Dockerfile (runs as user uno-app:1000)
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    runAsNonRoot: true
+    fsGroup: 1000
+
+  # Container security context
+  containerSecurityContext:
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+
+  # Node selector disabled for local
+  nodeSelector: {}
+
+  # Local service configuration
+  service:
+    type: NodePort
+    port: 3000  # uno-app uses port 3000
+
+# For NodePort access
+service:
+  nodePort: 30000  # Access via localhost:30000
+
+# Minimal HPA for local
+hpa:
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPU: 80
+  targetMemory: 90
+
+# Disable cloudflared for local (use port-forward or NodePort instead)
+cloudflared:
+  enabled: false
+
+# Disable monitoring for local (optional, enable if testing monitoring)
+monitoring:
+  enabled: false
+
+# Disable network policies for local development
+networkPolicy:
+  enabled: false
+
+# Database configuration for local development
+# Internal PostgreSQL deployed as Helm sub-chart
+database:
+  internal:
+    enabled: true
+  external:
+    enabled: false
+
+# PostgreSQL sub-chart configuration (dev mode)
+db:
+  architecture: standalone
+  image:
+    tag: latest
+    pullPolicy: IfNotPresent
+  auth:
+    username: postgres
+    password: postgres
+    database: uno
+    existingSecret: ""  # Use inline password for dev
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  readReplicas:
+    replicaCount: 0
+  metrics:
+    enabled: false
+  networkPolicy:
+    enabled: false
+  backup:
+    enabled: false

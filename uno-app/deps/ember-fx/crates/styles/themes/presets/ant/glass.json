@@ -1,0 +1,102 @@
+{
+  "name": "glass",
+  "displayName": "Glass",
+  "colorScheme": "light",
+  "designSystem": "ant",
+  "variant": "glass",
+  "colors": {
+    "primary": "#1677ff",
+    "primaryHover": "#4096ff",
+    "primaryActive": "#0958d9",
+    "primaryContent": "#ffffff",
+
+    "secondary": "#722ed1",
+    "secondaryContent": "#ffffff",
+
+    "accent": "#13c2c2",
+    "accentContent": "#ffffff",
+
+    "neutral": "#8c8c8c",
+    "neutralContent": "#ffffff",
+
+    "base-100": "rgba(255, 255, 255, 0.15)",
+    "base-200": "rgba(255, 255, 255, 0.25)",
+    "base-300": "rgba(255, 255, 255, 0.35)",
+    "baseContent": "rgba(0, 0, 0, 0.88)",
+
+    "info": "#1677ff",
+    "infoContent": "#ffffff",
+
+    "success": "#52c41a",
+    "successContent": "#ffffff",
+
+    "warning": "#faad14",
+    "warningContent": "#000000",
+
+    "error": "#ff4d4f",
+    "errorContent": "#ffffff",
+
+    "border": "rgba(255, 255, 255, 0.2)",
+    "borderHover": "rgba(255, 255, 255, 0.28)",
+
+    "text": "rgba(0, 0, 0, 0.88)",
+    "textSecondary": "rgba(0, 0, 0, 0.65)",
+    "textTertiary": "rgba(0, 0, 0, 0.45)",
+    "textDisabled": "rgba(0, 0, 0, 0.25)",
+
+    "landingBg1": "rgba(255, 255, 255, 0.15)",
+    "landingBg2": "rgba(255, 255, 255, 0.25)",
+    "landingBg3": "rgba(255, 255, 255, 0.35)",
+    "landingCardBg": "rgba(255, 255, 255, 0.2)",
+    "landingCardBgHover": "rgba(255, 255, 255, 0.35)",
+    "landingGradientStart": "rgba(255, 255, 255, 0.15)",
+    "landingGradientEnd": "rgba(255, 255, 255, 0.25)",
+    "landingCardGradientStart": "rgba(255, 255, 255, 0.15)",
+    "landingCardGradientEnd": "rgba(255, 255, 255, 0.25)",
+    "landingCardGradientStartStrong": "rgba(255, 255, 255, 0.25)",
+    "landingCardGradientEndStrong": "rgba(255, 255, 255, 0.35)",
+
+    "glowPrimary": "rgba(22, 119, 255, 0.3)",
+    "glowPrimarySoft": "rgba(22, 119, 255, 0.12)",
+    "glowPrimaryStrong": "rgba(22, 119, 255, 0.4)",
+    "glowRadialBg": "rgba(22, 119, 255, 0.08)",
+    "glowRadialBgSoft": "rgba(22, 119, 255, 0.05)",
+    "glowRadialBgFaint": "rgba(22, 119, 255, 0.03)",
+    "borderGlow": "rgba(22, 119, 255, 0.5)",
+    "borderGlowWeak": "rgba(22, 119, 255, 0.25)",
+
+    "phoneScreenBg1": "rgba(255, 255, 255, 0.2)",
+    "phoneScreenBg2": "rgba(255, 255, 255, 0.15)",
+    "highlightGradientEnd": "#4096ff"
+  },
+  "radius": {
+    "xs": "8px",
+    "sm": "12px",
+    "md": "12px",
+    "lg": "12px",
+    "xl": "16px",
+    "full": "9999px"
+  },
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "effects": {
+    "shadowSm": "inset 0 0 5px 2px rgba(255, 255, 255, 0.3), inset 0 5px 2px rgba(255, 255, 255, 0.2)",
+    "shadow": "0 4px 30px rgba(0, 0, 0, 0.1), inset 0 0 5px 2px rgba(255, 255, 255, 0.3), inset 0 5px 2px rgba(255, 255, 255, 0.2)",
+    "shadowMd": "0 8px 32px rgba(0, 0, 0, 0.15), inset 0 0 5px 2px rgba(255, 255, 255, 0.3)",
+    "shadowLg": "0 10px 40px rgba(0, 0, 0, 0.2), inset 0 0 5px 2px rgba(255, 255, 255, 0.3)",
+    "blur": "12px",
+    "blurLg": "20px",
+    "backdropFilter": "blur(12px)"
+  },
+  "motion": {
+    "durationSlow": "0.2s",
+    "durationMid": "0.1s",
+    "durationFast": "0.05s"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "title": "Frequently Asked Questions",
+  "description": "Find answers to common questions about UNO, earnings, setup, and security.",
+  "questions": [
+    {
+      "category": "general",
+      "question": "What is UNO?",
+      "answer": "UNO is a platform that allows you to earn passive income by sharing your unused internet bandwidth. Our app runs in the background and performs small network tasks that generate earnings for you.",
+      "display_order": 1,
+      "is_featured": true,
+      "is_visible": true
+    },
+    {
+      "category": "general",
+      "question": "What devices are supported?",
+      "answer": "UNO works on Android phones and WiFi routers. iOS support is coming soon. For best results, keep the app running on a device with a stable WiFi connection.",
+      "display_order": 2,
+      "is_featured": false,
+      "is_visible": true
+    },
+    {
+      "category": "general",
+      "question": "Can I use multiple devices?",
+      "answer": "Yes! You can run UNO on multiple devices with different licenses. Each device earns independently based on its connection quality and uptime.",
+      "display_order": 3,
+      "is_featured": false,
+      "is_visible": true
+    },
+    {
+      "category": "earnings",
+      "question": "How much can I earn?",
+      "answer": "Earnings vary based on your device type, internet connection quality, and uptime. On average, users earn between $3-15 per month per device.",
+      "display_order": 1,
+      "is_featured": true,
+      "is_visible": true
+    },
+    {
+      "category": "earnings",
+      "question": "How do I get paid?",
+      "answer": "Earnings accumulate in your account and can be withdrawn once you reach the minimum threshold. We support various payment methods including cryptocurrency and traditional bank transfers.",
+      "display_order": 2,
+      "is_featured": false,
+      "is_visible": true
+    },
+    {
+      "category": "setup",
+      "question": "How do I install the app?",
+      "answer": "Download the UNO app from the Google Play Store, create an account, and register your license key. The app will start running tasks automatically.",
+      "display_order": 1,
+      "is_featured": false,
+      "is_visible": true
+    },
+    {
+      "category": "setup",
+      "question": "What is a license key?",
+      "answer": "A license key is a unique code that activates your UNO account. You can get a free license from our website. Each license determines your earning split with the network operator.",
+      "display_order": 2,
+      "is_featured": false,
+      "is_visible": true
+    },
+    {
+      "category": "security",
+      "question": "Is my data safe?",
+      "answer": "Yes! We only use your internet bandwidth for legitimate network tasks. We never access, collect, or transmit your personal data or browsing history.",
+      "display_order": 1,
+      "is_featured": true,
+      "is_visible": true
+    }
+  ]
+}

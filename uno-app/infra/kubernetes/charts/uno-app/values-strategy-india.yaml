@@ -1,0 +1,68 @@
+# India / South Asia Deployment Strategy
+# Single region serving South Asia and Southeast Asia
+# Cost: ~$250/month
+#
+# Cloudflare geo-routing configuration:
+#   SAS (South Asia) → India pool
+#   SEAS (Southeast Asia) → India pool
+#   Fallback: India pool
+#
+# Countries served with optimal latency:
+#   - India (~10-30ms)
+#   - Pakistan (~30-50ms)
+#   - Sri Lanka (~20-40ms)
+#   - Nepal (~30-50ms)
+#   - Bangladesh (~20-40ms)
+#   - Philippines (~80-100ms)
+#   - Indonesia (~60-80ms)
+#   - Malaysia (~50-70ms)
+#   - Thailand (~50-70ms)
+
+region: india
+provider: aws
+databaseRole: primary  # Self-managed PostgreSQL primary
+
+# Deployment target
+app:
+  replicaCount: 2
+
+  # AWS t3.medium equivalent resources
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  nodeSelector:
+    region: india
+
+# Higher scaling for multi-region traffic (South Asia + Southeast Asia)
+hpa:
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPU: 70
+  targetMemory: 80
+
+# Enable all components
+cloudflared:
+  enabled: true
+  replicaCount: 2
+
+monitoring:
+  enabled: true
+
+# Strategy metadata
+strategy:
+  name: india
+  regionsServed:
+    - SAS    # South Asia (India, Pakistan, Sri Lanka, Nepal, Bangladesh)
+    - SEAS   # Southeast Asia (Philippines, Indonesia, Malaysia, Thailand)
+  estimatedMonthlyCost: 250
+  latencyNote: "~10-30ms for India, ~30-50ms for Pakistan/Nepal, ~50-100ms for Southeast Asia"
+  benefits:
+    - "Optimal latency for 1.8B+ population in South Asia"
+    - "AWS Mumbai has excellent peering in India"
+    - "Covers both South Asia and Southeast Asia"
+    - "Good connectivity to Middle East as fallback"

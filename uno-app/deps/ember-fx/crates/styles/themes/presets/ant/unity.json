@@ -1,0 +1,157 @@
+{
+  "name": "unity",
+  "displayName": "Unity",
+  "colorScheme": "dark",
+  "designSystem": "ant",
+  "variant": "unity",
+  "colors": {
+    "primary": "#06b6d4",
+    "primaryBg": "rgba(0, 212, 255, 0.15)",
+    "primaryBgHover": "rgba(0, 212, 255, 0.25)",
+    "primaryBorder": "#0891b2",
+    "primaryBorderHover": "#22d3ee",
+    "primaryHover": "#22d3ee",
+    "primaryActive": "#0891b2",
+    "primaryContent": "#ffffff",
+
+    "secondary": "#38bdf8",
+    "secondaryContent": "#0a1628",
+
+    "accent": "#00d4ff",
+    "accentContent": "#0a1628",
+
+    "neutral": "#5a7a9e",
+    "neutralContent": "#ffffff",
+
+    "base-100": "#0a1628",
+    "base-200": "#0f1d32",
+    "base-300": "#142238",
+    "baseContent": "rgba(232, 238, 246, 0.87)",
+
+    "bgContainer": "#142238",
+    "bgElevated": "#1a2d4a",
+    "bgLayout": "#0a1628",
+    "bgSpotlight": "#1e3a5f",
+    "bgTextHover": "rgba(255, 255, 255, 0.08)",
+    "bgContainerDisabled": "#0f1d32",
+
+    "info": "#38bdf8",
+    "infoContent": "#0a1628",
+
+    "success": "#4ade80",
+    "successBg": "rgba(74, 222, 128, 0.15)",
+    "successBorder": "#4ade80",
+    "successContent": "#052e16",
+
+    "warning": "#fb923c",
+    "warningBg": "rgba(251, 146, 60, 0.15)",
+    "warningBorder": "#fb923c",
+    "warningContent": "#422006",
+
+    "error": "#f87171",
+    "errorBg": "rgba(248, 113, 113, 0.15)",
+    "errorBorder": "#f87171",
+    "errorContent": "#450a0a",
+
+    "border": "#1e3a5f",
+    "borderHover": "#00d4ff",
+    "borderSecondary": "#142238",
+
+    "fill": "rgba(255, 255, 255, 0.18)",
+    "fillSecondary": "rgba(255, 255, 255, 0.12)",
+    "fillTertiary": "rgba(255, 255, 255, 0.08)",
+
+    "text": "rgba(232, 238, 246, 0.87)",
+    "textSecondary": "rgba(168, 189, 212, 1)",
+    "textTertiary": "rgba(122, 154, 187, 1)",
+    "textDisabled": "rgba(90, 122, 158, 1)",
+
+    "link": "#00d4ff",
+    "linkHover": "#38bdf8",
+    "linkActive": "#0891b2",
+
+    "landingBg1": "#050d17",
+    "landingBg2": "#0a1628",
+    "landingBg3": "#0f1d32",
+    "landingCardBg": "rgba(20, 34, 56, 0.8)",
+    "landingCardBgHover": "rgba(26, 45, 74, 0.9)",
+    "landingGradientStart": "rgba(10, 22, 40, 0.9)",
+    "landingGradientEnd": "rgba(5, 13, 23, 0.95)",
+    "landingCardGradientStart": "rgba(20, 34, 56, 0.6)",
+    "landingCardGradientEnd": "rgba(10, 22, 40, 0.8)",
+    "landingCardGradientStartStrong": "rgba(26, 45, 74, 0.8)",
+    "landingCardGradientEndStrong": "rgba(20, 34, 56, 0.9)",
+
+    "glowPrimary": "rgba(0, 212, 255, 0.4)",
+    "glowPrimarySoft": "rgba(0, 212, 255, 0.15)",
+    "glowPrimaryStrong": "rgba(0, 212, 255, 0.6)",
+    "glowRadialBg": "rgba(0, 212, 255, 0.08)",
+    "glowRadialBgSoft": "rgba(0, 212, 255, 0.05)",
+    "glowRadialBgFaint": "rgba(0, 212, 255, 0.04)",
+    "borderGlow": "rgba(0, 212, 255, 0.5)",
+    "borderGlowWeak": "rgba(0, 212, 255, 0.3)",
+
+    "phoneScreenBg1": "#142238",
+    "phoneScreenBg2": "#0a1628",
+    "highlightGradientEnd": "#38bdf8",
+
+    "chartLine": "#00d4ff",
+    "chartLineSecondary": "#38bdf8",
+    "chartBar": "#06b6d4",
+    "chartAreaFill": "rgba(0, 212, 255, 0.15)",
+    "chartAreaStroke": "#00d4ff",
+    "chartGrid": "#1e3a5f",
+    "chartAxis": "#5a7a9e",
+
+    "statMenusBg": "rgba(6, 182, 212, 0.15)",
+    "statMenus": "#06b6d4",
+    "statOrdersBg": "rgba(251, 146, 60, 0.15)",
+    "statOrders": "#fb923c",
+    "statClientsBg": "rgba(56, 189, 248, 0.15)",
+    "statClients": "#38bdf8",
+    "statRevenueBg": "rgba(74, 222, 128, 0.15)",
+    "statRevenue": "#4ade80"
+  },
+  "radius": {
+    "xs": "2px",
+    "sm": "4px",
+    "md": "6px",
+    "lg": "8px",
+    "xl": "12px",
+    "full": "9999px"
+  },
+  "spacing": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "effects": {
+    "shadowSm": "0 1px 2px 0 rgba(0, 0, 0, 0.5)",
+    "shadow": "0 1px 2px 0 rgba(0, 0, 0, 0.5), 0 1px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px 0 rgba(0, 0, 0, 0.4)",
+    "shadowMd": "0 6px 16px 0 rgba(0, 0, 0, 0.4), 0 3px 6px -4px rgba(0, 0, 0, 0.5), 0 9px 28px 8px rgba(0, 0, 0, 0.3)",
+    "shadowLg": "0 6px 16px 0 rgba(0, 0, 0, 0.4), 0 3px 6px -4px rgba(0, 0, 0, 0.5), 0 9px 28px 8px rgba(0, 0, 0, 0.3)",
+    "blur": "8px",
+    "blurLg": "16px"
+  },
+  "motion": {
+    "unit": "0.1s",
+    "base": "0s",
+    "easeOut": "cubic-bezier(0.215, 0.61, 0.355, 1)",
+    "easeInOut": "cubic-bezier(0.645, 0.045, 0.355, 1)",
+    "easeOutBack": "cubic-bezier(0.12, 0.4, 0.29, 1.46)",
+    "easeInBack": "cubic-bezier(0.71, -0.46, 0.88, 0.6)"
+  },
+  "font": {
+    "family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "familyCode": "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
+    "size": "14px",
+    "sizeSm": "12px",
+    "sizeLg": "16px",
+    "sizeXl": "20px"
+  },
+  "lineWidth": "1px"
+}

@@ -1,0 +1,100 @@
+{
+  "name": "skeumorph",
+  "displayName": "Skeumorph",
+  "colorScheme": "light",
+  "designSystem": "ant",
+  "variant": "skeumorph",
+  "colors": {
+    "primary": "#0d6efd",
+    "primaryHover": "#0b5ed7",
+    "primaryActive": "#0a58ca",
+    "primaryContent": "#ffffff",
+
+    "secondary": "#6c757d",
+    "secondaryContent": "#ffffff",
+
+    "accent": "#0dcaf0",
+    "accentContent": "#000000",
+
+    "neutral": "#6c757d",
+    "neutralContent": "#ffffff",
+
+    "base-100": "#ffffff",
+    "base-200": "#f8f9fa",
+    "base-300": "#e9ecef",
+    "baseContent": "#212529",
+
+    "info": "#3a87ad",
+    "infoContent": "#ffffff",
+
+    "success": "#198754",
+    "successContent": "#ffffff",
+
+    "warning": "#ffc107",
+    "warningContent": "#000000",
+
+    "error": "#dc3545",
+    "errorContent": "#ffffff",
+
+    "border": "rgba(0, 0, 0, 0.3)",
+    "borderHover": "rgba(0, 0, 0, 0.5)",
+    "borderSplit": "rgba(0, 0, 0, 0.15)",
+
+    "text": "#212529",
+    "textSecondary": "#6c757d",
+    "textTertiary": "#adb5bd",
+    "textDisabled": "#ced4da",
+
+    "landingBg1": "#ffffff",
+    "landingBg2": "#f8f9fa",
+    "landingBg3": "#e9ecef",
+    "landingCardBg": "rgba(255, 255, 255, 0.95)",
+    "landingCardBgHover": "rgba(255, 255, 255, 1)",
+    "landingGradientStart": "rgba(255, 255, 255, 0.95)",
+    "landingGradientEnd": "rgba(248, 249, 250, 0.98)",
+    "landingCardGradientStart": "rgba(255, 255, 255, 0.9)",
+    "landingCardGradientEnd": "rgba(233, 236, 239, 0.95)",
+    "landingCardGradientStartStrong": "rgba(255, 255, 255, 1)",
+    "landingCardGradientEndStrong": "rgba(233, 236, 239, 1)",
+
+    "glowPrimary": "rgba(13, 110, 253, 0.25)",
+    "glowPrimarySoft": "rgba(13, 110, 253, 0.1)",
+    "glowPrimaryStrong": "rgba(13, 110, 253, 0.35)",
+    "glowRadialBg": "rgba(13, 110, 253, 0.06)",
+    "glowRadialBgSoft": "rgba(13, 110, 253, 0.04)",
+    "glowRadialBgFaint": "rgba(13, 110, 253, 0.03)",
+    "borderGlow": "rgba(13, 110, 253, 0.4)",
+    "borderGlowWeak": "rgba(13, 110, 253, 0.2)",
+
+    "phoneScreenBg1": "#f8f9fa",
+    "phoneScreenBg2": "#ffffff",
+    "highlightGradientEnd": "#0b5ed7"
+  },
+  "radius": {
+    "xs": "2px",
+    "sm": "4px",
+    "md": "4px",
+    "lg": "6px",
+    "xl": "6px",
+    "full": "9999px"
+  },
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "effects": {
+    "shadowSm": "inset 0 1px 0 rgba(255, 255, 255, 0.15)",
+    "shadow": "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 1px rgba(0, 0, 0, 0.075)",
+    "shadowMd": "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 3px 5px rgba(0, 0, 0, 0.15)",
+    "shadowLg": "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 5px 10px rgba(0, 0, 0, 0.2)",
+    "shadowInset": "inset 0 1px 3px rgba(0, 0, 0, 0.15)",
+    "blur": "0",
+    "blurLg": "0",
+    "gradient": "linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.2))",
+    "textShadow": "0 -1px 0 rgba(0, 0, 0, 0.2)"
+  }
+}

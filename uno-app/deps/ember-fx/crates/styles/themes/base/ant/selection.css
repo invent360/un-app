@@ -1,0 +1,1258 @@
+/* ============================================
+   Ant Design - Selection Components
+   ember-fx-components
+   Checkbox, Radio, Switch, Select
+   ============================================ */
+
+/* ============================================
+   Checkbox
+   ============================================ */
+.fx-checkbox-ant-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.fx-checkbox-ant {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.fx-checkbox-ant-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.fx-checkbox-ant-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-xs, 2px);
+  background: var(--fx-color-bg-container, #141414);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.fx-checkbox-ant-inner::after {
+  content: "";
+  width: 5px;
+  height: 9px;
+  border: 2px solid var(--fx-color-primary-content, #ffffff);
+  border-top: 0;
+  border-left: 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.2s;
+}
+
+.fx-checkbox-ant:hover .fx-checkbox-ant-inner {
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-checkbox-ant-checked .fx-checkbox-ant-inner {
+  background: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-checkbox-ant-checked .fx-checkbox-ant-inner::after {
+  transform: rotate(45deg) scale(1);
+}
+
+.fx-checkbox-ant-indeterminate .fx-checkbox-ant-inner {
+  background: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-checkbox-ant-indeterminate .fx-checkbox-ant-inner::after {
+  width: 8px;
+  height: 2px;
+  border: none;
+  background: var(--fx-color-primary-content, #ffffff);
+  transform: scale(1);
+}
+
+.fx-checkbox-ant-label {
+  font-size: 14px;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-checkbox-ant-disabled {
+  cursor: not-allowed;
+}
+
+.fx-checkbox-ant-disabled .fx-checkbox-ant-inner {
+  background: var(--fx-color-bg-container-disabled, #262626);
+  border-color: var(--fx-color-border, #424242);
+}
+
+.fx-checkbox-ant-disabled .fx-checkbox-ant-label {
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+}
+
+/* Checkbox Group */
+.fx-checkbox-group-ant {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.fx-checkbox-group-ant-vertical {
+  flex-direction: column;
+}
+
+/* ============================================
+   Radio
+   ============================================ */
+.fx-radio-ant-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.fx-radio-ant {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.fx-radio-ant-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.fx-radio-ant-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: 50%;
+  background: var(--fx-color-bg-container, #141414);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.fx-radio-ant-inner::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fx-color-primary, #1677ff);
+  transform: scale(0);
+  transition: transform 0.2s;
+}
+
+.fx-radio-ant:hover .fx-radio-ant-inner {
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-radio-ant-checked .fx-radio-ant-inner {
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-radio-ant-checked .fx-radio-ant-inner::after {
+  transform: scale(1);
+}
+
+.fx-radio-ant-label {
+  font-size: 14px;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-radio-ant-disabled {
+  cursor: not-allowed;
+}
+
+.fx-radio-ant-disabled .fx-radio-ant-inner {
+  background: var(--fx-color-bg-container-disabled, #262626);
+  border-color: var(--fx-color-border, #424242);
+}
+
+.fx-radio-ant-disabled .fx-radio-ant-label {
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+}
+
+/* Radio Group */
+.fx-radio-group-ant {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.fx-radio-group-ant-vertical {
+  flex-direction: column;
+}
+
+/* Radio Button Style */
+.fx-radio-button-ant {
+  display: inline-flex;
+}
+
+.fx-radio-button-ant .fx-radio-ant {
+  padding: 8px 16px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border, #424242);
+  margin-left: -1px;
+}
+
+.fx-radio-button-ant .fx-radio-ant:first-child {
+  margin-left: 0;
+  border-radius: var(--fx-radius-md, 6px) 0 0 var(--fx-radius-md, 6px);
+}
+
+.fx-radio-button-ant .fx-radio-ant:last-child {
+  border-radius: 0 var(--fx-radius-md, 6px) var(--fx-radius-md, 6px) 0;
+}
+
+.fx-radio-button-ant .fx-radio-ant-checked {
+  background: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-radio-button-ant .fx-radio-ant-inner {
+  display: none;
+}
+
+/* ============================================
+   Switch
+   ============================================ */
+.fx-switch-ant {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  height: 22px;
+  padding: 0;
+  background: var(--fx-color-fill, rgba(255, 255, 255, 0.18));
+  border: none;
+  border-radius: 22px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-switch-ant-handle {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--fx-color-primary-content, #ffffff);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fx-switch-ant-checked {
+  background: var(--fx-color-primary, #1677ff);
+}
+
+.fx-switch-ant-checked .fx-switch-ant-handle {
+  left: calc(100% - 20px);
+}
+
+.fx-switch-ant-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 8px 0 24px;
+  font-size: 12px;
+  color: var(--fx-color-primary-content, #ffffff);
+  transition: padding 0.2s;
+}
+
+.fx-switch-ant-checked .fx-switch-ant-inner {
+  padding: 0 24px 0 8px;
+}
+
+.fx-switch-ant-disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* Switch sizes */
+.fx-switch-ant-sm {
+  min-width: 28px;
+  height: 16px;
+}
+
+.fx-switch-ant-sm .fx-switch-ant-handle {
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+}
+
+.fx-switch-ant-sm.fx-switch-ant-checked .fx-switch-ant-handle {
+  left: calc(100% - 14px);
+}
+
+.fx-switch-ant-lg {
+  min-width: 56px;
+  height: 28px;
+}
+
+.fx-switch-ant-lg .fx-switch-ant-handle {
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+}
+
+.fx-switch-ant-lg.fx-switch-ant-checked .fx-switch-ant-handle {
+  left: calc(100% - 25px);
+}
+
+/* Loading state */
+.fx-switch-ant-loading {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.fx-switch-loading-icon {
+  animation: fx-switch-spin 1s linear infinite;
+}
+
+@keyframes fx-switch-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   Select
+   ============================================ */
+.fx-select-ant {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.fx-select-ant-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-select-ant-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-select-ant-selector:hover {
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-select-ant-open .fx-select-ant-selector {
+  border-color: var(--fx-color-primary, #1677ff);
+  box-shadow: 0 0 0 2px var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+}
+
+.fx-select-ant-selection {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-select-ant-placeholder {
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+}
+
+.fx-select-ant-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  width: 14px;
+  height: 14px;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  cursor: pointer;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.fx-select-ant-clear:hover {
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-select-ant-arrow {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.fx-select-ant-open .fx-select-ant-arrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown */
+.fx-select-ant-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  max-height: 256px;
+  overflow-y: auto;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  box-shadow: var(--fx-effect-shadow-lg, 0 6px 16px 0 rgba(0, 0, 0, 0.08));
+  z-index: 1050;
+}
+
+.fx-select-ant-open .fx-select-ant-dropdown {
+  display: block;
+}
+
+.fx-select-ant-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.fx-select-ant-option:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+}
+
+.fx-select-ant-option-selected {
+  background: var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+  color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-select-ant-option-disabled {
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+  cursor: not-allowed;
+}
+
+.fx-select-ant-option-disabled:hover {
+  background: transparent;
+}
+
+/* Multi Select */
+.fx-select-ant-multiple .fx-select-ant-selector {
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+.fx-select-ant-selection-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+  border-radius: var(--fx-radius-sm, 4px);
+  font-size: 12px;
+}
+
+.fx-select-ant-selection-item-remove {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.fx-select-ant-selection-item-remove:hover {
+  opacity: 1;
+}
+
+/* Select sizes */
+.fx-select-ant-sm .fx-select-ant-selector {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.fx-select-ant-lg .fx-select-ant-selector {
+  min-height: 48px;
+  padding: 12px 16px;
+  font-size: 16px;
+}
+
+/* Select states */
+.fx-select-ant-disabled .fx-select-ant-selector {
+  background: var(--fx-color-bg-container-disabled, #262626);
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+  cursor: not-allowed;
+}
+
+.fx-select-ant-error .fx-select-ant-selector {
+  border-color: var(--fx-color-error, #ff4d4f);
+}
+
+/* ============================================
+   Tree Select
+   ============================================ */
+.fx-tree-select-ant {
+  position: relative;
+  width: 100%;
+}
+
+.fx-tree-select-ant-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-tree-select-ant-selector:hover {
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-tree-select-ant-open .fx-tree-select-ant-selector {
+  border-color: var(--fx-color-primary, #1677ff);
+  box-shadow: 0 0 0 2px var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+}
+
+.fx-tree-select-ant-selection {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-tree-select-ant-placeholder {
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+}
+
+.fx-tree-select-ant-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  width: 14px;
+  height: 14px;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  cursor: pointer;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.fx-tree-select-ant-clear:hover {
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-tree-select-ant-arrow {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.fx-tree-select-ant-clear.hidden {
+  display: none;
+}
+
+.fx-tree-select-ant-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  box-shadow: var(--fx-effect-shadow-lg, 0 6px 16px 0 rgba(0, 0, 0, 0.08));
+  z-index: 1050;
+}
+
+/* Hidden class takes precedence - dropdown uses class:hidden directive */
+.fx-tree-select-ant-dropdown.hidden {
+  display: none !important;
+}
+
+.fx-tree-select-ant-search {
+  padding: 8px;
+  border-bottom: 1px solid var(--fx-color-border, #424242);
+}
+
+.fx-tree-select-ant-search input {
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-sm, 4px);
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  font-size: 14px;
+}
+
+.fx-tree-select-ant-search input:focus {
+  outline: none;
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-tree-select-ant-tree {
+  padding: 8px 0;
+}
+
+/* Tree Node - matches component class generation */
+.fx-tree-select-ant-node {
+  display: flex;
+  flex-direction: column;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-tree-select-ant-node-content {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.fx-tree-select-ant-node-content:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+}
+
+.fx-tree-select-ant-node-expand {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.fx-tree-select-ant-node-expand:hover {
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-tree-select-ant-node-expand-placeholder {
+  visibility: hidden;
+}
+
+.fx-tree-select-ant-node-checkbox {
+  margin-right: 4px;
+}
+
+.fx-tree-select-ant-node-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-tree-select-ant-node-label {
+  flex: 1;
+  padding: 0 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fx-tree-select-ant-node-children {
+  /* Children are indented via inline style in component */
+}
+
+.fx-tree-select-ant-node-disabled {
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+}
+
+.fx-tree-select-ant-node-disabled .fx-tree-select-ant-node-content {
+  cursor: not-allowed;
+}
+
+.fx-tree-select-ant-node-disabled .fx-tree-select-ant-node-content:hover {
+  background: transparent;
+}
+
+.fx-tree-select-ant-icon {
+  margin-right: 4px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+}
+
+/* ============================================
+   Cascader
+   ============================================ */
+.fx-cascader-ant {
+  position: relative;
+  width: 100%;
+}
+
+.fx-cascader-ant-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-cascader-ant-selector:hover {
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-cascader-ant-open .fx-cascader-ant-selector {
+  border-color: var(--fx-color-primary, #1677ff);
+  box-shadow: 0 0 0 2px var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+}
+
+.fx-cascader-ant-selection {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-cascader-ant-placeholder {
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+}
+
+.fx-cascader-ant-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  width: 14px;
+  height: 14px;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  cursor: pointer;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.fx-cascader-ant-clear:hover {
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-cascader-ant-arrow {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.fx-cascader-ant-clear.hidden {
+  display: none;
+}
+
+.fx-cascader-ant-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  display: flex;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  box-shadow: var(--fx-effect-shadow-lg, 0 6px 16px 0 rgba(0, 0, 0, 0.08));
+  z-index: 1050;
+}
+
+/* Hidden class takes precedence - dropdown uses class:hidden directive */
+.fx-cascader-ant-dropdown.hidden {
+  display: none !important;
+}
+
+.fx-cascader-ant-search {
+  padding: 8px;
+  border-bottom: 1px solid var(--fx-color-border, #424242);
+}
+
+.fx-cascader-ant-search input {
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-sm, 4px);
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  font-size: 14px;
+}
+
+.fx-cascader-ant-menus {
+  display: flex;
+}
+
+.fx-cascader-ant-menu {
+  min-width: 120px;
+  max-height: 256px;
+  overflow-y: auto;
+  border-right: 1px solid var(--fx-color-border, #424242);
+  padding: 4px 0;
+  list-style: none;
+  margin: 0;
+}
+
+.fx-cascader-ant-menu:last-child {
+  border-right: none;
+}
+
+.fx-cascader-ant-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-cascader-ant-option:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+}
+
+.fx-cascader-ant-option-selected {
+  background: var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+  color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-cascader-ant-option-disabled {
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+  cursor: not-allowed;
+}
+
+.fx-cascader-ant-option-label {
+  flex: 1;
+}
+
+.fx-cascader-ant-option-expand-icon {
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  margin-left: 8px;
+}
+
+/* ============================================
+   Mentions
+   ============================================ */
+.fx-mentions-ant {
+  position: relative;
+  width: 100%;
+}
+
+.fx-mentions-ant-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px 12px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.fx-mentions-ant-textarea:focus {
+  outline: none;
+  border-color: var(--fx-color-primary, #1677ff);
+  box-shadow: 0 0 0 2px var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+}
+
+.fx-mentions-ant-textarea::placeholder {
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+}
+
+.fx-mentions-ant-disabled .fx-mentions-ant-textarea {
+  background: var(--fx-color-bg-container-disabled, #262626);
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+  cursor: not-allowed;
+}
+
+.fx-mentions-ant-readonly .fx-mentions-ant-textarea {
+  cursor: default;
+}
+
+.fx-mentions-ant-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  box-shadow: var(--fx-effect-shadow-lg, 0 6px 16px 0 rgba(0, 0, 0, 0.08));
+  z-index: 1050;
+}
+
+/* Hidden class takes precedence - dropdown uses class:hidden directive */
+.fx-mentions-ant-dropdown.hidden {
+  display: none !important;
+}
+
+.fx-mentions-ant-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-mentions-ant-option:hover,
+.fx-mentions-ant-option.highlighted {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+}
+
+.fx-mentions-ant-option-disabled {
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+  cursor: not-allowed;
+}
+
+.fx-mentions-ant-option-disabled:hover {
+  background: transparent;
+}
+
+.fx-mentions-ant-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.fx-mentions-ant-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-mentions-ant-label {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fx-mentions-ant-description {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fx-mentions-ant-loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+}
+
+.fx-mentions-ant-spinner {
+  display: inline-block;
+  animation: fx-mentions-spin 1s linear infinite;
+}
+
+@keyframes fx-mentions-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.fx-mentions-ant-empty {
+  padding: 12px;
+  text-align: center;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+}
+
+/* ============================================
+   Multi Select
+   ============================================ */
+.fx-multi-select-ant {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.fx-multi-select-ant-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-multi-select-ant-selector {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 40px;
+  padding: 4px 8px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-multi-select-ant-selector:hover {
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-multi-select-ant-open .fx-multi-select-ant-selector {
+  border-color: var(--fx-color-primary, #1677ff);
+  box-shadow: 0 0 0 2px var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+}
+
+.fx-multi-select-ant-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+  border-radius: var(--fx-radius-sm, 4px);
+  font-size: 12px;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-multi-select-ant-tag-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.fx-multi-select-ant-tag-close:hover {
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-multi-select-ant-overflow {
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+}
+
+.fx-multi-select-ant-placeholder {
+  flex: 1;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+}
+
+.fx-multi-select-ant-arrow {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  transition: transform 0.2s;
+}
+
+.fx-multi-select-ant-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  max-height: 256px;
+  overflow-y: auto;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  box-shadow: var(--fx-effect-shadow-lg, 0 6px 16px 0 rgba(0, 0, 0, 0.08));
+  z-index: 1050;
+}
+
+/* Dropdown uses -open class directly on itself */
+.fx-multi-select-ant-dropdown-open {
+  display: block;
+}
+
+.fx-multi-select-ant-search {
+  padding: 8px;
+  border-bottom: 1px solid var(--fx-color-border, #424242);
+}
+
+.fx-multi-select-ant-search input {
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-sm, 4px);
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  font-size: 14px;
+}
+
+.fx-multi-select-ant-search input:focus {
+  outline: none;
+  border-color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-multi-select-ant-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-multi-select-ant-option:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+}
+
+.fx-multi-select-ant-option-selected {
+  background: var(--fx-color-primary-bg, rgba(22, 119, 255, 0.2));
+}
+
+.fx-multi-select-ant-option-disabled {
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+  cursor: not-allowed;
+}
+
+.fx-multi-select-ant-option-disabled:hover {
+  background: transparent;
+}
+
+/* Sizes */
+.fx-multi-select-ant-sm .fx-multi-select-ant-selector {
+  min-height: 28px;
+  padding: 2px 6px;
+}
+
+.fx-multi-select-ant-lg .fx-multi-select-ant-selector {
+  min-height: 48px;
+  padding: 6px 12px;
+}
+
+/* Disabled state */
+.fx-multi-select-ant-disabled .fx-multi-select-ant-selector {
+  background: var(--fx-color-bg-container-disabled, #262626);
+  cursor: not-allowed;
+}
+
+.fx-multi-select-ant-disabled .fx-multi-select-ant-tag {
+  opacity: 0.65;
+}
+
+/* ============================================
+   TriaState (Segmented Control)
+   ============================================ */
+.fx-tria-state-ant {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--fx-color-bg-container, #141414);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  padding: 2px;
+  gap: 0;
+}
+
+.fx-tria-state-ant-option {
+  padding: 8px 16px;
+  border-radius: var(--fx-radius-sm, 4px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.fx-tria-state-ant-option:hover:not(.fx-tria-state-ant-option-selected):not(:disabled) {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+}
+
+.fx-tria-state-ant-option-selected {
+  background: var(--fx-color-primary, #1677ff);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-tria-state-ant-option:disabled {
+  cursor: not-allowed;
+}
+
+/* Disabled state */
+.fx-tria-state-ant-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Block (full width) */
+.fx-tria-state-ant-block {
+  display: flex;
+  width: 100%;
+}
+
+.fx-tria-state-ant-block .fx-tria-state-ant-option {
+  flex: 1;
+  text-align: center;
+}
+
+/* Size variants */
+.fx-tria-state-ant-sm .fx-tria-state-ant-option {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.fx-tria-state-ant-lg .fx-tria-state-ant-option {
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .fx-tria-state-ant {
+    width: 100%;
+    display: flex;
+  }
+
+  .fx-tria-state-ant .fx-tria-state-ant-option {
+    flex: 1;
+    text-align: center;
+  }
+}

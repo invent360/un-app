@@ -1,0 +1,181 @@
+/* ============================================
+   Design System - Charts
+   ember-fx-components
+   Class naming: fx-chart-ant-[variant]
+   ============================================ */
+
+/* =============================================================================
+   Chart Line
+   ============================================================================= */
+
+.fx-chart-ant-line {
+  stroke: var(--fx-color-chart-line, #6366f1);
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fx-chart-ant-line-secondary {
+  stroke: var(--fx-color-chart-line-secondary, #06b6d4);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =============================================================================
+   Chart Bar
+   ============================================================================= */
+
+.fx-chart-ant-bar {
+  fill: var(--fx-color-chart-bar, #a855f7);
+}
+
+.fx-chart-ant-bar:hover {
+  fill: var(--fx-color-chart-bar-hover, #9333ea);
+}
+
+/* =============================================================================
+   Chart Area
+   ============================================================================= */
+
+.fx-chart-ant-area {
+  fill: var(--fx-color-chart-area-fill, rgba(139, 92, 246, 0.15));
+  stroke: var(--fx-color-chart-area-stroke, #8b5cf6);
+  stroke-width: 2;
+}
+
+/* =============================================================================
+   Chart Grid
+   ============================================================================= */
+
+.fx-chart-ant-grid {
+  stroke: var(--fx-color-chart-grid, #e2e8f0);
+  stroke-width: 1;
+}
+
+.fx-chart-ant-grid-dashed {
+  stroke: var(--fx-color-chart-grid, #e2e8f0);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+/* =============================================================================
+   Chart Axis
+   ============================================================================= */
+
+.fx-chart-ant-axis-label {
+  fill: var(--fx-color-chart-axis, #94a3b8);
+  font-size: 11px;
+  text-anchor: middle;
+}
+
+.fx-chart-ant-axis-label-left {
+  fill: var(--fx-color-chart-axis, #94a3b8);
+  font-size: 11px;
+  text-anchor: end;
+}
+
+.fx-chart-ant-axis-label-right {
+  fill: var(--fx-color-chart-axis, #94a3b8);
+  font-size: 11px;
+  text-anchor: start;
+}
+
+/* =============================================================================
+   Chart Container
+   ============================================================================= */
+
+.fx-chart-ant-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.fx-chart-ant-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* =============================================================================
+   Chart Tooltip
+   ============================================================================= */
+
+.fx-chart-ant-tooltip {
+  position: absolute;
+  padding: var(--fx-spacing-xs, 8px) var(--fx-spacing-sm, 12px);
+  background-color: var(--fx-color-bg-elevated, #1e1e1e);
+  border: 1px solid var(--fx-color-border, #424242);
+  border-radius: var(--fx-radius-md, 6px);
+  box-shadow: var(--fx-effect-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+  font-size: 12px;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+}
+
+.fx-chart-ant-tooltip-title {
+  font-weight: 600;
+  margin-bottom: var(--fx-spacing-xxs, 4px);
+}
+
+.fx-chart-ant-tooltip-value {
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+}
+
+/* =============================================================================
+   Chart Legend
+   ============================================================================= */
+
+.fx-chart-ant-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--fx-spacing-md, 16px);
+  flex-wrap: wrap;
+}
+
+.fx-chart-ant-legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--fx-spacing-xs, 8px);
+  font-size: 12px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+}
+
+.fx-chart-ant-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.fx-chart-ant-legend-dot-primary {
+  background-color: var(--fx-color-chart-line, #6366f1);
+}
+
+.fx-chart-ant-legend-dot-secondary {
+  background-color: var(--fx-color-chart-line-secondary, #06b6d4);
+}
+
+/* =============================================================================
+   Responsive Charts Container
+   ============================================================================= */
+
+.fx-charts-ant-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fx-spacing-md, 16px);
+}
+
+@media (min-width: 1024px) {
+  .fx-charts-ant-container {
+    flex-direction: row;
+    gap: var(--fx-spacing-lg, 24px);
+  }
+
+  .fx-charts-ant-container > * {
+    flex: 1;
+  }
+}

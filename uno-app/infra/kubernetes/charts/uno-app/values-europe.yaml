@@ -1,0 +1,13 @@
+# Europe region values (Hetzner nbg1)
+# Read replica region
+
+region: europe
+provider: hetzner
+databaseRole: replica
+
+app:
+  nodeSelector:
+    region: europe
+
+hpa:
+  maxReplicas: 4

@@ -1,0 +1,13 @@
+# Americas region values (GCP us-central1)
+# Primary database region
+
+region: americas
+provider: gcp
+databaseRole: primary
+
+app:
+  nodeSelector:
+    region: americas
+
+hpa:
+  maxReplicas: 6

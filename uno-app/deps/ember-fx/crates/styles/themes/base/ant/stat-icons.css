@@ -1,0 +1,175 @@
+/* ============================================
+   Design System - Stat Icons
+   ember-fx-components
+   Class naming: fx-stat-icon-ant-[variant]
+   ============================================ */
+
+/* =============================================================================
+   Base Stat Icon
+   ============================================================================= */
+
+.fx-stat-icon-ant {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--fx-radius-lg, 8px);
+  flex-shrink: 0;
+}
+
+.fx-stat-icon-ant svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* =============================================================================
+   Stat Icon Variants
+   ============================================================================= */
+
+/* Primary/Menus variant - Violet */
+.fx-stat-icon-ant-primary,
+.fx-stat-icon-ant-menus {
+  background: var(--fx-color-stat-menus-bg, rgba(139, 92, 246, 0.1));
+  color: var(--fx-color-stat-menus, #8b5cf6);
+}
+
+/* Secondary/Orders variant - Orange */
+.fx-stat-icon-ant-secondary,
+.fx-stat-icon-ant-orders {
+  background: var(--fx-color-stat-orders-bg, rgba(249, 115, 22, 0.1));
+  color: var(--fx-color-stat-orders, #f97316);
+}
+
+/* Tertiary/Clients variant - Cyan */
+.fx-stat-icon-ant-tertiary,
+.fx-stat-icon-ant-clients {
+  background: var(--fx-color-stat-clients-bg, rgba(6, 182, 212, 0.1));
+  color: var(--fx-color-stat-clients, #06b6d4);
+}
+
+/* Quaternary/Revenue variant - Green */
+.fx-stat-icon-ant-quaternary,
+.fx-stat-icon-ant-revenue {
+  background: var(--fx-color-stat-revenue-bg, rgba(34, 197, 94, 0.1));
+  color: var(--fx-color-stat-revenue, #22c55e);
+}
+
+/* Success variant - Green */
+.fx-stat-icon-ant-success {
+  background: var(--fx-color-success-bg, rgba(34, 197, 94, 0.1));
+  color: var(--fx-color-success, #22c55e);
+}
+
+/* Warning variant - Orange/Yellow */
+.fx-stat-icon-ant-warning {
+  background: var(--fx-color-warning-bg, rgba(245, 158, 11, 0.1));
+  color: var(--fx-color-warning, #f59e0b);
+}
+
+/* Error variant - Red */
+.fx-stat-icon-ant-error {
+  background: var(--fx-color-error-bg, rgba(239, 68, 68, 0.1));
+  color: var(--fx-color-error, #ef4444);
+}
+
+/* Info variant - Blue */
+.fx-stat-icon-ant-info {
+  background: var(--fx-color-info-bg, rgba(59, 130, 246, 0.1));
+  color: var(--fx-color-info, #3b82f6);
+}
+
+/* =============================================================================
+   Stat Card
+   ============================================================================= */
+
+.fx-stat-card-ant {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fx-spacing-md, 16px);
+  padding: var(--fx-spacing-lg, 24px);
+  background-color: var(--fx-color-bg-container, #141414);
+  border-radius: var(--fx-radius-xl, 12px);
+  border: 1px solid var(--fx-color-border, #424242);
+}
+
+.fx-stat-card-ant-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-stat-card-ant-label {
+  font-size: 14px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+  margin-bottom: var(--fx-spacing-xxs, 4px);
+}
+
+.fx-stat-card-ant-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  line-height: 1.2;
+}
+
+.fx-stat-card-ant-change {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--fx-spacing-xxs, 4px);
+  font-size: 12px;
+  margin-top: var(--fx-spacing-xs, 8px);
+}
+
+.fx-stat-card-ant-change-positive {
+  color: var(--fx-color-success, #22c55e);
+}
+
+.fx-stat-card-ant-change-negative {
+  color: var(--fx-color-error, #ef4444);
+}
+
+/* =============================================================================
+   Stat Grid
+   ============================================================================= */
+
+.fx-stat-grid-ant {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--fx-spacing-md, 16px);
+}
+
+@media (min-width: 768px) {
+  .fx-stat-grid-ant {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--fx-spacing-lg, 24px);
+  }
+}
+
+/* =============================================================================
+   Compact Stat Icon (Smaller variant)
+   ============================================================================= */
+
+.fx-stat-icon-ant-sm {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--fx-radius-md, 6px);
+}
+
+.fx-stat-icon-ant-sm svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* =============================================================================
+   Large Stat Icon
+   ============================================================================= */
+
+.fx-stat-icon-ant-lg {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--fx-radius-xl, 12px);
+}
+
+.fx-stat-icon-ant-lg svg {
+  width: 28px;
+  height: 28px;
+}

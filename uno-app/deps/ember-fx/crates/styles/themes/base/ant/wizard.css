@@ -1,0 +1,1305 @@
+/* ============================================
+   Ant Design - Wizard Component
+   ember-fx-components
+   ============================================ */
+
+/* ============================================
+   Container
+   ============================================ */
+.fx-wizard-ant {
+  --wizard-bg: var(--fx-color-bg-container, #141414);
+  --wizard-border: var(--fx-color-border, #303030);
+  --wizard-text: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  --wizard-text-secondary: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+  --wizard-text-tertiary: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  --wizard-primary: var(--fx-color-primary, #1677ff);
+  --wizard-primary-hover: var(--fx-color-primary-hover, #4096ff);
+  --wizard-error: var(--fx-color-error, #ff4d4f);
+  --wizard-success: var(--fx-color-success, #52c41a);
+
+  background: var(--wizard-bg);
+  border-radius: var(--fx-radius-lg, 8px);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+}
+
+/* Horizontal layout */
+.fx-wizard-ant-layout-horizontal {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 500px;
+}
+
+/* Vertical layout */
+.fx-wizard-ant-layout-vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   Sidebar (Horizontal Layout)
+   ============================================ */
+.fx-wizard-ant-sidebar {
+  background: var(--fx-color-bg-layout, #0a0a0a);
+  border-right: 1px solid var(--wizard-border);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fx-wizard-ant-sidebar-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--wizard-text);
+  margin: 0;
+}
+
+.fx-wizard-ant-sidebar-description {
+  font-size: 14px;
+  color: var(--wizard-text-secondary);
+  margin: 0;
+}
+
+/* ============================================
+   Main Content Area
+   ============================================ */
+.fx-wizard-ant-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* ============================================
+   Header
+   ============================================ */
+.fx-wizard-ant-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--wizard-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fx-wizard-ant-header-full {
+  padding: 24px;
+  text-align: center;
+}
+
+.fx-wizard-ant-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fx-wizard-ant-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--wizard-text);
+  margin: 0 0 8px 0;
+}
+
+.fx-wizard-ant-description {
+  font-size: 14px;
+  color: var(--wizard-text-secondary);
+  margin: 0;
+}
+
+.fx-wizard-ant-current-step-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wizard-text);
+}
+
+.fx-wizard-ant-step-counter {
+  font-size: 14px;
+  color: var(--wizard-text-tertiary);
+}
+
+/* ============================================
+   Stepper Container
+   ============================================ */
+.fx-wizard-ant-stepper-container {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--wizard-border);
+}
+
+/* ============================================
+   Content Area
+   ============================================ */
+.fx-wizard-ant-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  min-height: 300px;
+}
+
+.fx-wizard-ant-content-inner {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   Stepper Component
+   ============================================ */
+.fx-wizard-ant-stepper {
+  display: flex;
+  gap: 8px;
+}
+
+.fx-wizard-ant-stepper-horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.fx-wizard-ant-stepper-vertical {
+  flex-direction: column;
+}
+
+/* Stepper Item */
+.fx-wizard-ant-stepper-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.fx-wizard-ant-stepper-vertical .fx-wizard-ant-stepper-item {
+  flex: none;
+  padding-bottom: 24px;
+}
+
+.fx-wizard-ant-stepper-item-clickable {
+  cursor: pointer;
+}
+
+.fx-wizard-ant-stepper-item-clickable:hover .fx-wizard-ant-stepper-indicator {
+  border-color: var(--wizard-primary);
+}
+
+/* Indicator */
+.fx-wizard-ant-stepper-indicator {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--wizard-border);
+  color: var(--wizard-text-tertiary);
+  transition: all 0.3s;
+}
+
+.fx-wizard-ant-stepper-indicator-active {
+  background: var(--wizard-primary);
+  border-color: var(--wizard-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+  box-shadow: 0 0 0 4px rgba(22, 119, 255, 0.2);
+}
+
+.fx-wizard-ant-stepper-indicator-completed {
+  background: var(--wizard-primary);
+  border-color: var(--wizard-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-wizard-ant-stepper-number,
+.fx-wizard-ant-stepper-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Content */
+.fx-wizard-ant-stepper-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-wizard-ant-stepper-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wizard-text-tertiary);
+  line-height: 32px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fx-wizard-ant-stepper-item-active .fx-wizard-ant-stepper-title {
+  color: var(--wizard-text);
+}
+
+.fx-wizard-ant-stepper-item-completed .fx-wizard-ant-stepper-title {
+  color: var(--wizard-text-secondary);
+}
+
+/* Connector */
+.fx-wizard-ant-stepper-connector {
+  position: absolute;
+  background: var(--wizard-border);
+  transition: background 0.3s;
+}
+
+.fx-wizard-ant-stepper-horizontal .fx-wizard-ant-stepper-connector {
+  top: 16px;
+  left: calc(50% + 24px);
+  right: calc(-50% + 24px);
+  height: 1px;
+}
+
+.fx-wizard-ant-stepper-vertical .fx-wizard-ant-stepper-connector {
+  left: 16px;
+  top: 40px;
+  bottom: 8px;
+  width: 1px;
+}
+
+.fx-wizard-ant-stepper-connector-completed {
+  background: var(--wizard-primary);
+}
+
+/* ============================================
+   Progress Bar
+   ============================================ */
+.fx-wizard-ant-progress {
+  width: 100%;
+}
+
+.fx-wizard-ant-progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.fx-wizard-ant-progress-track.h-2 {
+  height: 8px;
+}
+
+.fx-wizard-ant-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--wizard-primary), var(--wizard-primary-hover));
+  border-radius: 100px;
+  transition: width 0.5s ease-out;
+}
+
+.fx-wizard-ant-progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fx-color-primary-content, #ffffff);
+  padding-right: 8px;
+  text-align: right;
+}
+
+/* Circular Progress */
+.fx-wizard-ant-circular-progress {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fx-wizard-ant-circular-progress-track {
+  stroke: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.08));
+}
+
+.fx-wizard-ant-circular-progress-bar {
+  stroke: var(--wizard-primary);
+  transition: stroke-dashoffset 0.5s ease-out;
+}
+
+.fx-wizard-ant-circular-progress-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--wizard-text);
+}
+
+/* Step Counter */
+.fx-wizard-ant-step-counter {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wizard-text-secondary);
+}
+
+/* ============================================
+   Navigation
+   ============================================ */
+.fx-wizard-ant-navigation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--wizard-border);
+  background: var(--fx-color-bg-layout, #0a0a0a);
+}
+
+.fx-wizard-ant-navigation-space-between {
+  justify-content: space-between;
+}
+
+.fx-wizard-ant-navigation-left,
+.fx-wizard-ant-navigation-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Navigation Buttons */
+.fx-wizard-ant-navigation-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5715;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.fx-wizard-ant-navigation-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.fx-wizard-ant-navigation-btn-prev,
+.fx-wizard-ant-navigation-btn-cancel {
+  background: transparent;
+  color: var(--wizard-text-secondary);
+  border-color: var(--wizard-border);
+}
+
+.fx-wizard-ant-navigation-btn-prev:hover,
+.fx-wizard-ant-navigation-btn-cancel:hover {
+  color: var(--wizard-primary);
+  border-color: var(--wizard-primary);
+}
+
+.fx-wizard-ant-navigation-btn-next,
+.fx-wizard-ant-navigation-btn-submit {
+  background: var(--wizard-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+  border-color: var(--wizard-primary);
+}
+
+.fx-wizard-ant-navigation-btn-next:hover,
+.fx-wizard-ant-navigation-btn-submit:hover {
+  background: var(--wizard-primary-hover);
+  border-color: var(--wizard-primary-hover);
+}
+
+/* Navigation Icons */
+.fx-wizard-ant-nav-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Spinner */
+.fx-wizard-ant-navigation-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ant-wizard-spin 1s linear infinite;
+}
+
+@keyframes ant-wizard-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Compact Navigation */
+.fx-wizard-ant-compact-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--wizard-bg);
+  border-top: 1px solid var(--wizard-border);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.fx-wizard-ant-compact-nav-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-wizard-ant-compact-nav-btn-prev {
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+  color: var(--wizard-text-secondary);
+}
+
+.fx-wizard-ant-compact-nav-btn-prev:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.12));
+}
+
+.fx-wizard-ant-compact-nav-btn-next,
+.fx-wizard-ant-compact-nav-btn-submit {
+  background: var(--wizard-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.35);
+}
+
+.fx-wizard-ant-compact-nav-btn-next:hover,
+.fx-wizard-ant-compact-nav-btn-submit:hover {
+  background: var(--wizard-primary-hover);
+}
+
+.fx-wizard-ant-compact-nav-info {
+  flex: 1;
+  text-align: center;
+}
+
+.fx-wizard-ant-compact-nav-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wizard-text);
+}
+
+.fx-wizard-ant-compact-nav-counter {
+  font-size: 12px;
+  color: var(--wizard-text-tertiary);
+}
+
+/* ============================================
+   Error Display
+   ============================================ */
+.fx-wizard-ant-error {
+  margin: 16px 24px;
+}
+
+.fx-wizard-ant-error-toast {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  max-width: 400px;
+  z-index: 1000;
+  animation: ant-wizard-slide-in 0.3s ease-out;
+}
+
+.fx-wizard-ant-error-alert {
+  animation: ant-wizard-slide-down 0.3s ease-out;
+}
+
+.fx-wizard-ant-error-toast-content,
+.fx-wizard-ant-error-alert-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 77, 79, 0.1);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  border-radius: 8px;
+  border-left: 4px solid var(--wizard-error);
+}
+
+.fx-wizard-ant-error-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--wizard-error);
+  flex-shrink: 0;
+}
+
+.fx-wizard-ant-error-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-wizard-ant-error-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wizard-error);
+  margin: 0 0 8px 0;
+}
+
+.fx-wizard-ant-error-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 14px;
+  color: rgba(255, 77, 79, 0.85);
+}
+
+.fx-wizard-ant-error-list li {
+  margin-bottom: 4px;
+}
+
+.fx-wizard-ant-error-dismiss {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--wizard-error);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.fx-wizard-ant-error-dismiss:hover {
+  opacity: 1;
+}
+
+/* Inline Error */
+.fx-wizard-ant-error-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fx-wizard-ant-error-inline-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--wizard-error);
+}
+
+.fx-wizard-ant-warning-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   Success Display
+   ============================================ */
+.fx-wizard-ant-success {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  max-width: 400px;
+  z-index: 1000;
+  animation: ant-wizard-slide-in 0.3s ease-out;
+}
+
+.fx-wizard-ant-success-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(82, 196, 26, 0.1);
+  border: 1px solid rgba(82, 196, 26, 0.3);
+  border-radius: 8px;
+  border-left: 4px solid var(--wizard-success);
+}
+
+.fx-wizard-ant-success-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--wizard-success);
+  flex-shrink: 0;
+}
+
+.fx-wizard-ant-success-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-wizard-ant-success-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--wizard-success);
+  margin: 0;
+}
+
+.fx-wizard-ant-success-message {
+  font-size: 14px;
+  color: rgba(82, 196, 26, 0.85);
+  margin: 8px 0 0 0;
+}
+
+.fx-wizard-ant-success-dismiss {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--wizard-success);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.fx-wizard-ant-success-dismiss:hover {
+  opacity: 1;
+}
+
+/* ============================================
+   Step Content
+   ============================================ */
+.fx-wizard-ant-step {
+  animation: ant-wizard-fade-in 0.3s ease-out;
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+@keyframes ant-wizard-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ant-wizard-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ant-wizard-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .fx-wizard-ant,
+  .fx-wizard-ant-stepper-indicator,
+  .fx-wizard-ant-progress-bar,
+  .fx-wizard-ant-navigation-btn,
+  .fx-wizard-ant-step {
+    transition: none;
+  }
+
+  .fx-wizard-ant-navigation-spinner {
+    animation: none;
+  }
+
+  .fx-wizard-ant-error-toast,
+  .fx-wizard-ant-error-alert,
+  .fx-wizard-ant-success,
+  .fx-wizard-ant-step {
+    animation: none;
+  }
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 768px) {
+  .fx-wizard-ant-layout-horizontal {
+    grid-template-columns: 1fr;
+  }
+
+  .fx-wizard-ant-sidebar {
+    display: none;
+  }
+
+  .fx-wizard-ant-header {
+    padding: 12px 16px;
+  }
+
+  .fx-wizard-ant-content {
+    padding: 16px;
+  }
+
+  .fx-wizard-ant-navigation {
+    padding: 12px 16px;
+  }
+
+  .fx-wizard-ant-stepper-horizontal {
+    flex-wrap: wrap;
+  }
+}
+
+/* ============================================
+   Step Content Styles
+   ============================================ */
+
+/* Step content wrapper */
+.fx-wizard-ant-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fx-wizard-ant-step-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--wizard-text);
+  margin: 0;
+}
+
+.fx-wizard-ant-step-description {
+  font-size: 14px;
+  color: var(--wizard-text-secondary);
+  margin: 0;
+}
+
+/* ============================================
+   Options Grid (Trade Type Selection)
+   ============================================ */
+.fx-wizard-ant-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fx-wizard-ant-option-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 2px solid var(--wizard-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.fx-wizard-ant-option-card:hover {
+  border-color: var(--wizard-primary);
+  background: var(--fx-color-bg-container-hover, #252525);
+}
+
+.fx-wizard-ant-option-card-selected {
+  border-color: var(--wizard-primary);
+  background: rgba(22, 119, 255, 0.1);
+}
+
+.fx-wizard-ant-option-icon {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.fx-wizard-ant-option-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-wizard-ant-option-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--wizard-text);
+  margin: 0 0 4px 0;
+}
+
+.fx-wizard-ant-option-description {
+  font-size: 14px;
+  color: var(--wizard-text-secondary);
+  margin: 0 0 8px 0;
+}
+
+.fx-wizard-ant-option-example {
+  font-size: 12px;
+  color: var(--wizard-text-tertiary);
+}
+
+.fx-wizard-ant-option-check {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wizard-primary);
+}
+
+.fx-wizard-ant-check-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================
+   Form Fields
+   ============================================ */
+.fx-wizard-ant-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fx-wizard-ant-field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wizard-text);
+}
+
+.fx-wizard-ant-field-value {
+  color: var(--wizard-primary);
+  font-weight: 600;
+}
+
+.fx-wizard-ant-field-help {
+  font-size: 12px;
+  color: var(--wizard-text-tertiary);
+  margin: 4px 0 0 0;
+}
+
+.fx-wizard-ant-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.fx-wizard-ant-field-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--wizard-text-tertiary);
+  padding-top: 28px;
+}
+
+@media (max-width: 640px) {
+  .fx-wizard-ant-field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .fx-wizard-ant-field-separator {
+    display: none;
+  }
+}
+
+/* ============================================
+   Toggle Buttons
+   ============================================ */
+.fx-wizard-ant-toggle-group {
+  display: flex;
+  gap: 8px;
+}
+
+.fx-wizard-ant-toggle-btn {
+  flex: 1;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--wizard-border);
+  border-radius: 8px;
+  color: var(--wizard-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-wizard-ant-toggle-btn:hover {
+  border-color: var(--wizard-primary);
+  color: var(--wizard-primary);
+}
+
+.fx-wizard-ant-toggle-active {
+  background: var(--wizard-primary);
+  border-color: var(--wizard-primary);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-wizard-ant-toggle-active:hover {
+  background: var(--wizard-primary-hover);
+  border-color: var(--wizard-primary-hover);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+.fx-wizard-ant-toggle-buy.fx-wizard-ant-toggle-active {
+  background: var(--wizard-success);
+  border-color: var(--wizard-success);
+}
+
+.fx-wizard-ant-toggle-sell.fx-wizard-ant-toggle-active {
+  background: var(--wizard-error);
+  border-color: var(--wizard-error);
+}
+
+/* ============================================
+   Form Inputs
+   ============================================ */
+.fx-wizard-ant-input,
+.fx-wizard-ant-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--wizard-border);
+  border-radius: 6px;
+  color: var(--wizard-text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.fx-wizard-ant-input:focus,
+.fx-wizard-ant-select:focus {
+  border-color: var(--wizard-primary);
+}
+
+.fx-wizard-ant-input::placeholder {
+  color: var(--wizard-text-tertiary);
+}
+
+.fx-wizard-ant-input-with-addon {
+  display: flex;
+  align-items: stretch;
+}
+
+.fx-wizard-ant-input-with-addon .fx-wizard-ant-input {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+
+.fx-wizard-ant-input-addon {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: var(--fx-color-bg-layout, #0a0a0a);
+  border: 1px solid var(--wizard-border);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  color: var(--wizard-text-secondary);
+  font-size: 14px;
+  min-width: 60px;
+  justify-content: center;
+}
+
+/* ============================================
+   Checkbox
+   ============================================ */
+.fx-wizard-ant-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--wizard-text);
+}
+
+.fx-wizard-ant-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--wizard-primary);
+}
+
+/* ============================================
+   Slider
+   ============================================ */
+.fx-wizard-ant-slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--wizard-border);
+  border-radius: 3px;
+  outline: none;
+}
+
+.fx-wizard-ant-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--wizard-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.fx-wizard-ant-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--wizard-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.fx-wizard-ant-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--wizard-text-tertiary);
+  margin-top: 4px;
+}
+
+/* ============================================
+   Summary Box
+   ============================================ */
+.fx-wizard-ant-summary-box {
+  padding: 16px;
+  background: var(--fx-color-bg-layout, #0a0a0a);
+  border: 1px solid var(--wizard-border);
+  border-radius: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fx-wizard-ant-summary-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wizard-text-secondary);
+}
+
+.fx-wizard-ant-summary-text {
+  font-size: 14px;
+  color: var(--wizard-text);
+}
+
+/* ============================================
+   Payment Grid
+   ============================================ */
+.fx-wizard-ant-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.fx-wizard-ant-payment-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 2px solid var(--wizard-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.fx-wizard-ant-payment-card:hover {
+  border-color: var(--wizard-primary);
+}
+
+.fx-wizard-ant-payment-card-selected {
+  border-color: var(--wizard-primary);
+  background: rgba(22, 119, 255, 0.1);
+}
+
+.fx-wizard-ant-payment-check {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--wizard-border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.fx-wizard-ant-payment-card-selected .fx-wizard-ant-payment-check {
+  background: var(--wizard-primary);
+  border-color: var(--wizard-primary);
+}
+
+.fx-wizard-ant-payment-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-wizard-ant-payment-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wizard-text);
+  margin: 0;
+}
+
+.fx-wizard-ant-payment-description {
+  font-size: 12px;
+  color: var(--wizard-text-tertiary);
+  margin: 4px 0 0 0;
+}
+
+.fx-wizard-ant-selected-count {
+  font-size: 14px;
+  color: var(--wizard-text-secondary);
+  text-align: center;
+  padding-top: 8px;
+}
+
+/* ============================================
+   Review Cards
+   ============================================ */
+.fx-wizard-ant-review-card {
+  background: var(--fx-color-bg-elevated, #1f1f1f);
+  border: 1px solid var(--wizard-border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.fx-wizard-ant-review-card-muted {
+  background: var(--fx-color-bg-layout, #0a0a0a);
+}
+
+.fx-wizard-ant-review-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wizard-text);
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--wizard-border);
+}
+
+.fx-wizard-ant-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .fx-wizard-ant-review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fx-wizard-ant-review-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fx-wizard-ant-review-item-highlight {
+  grid-column: 1 / -1;
+  padding-top: 12px;
+  border-top: 1px dashed var(--wizard-border);
+}
+
+.fx-wizard-ant-review-label {
+  font-size: 12px;
+  color: var(--wizard-text-tertiary);
+}
+
+.fx-wizard-ant-review-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wizard-text);
+}
+
+.fx-wizard-ant-review-value-large {
+  font-size: 18px;
+  color: var(--wizard-primary);
+}
+
+.fx-wizard-ant-review-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fx-wizard-ant-review-tag {
+  padding: 4px 12px;
+  background: var(--fx-color-bg-layout, #0a0a0a);
+  border: 1px solid var(--wizard-border);
+  border-radius: 16px;
+  font-size: 12px;
+  color: var(--wizard-text-secondary);
+}
+
+/* ============================================
+   Error Alert
+   ============================================ */
+.fx-wizard-ant-error-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 77, 79, 0.1);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  border-radius: 8px;
+}
+
+.fx-wizard-ant-error-alert .fx-wizard-ant-error-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--wizard-error);
+  color: var(--fx-color-error-content, #ffffff);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   Warning Box
+   ============================================ */
+.fx-wizard-ant-warning-box {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(250, 173, 20, 0.1);
+  border: 1px solid rgba(250, 173, 20, 0.3);
+  border-radius: 8px;
+}
+
+.fx-wizard-ant-warning-box .fx-wizard-ant-warning-icon {
+  width: 20px;
+  height: 20px;
+  color: #faad14;
+  flex-shrink: 0;
+}
+
+.fx-wizard-ant-warning-box p {
+  font-size: 13px;
+  color: var(--wizard-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   Submitting State
+   ============================================ */
+.fx-wizard-ant-submitting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--fx-color-bg-layout, #0a0a0a);
+  border: 1px solid var(--wizard-border);
+  border-radius: 8px;
+}
+
+.fx-wizard-ant-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--wizard-border);
+  border-top-color: var(--wizard-primary);
+  border-radius: 50%;
+  animation: ant-wizard-spin 1s linear infinite;
+}

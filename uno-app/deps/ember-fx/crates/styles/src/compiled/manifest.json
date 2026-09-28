@@ -1,0 +1,22 @@
+{
+  "prime": [
+    "aura-dark",
+    "aura-light",
+    "lara-dark",
+    "lara-light",
+    "material-dark",
+    "material-light"
+  ],
+  "ant": [
+    "dark",
+    "dark-blue",
+    "dark-green",
+    "glass",
+    "light",
+    "mui",
+    "shad",
+    "skeumorph",
+    "sky",
+    "unity"
+  ]
+}

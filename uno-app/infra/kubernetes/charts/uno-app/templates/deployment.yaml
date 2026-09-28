@@ -1,0 +1,197 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "uno-app.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "uno-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "uno-app.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: {{ .Values.app.strategy.type }}
+    {{- if eq .Values.app.strategy.type "RollingUpdate" }}
+    rollingUpdate:
+      maxSurge: {{ .Values.app.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.app.strategy.rollingUpdate.maxUnavailable }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "uno-app.selectorLabels" . | nindent 8 }}
+        region: {{ .Values.region }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.app.probes.port }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: {{ include "uno-app.serviceAccountName" . }}
+      securityContext:
+        runAsUser: {{ .Values.app.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.app.securityContext.runAsGroup }}
+        runAsNonRoot: {{ .Values.app.securityContext.runAsNonRoot }}
+        fsGroup: {{ .Values.app.securityContext.fsGroup }}
+      {{- if .Values.app.podAntiAffinity.enabled }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    {{- include "uno-app.selectorLabels" . | nindent 20 }}
+                topologyKey: {{ .Values.app.podAntiAffinity.topologyKey }}
+      {{- end }}
+      {{- if .Values.app.topologySpreadConstraints.enabled }}
+      topologySpreadConstraints:
+        - maxSkew: {{ .Values.app.topologySpreadConstraints.maxSkew }}
+          topologyKey: {{ .Values.app.topologySpreadConstraints.topologyKey }}
+          whenUnsatisfiable: {{ .Values.app.topologySpreadConstraints.whenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+              {{- include "uno-app.selectorLabels" . | nindent 14 }}
+      {{- end }}
+      {{- with .Values.app.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.app.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "uno-app.name" . }}
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.app.probes.port }}
+              protocol: TCP
+          env:
+            - name: LEPTOS_ENV
+              value: {{ .Values.app.env.leptosEnv | quote }}
+            - name: LEPTOS_SITE_ADDR
+              value: {{ .Values.app.env.leptosSiteAddr | default "0.0.0.0:3000" | quote }}
+            - name: LEPTOS_SITE_ROOT
+              value: {{ .Values.app.env.leptosSiteRoot | quote }}
+            - name: RUST_LOG
+              value: {{ .Values.app.env.rustLog | quote }}
+            {{- if .Values.database.internal.enabled }}
+            {{- $dbName := .Values.db.fullnameOverride | default (printf "%s-db" .Release.Name) }}
+            # Internal PostgreSQL (in-cluster)
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.db.auth.existingSecret }}
+                  name: {{ .Values.db.auth.existingSecret }}
+                  key: {{ .Values.db.auth.secretKeys.userPasswordKey }}
+                  {{- else }}
+                  name: {{ $dbName }}
+                  {{- if eq .Values.db.auth.username "postgres" }}
+                  key: postgres-password
+                  {{- else }}
+                  key: password
+                  {{- end }}
+                  {{- end }}
+            - name: DATABASE_URL
+              {{- if eq .Values.db.architecture "replication" }}
+              value: "postgres://{{ .Values.db.auth.username }}:$(PGPASSWORD)@{{ $dbName }}-primary:5432/{{ .Values.db.auth.database }}"
+              {{- else }}
+              value: "postgres://{{ .Values.db.auth.username }}:$(PGPASSWORD)@{{ $dbName }}:5432/{{ .Values.db.auth.database }}"
+              {{- end }}
+            {{- if eq .Values.db.architecture "replication" }}
+            - name: DATABASE_READ_REPLICA_URL
+              value: "postgres://{{ .Values.db.auth.username }}:$(PGPASSWORD)@{{ $dbName }}-read:5432/{{ .Values.db.auth.database }}"
+            {{- end }}
+            {{- else }}
+            # External PostgreSQL (managed database)
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: url
+            {{- if eq .Values.databaseRole "replica" }}
+            - name: DATABASE_READ_REPLICA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: read_replica_url
+            {{- end }}
+            {{- end }}
+            - name: DATABASE_MAX_CONNECTIONS
+              value: {{ .Values.app.env.databaseMaxConnections | quote }}
+            - name: ADMIN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: admin-credentials
+                  key: api_key
+            - name: ADMIN_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: admin-credentials
+                  key: client_id
+            - name: ADMIN_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: admin-credentials
+                  key: secret_key
+            - name: GEOIP_DATABASE_PATH
+              value: {{ .Values.app.env.geoipDatabasePath | quote }}
+            - name: SCHEDULER_INTERVAL_SECS
+              value: {{ .Values.app.env.schedulerIntervalSecs | quote }}
+            - name: REGION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['region']
+          resources:
+            requests:
+              cpu: {{ .Values.app.resources.requests.cpu }}
+              memory: {{ .Values.app.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.app.resources.limits.cpu }}
+              memory: {{ .Values.app.resources.limits.memory }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.app.containerSecurityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.app.containerSecurityContext.readOnlyRootFilesystem }}
+            capabilities:
+              drop:
+                {{- toYaml .Values.app.containerSecurityContext.capabilities.drop | nindent 16 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.probes.path }}
+              port: {{ .Values.app.probes.port }}
+            initialDelaySeconds: {{ .Values.app.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.app.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.app.probes.liveness.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.probes.path }}
+              port: {{ .Values.app.probes.port }}
+            initialDelaySeconds: {{ .Values.app.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.app.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.app.probes.readiness.failureThreshold }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.app.probes.path }}
+              port: {{ .Values.app.probes.port }}
+            initialDelaySeconds: {{ .Values.app.probes.startup.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.app.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.app.probes.startup.failureThreshold }}
+          volumeMounts:
+            - name: geoip-data
+              mountPath: /data
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: geoip-data
+          configMap:
+            name: geoip-database
+            optional: true
+        - name: tmp
+          emptyDir: {}

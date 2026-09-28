@@ -1,0 +1,61 @@
+# Europe Deployment Strategy
+# Single region serving Europe, Middle East, and Africa
+# Cost: ~$150/month (LOWEST COST OPTION)
+#
+# Cloudflare geo-routing configuration:
+#   WEU (Western Europe) → Europe pool
+#   EEU (Eastern Europe) → Europe pool
+#   ME (Middle East) → Europe pool
+#   NSAF (Africa) → Europe pool
+#   Fallback: Europe pool
+
+region: europe
+provider: hetzner
+databaseRole: primary  # Self-managed PostgreSQL primary
+
+# Deployment target
+app:
+  replicaCount: 2
+
+  # Hetzner cx21 equivalent resources
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  nodeSelector:
+    region: europe
+
+# Higher scaling for multi-region traffic (EU + ME + Africa)
+hpa:
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPU: 70
+  targetMemory: 80
+
+# Enable all components
+cloudflared:
+  enabled: true
+  replicaCount: 2
+
+monitoring:
+  enabled: true
+
+# Strategy metadata
+strategy:
+  name: europe
+  regionsServed:
+    - WEU    # Western Europe
+    - EEU    # Eastern Europe
+    - ME     # Middle East
+    - NSAF   # Africa
+  estimatedMonthlyCost: 150
+  latencyNote: "~20-50ms for Europe, ~50-100ms for Middle East, ~100-200ms for Africa"
+  benefits:
+    - "Lowest cost option"
+    - "Hetzner includes bandwidth (no egress fees)"
+    - "Good coverage for EU + ME + Africa"
+    - "GDPR-compliant data residency"

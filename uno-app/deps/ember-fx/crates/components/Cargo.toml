@@ -1,0 +1,70 @@
+[package]
+name = "ember-fx-components"
+description = "UI component library for ember-fx"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default = ["csr", "ant"]
+csr = ["leptos/csr", "ember-fx-core/csr"]
+ssr = ["leptos/ssr", "ember-fx-core/ssr"]
+hydrate = ["leptos/hydrate", "ember-fx-core/hydrate"]
+
+# Design systems
+ant = ["ember-fx-styles/ant"]
+material = ["ember-fx-styles/material"]
+cupertino = ["ember-fx-styles/cupertino"]
+daisyui = ["ember-fx-styles/daisyui"]
+prime = ["ember-fx-styles/prime"]
+flutter = ["ember-fx-styles/flutter"]
+
+# Component infrastructure
+core = []
+template = ["core"]
+
+# Individual components
+icons = ["ember-fx-icons/all-icons", "ember-fx-icons/tabler-all"]
+button = ["core"]
+panel = ["core"]
+input = ["core"]
+selection = ["core"]
+notification = ["core"]
+layout = ["core", "template"]
+overlay = ["core"]
+navigation = ["core"]
+data = ["core"]
+visualization = ["core"]
+chart = ["core"]
+observability = ["core", "chart"]
+maps = ["core", "chart"]
+form-advanced = ["core"]
+slider = ["core"]
+calendar = ["core"]
+form = ["core", "navigation"]
+media = ["core"]
+task = ["core"]
+guide = ["core"]
+
+# Component bundles
+components = ["core", "template", "icons", "button", "panel", "input", "selection", "notification", "layout", "overlay", "navigation", "data", "visualization", "chart", "observability", "maps", "slider", "form-advanced", "calendar", "form", "media", "task", "guide"]
+basic = ["button", "input", "notification"]
+full = ["components"]
+
+[dependencies]
+ember-fx-common = { workspace = true }
+ember-fx-utils = { workspace = true }
+ember-fx-core = { workspace = true }
+ember-fx-styles = { workspace = true }
+ember-fx-systems = { workspace = true }
+ember-fx-icons = { workspace = true }
+leptos = { workspace = true }
+web-sys = { workspace = true }
+js-sys = { workspace = true }
+wasm-bindgen = { workspace = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

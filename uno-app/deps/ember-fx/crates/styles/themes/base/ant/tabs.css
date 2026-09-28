@@ -1,0 +1,392 @@
+/* ============================================
+   Ant Design - Tabs & Collapse Components
+   ember-fx-components
+   Tabs, Collapse/Accordion
+   ============================================ */
+
+/* ============================================
+   Tabs
+   ============================================ */
+.fx-tabs-ant {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tabs Navigation */
+.fx-tabs-ant-nav {
+  display: flex;
+  position: relative;
+}
+
+.fx-tabs-ant-nav-list {
+  display: flex;
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.fx-tabs-ant-nav-operations {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fx-tabs-ant-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+  background: transparent;
+  white-space: nowrap;
+}
+
+.fx-tabs-ant-tab:hover {
+  color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-tabs-ant-tab-active {
+  color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-tabs-ant-tab-disabled {
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+  cursor: not-allowed;
+}
+
+.fx-tabs-ant-tab-icon {
+  display: flex;
+  align-items: center;
+}
+
+/* Tab close button */
+.fx-tabs-ant-tab-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  border-radius: var(--fx-radius-sm, 4px);
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  transition: all 0.2s;
+}
+
+.fx-tabs-ant-tab-close:hover {
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+/* Ink bar (underline indicator) */
+.fx-tabs-ant-ink-bar {
+  position: absolute;
+  bottom: 0;
+  height: 2px;
+  background: var(--fx-color-primary, #1677ff);
+  transition: all 0.3s;
+}
+
+/* Tab content */
+.fx-tabs-ant-content {
+  padding: 16px 0;
+}
+
+.fx-tabs-ant-tabpane {
+  display: none;
+}
+
+.fx-tabs-ant-tabpane-active {
+  display: block;
+}
+
+/* Line style (default) */
+.fx-tabs-ant-line .fx-tabs-ant-nav {
+  border-bottom: 1px solid var(--fx-color-border-secondary, #303030);
+}
+
+/* Card style */
+.fx-tabs-ant-card .fx-tabs-ant-nav {
+  background: var(--fx-color-fill-quaternary, rgba(255, 255, 255, 0.02));
+  border-radius: var(--fx-radius-lg, 8px) var(--fx-radius-lg, 8px) 0 0;
+}
+
+.fx-tabs-ant-card .fx-tabs-ant-tab {
+  margin: 0;
+  padding: 12px 16px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--fx-radius-md, 6px) var(--fx-radius-md, 6px) 0 0;
+}
+
+.fx-tabs-ant-card .fx-tabs-ant-tab-active {
+  background: var(--fx-color-bg-container, #141414);
+  border-color: var(--fx-color-border-secondary, #303030);
+}
+
+.fx-tabs-ant-card .fx-tabs-ant-content {
+  border: 1px solid var(--fx-color-border-secondary, #303030);
+  border-top: none;
+  padding: 16px;
+  background: var(--fx-color-bg-container, #141414);
+  border-radius: 0 0 var(--fx-radius-lg, 8px) var(--fx-radius-lg, 8px);
+}
+
+/* Editable card style */
+.fx-tabs-ant-editable-card .fx-tabs-ant-tab {
+  padding-right: 32px;
+}
+
+.fx-tabs-ant-editable-card .fx-tabs-ant-tab-close {
+  position: absolute;
+  right: 8px;
+}
+
+.fx-tabs-ant-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  margin-left: 4px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+  cursor: pointer;
+  border-radius: var(--fx-radius-sm, 4px);
+  transition: all 0.2s;
+}
+
+.fx-tabs-ant-add-btn:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+/* Bordered tabs */
+.fx-tabs-ant-bordered .fx-tabs-ant-nav {
+  border: 1px solid var(--fx-color-border-secondary, #303030);
+  border-bottom: none;
+}
+
+/* Vertical tabs */
+.fx-tabs-ant-vertical {
+  flex-direction: row;
+}
+
+.fx-tabs-ant-vertical .fx-tabs-ant-nav {
+  flex-direction: column;
+  border-bottom: none;
+  border-right: 1px solid var(--fx-color-border-secondary, #303030);
+}
+
+.fx-tabs-ant-vertical .fx-tabs-ant-nav-list {
+  flex-direction: column;
+}
+
+.fx-tabs-ant-vertical .fx-tabs-ant-ink-bar {
+  width: 2px;
+  height: auto;
+  right: 0;
+  bottom: auto;
+}
+
+.fx-tabs-ant-vertical .fx-tabs-ant-content {
+  padding: 0 16px;
+  flex: 1;
+}
+
+/* Tab positions */
+.fx-tabs-ant-bottom .fx-tabs-ant-nav {
+  order: 1;
+  border-top: 1px solid var(--fx-color-border-secondary, #303030);
+  border-bottom: none;
+}
+
+.fx-tabs-ant-bottom .fx-tabs-ant-ink-bar {
+  top: 0;
+  bottom: auto;
+}
+
+.fx-tabs-ant-right .fx-tabs-ant-nav {
+  order: 1;
+  border-left: 1px solid var(--fx-color-border-secondary, #303030);
+  border-right: none;
+}
+
+.fx-tabs-ant-right .fx-tabs-ant-ink-bar {
+  left: 0;
+  right: auto;
+}
+
+/* Centered tabs */
+.fx-tabs-ant-centered .fx-tabs-ant-nav-list {
+  justify-content: center;
+}
+
+/* Tab sizes */
+.fx-tabs-ant-sm .fx-tabs-ant-tab {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.fx-tabs-ant-lg .fx-tabs-ant-tab {
+  padding: 16px 20px;
+  font-size: 16px;
+}
+
+/* ============================================
+   Collapse / Accordion
+   ============================================ */
+.fx-collapse-ant {
+  border: 1px solid var(--fx-color-border-secondary, #303030);
+  border-radius: var(--fx-radius-lg, 8px);
+  overflow: hidden;
+}
+
+.fx-collapse-ant-item {
+  border-bottom: 1px solid var(--fx-color-border-secondary, #303030);
+}
+
+.fx-collapse-ant-item:last-child {
+  border-bottom: none;
+}
+
+.fx-collapse-ant-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--fx-color-fill-quaternary, rgba(255, 255, 255, 0.02));
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.fx-collapse-ant-header:hover {
+  background: var(--fx-color-fill-tertiary, rgba(255, 255, 255, 0.04));
+}
+
+.fx-collapse-ant-header-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-collapse-ant-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 12px;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  transition: transform 0.3s;
+}
+
+.fx-collapse-ant-item-active .fx-collapse-ant-header-icon {
+  transform: rotate(90deg);
+}
+
+.fx-collapse-ant-extra {
+  margin-left: auto;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+}
+
+.fx-collapse-ant-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  background: var(--fx-color-bg-container, #141414);
+}
+
+.fx-collapse-ant-item-active .fx-collapse-ant-content {
+  max-height: 1000px;
+}
+
+.fx-collapse-ant-content-inner {
+  padding: 16px;
+  font-size: 14px;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+/* Collapse variations */
+.fx-collapse-ant-borderless {
+  border: none;
+}
+
+.fx-collapse-ant-borderless .fx-collapse-ant-item {
+  border-bottom: none;
+}
+
+.fx-collapse-ant-borderless .fx-collapse-ant-header {
+  background: transparent;
+}
+
+/* Ghost collapse */
+.fx-collapse-ant-ghost {
+  border: none;
+  background: transparent;
+}
+
+.fx-collapse-ant-ghost .fx-collapse-ant-item {
+  border: none;
+}
+
+.fx-collapse-ant-ghost .fx-collapse-ant-header {
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.fx-collapse-ant-ghost .fx-collapse-ant-content {
+  background: transparent;
+}
+
+/* Collapse sizes */
+.fx-collapse-ant-sm .fx-collapse-ant-header {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.fx-collapse-ant-sm .fx-collapse-ant-content-inner {
+  padding: 12px;
+}
+
+.fx-collapse-ant-lg .fx-collapse-ant-header {
+  padding: 16px 20px;
+  font-size: 16px;
+}
+
+.fx-collapse-ant-lg .fx-collapse-ant-content-inner {
+  padding: 20px;
+}
+
+/* Disabled collapse item */
+.fx-collapse-ant-item-disabled .fx-collapse-ant-header {
+  cursor: not-allowed;
+  color: var(--fx-color-text-disabled, rgba(255, 255, 255, 0.25));
+}
+
+.fx-collapse-ant-item-disabled .fx-collapse-ant-header:hover {
+  background: var(--fx-color-fill-quaternary, rgba(255, 255, 255, 0.02));
+}
+
+/* Right-positioned expand icon */
+.fx-collapse-ant-icon-right .fx-collapse-ant-header-icon {
+  margin-right: 0;
+  margin-left: 12px;
+  order: 1;
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .fx-tabs-ant-ink-bar,
+  .fx-tabs-ant-tab,
+  .fx-collapse-ant-header-icon,
+  .fx-collapse-ant-content {
+    transition: none;
+  }
+}

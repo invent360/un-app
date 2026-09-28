@@ -1,0 +1,271 @@
+{
+  "description": "This describes the tasks available on Unetwork",
+  "sections": [
+    {
+      "cover_images": [],
+      "cover_videos": [],
+      "description": "Share anonymous network performance data to help improve internet services worldwide. Your device collects basic connectivity metrics like signal strength, latency, and throughput data. This runs passively in the background with minimal battery and data usage.",
+      "difficulty": "",
+      "duration": "5",
+      "earnings_tiers": [
+        {
+          "features": [
+            "Enabled by default",
+            "Minimal battery usage",
+            "~50MB data/month"
+          ],
+          "is_popular": false,
+          "max_earnings": 8.0,
+          "min_earnings": 5.0,
+          "name": "1 device",
+          "period": "month"
+        },
+        {
+          "features": [
+            "Use old phones too",
+            "Higher uptime bonus",
+            "All task types enabled"
+          ],
+          "is_popular": true,
+          "max_earnings": 24.0,
+          "min_earnings": 15.0,
+          "name": "2-3 devices",
+          "period": "month"
+        },
+        {
+          "features": [
+            "Maximum earnings",
+            "Priority support",
+            "Referral bonuses"
+          ],
+          "is_popular": false,
+          "max_earnings": 40.0,
+          "min_earnings": 25.0,
+          "name": "5+ devices",
+          "period": "month"
+        }
+      ],
+      "is_visible": true,
+      "requirements": [
+        "Internet connectivity",
+        "Background app permission",
+        "No synthetic devices (emulators)"
+      ],
+      "task_status": "active",
+      "task_type": "passive",
+      "title": "Telemetry collection"
+    },
+    {
+      "cover_images": [],
+      "cover_videos": [],
+      "description": "Receive incentives for reporting the content of incoming test SMS messages. Help verify SMS delivery and content accuracy across different networks and regions. Test messages may come from various international numbers.",
+      "difficulty": "",
+      "duration": "5",
+      "earnings_tiers": [
+        {
+          "features": [
+            "Receive test SMS",
+            "Report message content",
+            "Minimal effort required"
+          ],
+          "is_popular": false,
+          "max_earnings": 8.0,
+          "min_earnings": 4.0,
+          "name": "1 device",
+          "period": "month"
+        },
+        {
+          "features": [
+            "Multiple phone numbers",
+            "Higher test frequency",
+            "Increased earnings"
+          ],
+          "is_popular": true,
+          "max_earnings": 24.0,
+          "min_earnings": 12.0,
+          "name": "2-3 devices",
+          "period": "month"
+        },
+        {
+          "features": [
+            "Maximum test volume",
+            "Priority test routing",
+            "Referral bonuses"
+          ],
+          "is_popular": false,
+          "max_earnings": 40.0,
+          "min_earnings": 20.0,
+          "name": "5+ devices",
+          "period": "month"
+        }
+      ],
+      "is_visible": true,
+      "requirements": [
+        "Keep Unetwork app installed",
+        "Verify your phone number via SMS"
+      ],
+      "task_status": "active",
+      "task_type": "active",
+      "title": "SMS testing"
+    },
+    {
+      "cover_images": [],
+      "cover_videos": [],
+      "description": "Receive incentives for reporting the CLI (Caller Line Identification) received on incoming test calls. Help verify caller ID accuracy across different networks by participating in our global verification system. You don't need to answer the calls - missed calls are also recorded.",
+      "difficulty": "",
+      "duration": "2",
+      "earnings_tiers": [
+        {
+          "features": [
+            "Receive test calls",
+            "Report caller ID",
+            "Minimal effort required"
+          ],
+          "is_popular": false,
+          "max_earnings": 6.0,
+          "min_earnings": 3.0,
+          "name": "1 device",
+          "period": "month"
+        },
+        {
+          "features": [
+            "Multiple phone numbers",
+            "Higher test frequency",
+            "Increased earnings"
+          ],
+          "is_popular": true,
+          "max_earnings": 18.0,
+          "min_earnings": 9.0,
+          "name": "2-3 devices",
+          "period": "month"
+        },
+        {
+          "features": [
+            "Maximum test volume",
+            "Priority test routing",
+            "Referral bonuses"
+          ],
+          "is_popular": false,
+          "max_earnings": 30.0,
+          "min_earnings": 15.0,
+          "name": "5+ devices",
+          "period": "month"
+        }
+      ],
+      "requirements": [
+        "Keep Unetwork app installed",
+        "Verify your phone number via SMS"
+      ],
+      "task_status": "on_demand",
+      "title": "Caller ID testing"
+    },
+    {
+      "cover_images": [],
+      "cover_videos": [],
+      "description": "Check signal strength in your area and help map global network coverage. Your device performs automated connectivity tests to measure network quality, latency, and availability. This data helps improve network infrastructure worldwide.",
+      "difficulty": "medium",
+      "duration": "15",
+      "earnings_tiers": [
+        {
+          "features": [
+            "Automatic tests",
+            "Low resource usage",
+            "Background operation"
+          ],
+          "is_popular": false,
+          "max_earnings": 6.0,
+          "min_earnings": 3.0,
+          "name": "1 device",
+          "period": "month"
+        },
+        {
+          "features": [
+            "Multiple locations",
+            "Better coverage data",
+            "Increased earnings"
+          ],
+          "is_popular": true,
+          "max_earnings": 18.0,
+          "min_earnings": 9.0,
+          "name": "2-3 devices",
+          "period": "month"
+        },
+        {
+          "features": [
+            "Maximum coverage",
+            "Priority support",
+            "Referral bonuses"
+          ],
+          "is_popular": false,
+          "max_earnings": 30.0,
+          "min_earnings": 15.0,
+          "name": "5+ devices",
+          "period": "month"
+        }
+      ],
+      "is_visible": true,
+      "requirements": [
+        "Internet connectivity",
+        "Location permission (optional)"
+      ],
+      "task_status": "active",
+      "task_type": "active",
+      "title": "Connectivity verification"
+    },
+    {
+      "cover_images": [],
+      "cover_videos": [],
+      "description": "Your phone's sensors generate truly random data that powers critical systems worldwide. Contribute entropy samples to create verifiable randomness for cryptography, blockchain validation, VRFs, fair gaming systems, and financial security. Real phones create real randomness - help build a fairer, safer digital world.",
+      "difficulty": "",
+      "duration": "1",
+      "earnings_tiers": [
+        {
+          "features": [
+            "Background entropy collection",
+            "Minimal battery impact",
+            "Sensor-based randomness"
+          ],
+          "is_popular": true,
+          "max_earnings": 10.0,
+          "min_earnings": 4.0,
+          "name": "1 device",
+          "period": "month"
+        },
+        {
+          "features": [
+            "Multiple entropy sources",
+            "Higher contribution rate",
+            "Increased earnings"
+          ],
+          "is_popular": true,
+          "max_earnings": 30.0,
+          "min_earnings": 12.0,
+          "name": "2-3 devices",
+          "period": "month"
+        },
+        {
+          "features": [
+            "Maximum contribution",
+            "Priority verification",
+            "Referral bonuses"
+          ],
+          "is_popular": false,
+          "max_earnings": 50.0,
+          "min_earnings": 20.0,
+          "name": "5+ devices",
+          "period": "month"
+        }
+      ],
+      "is_visible": true,
+      "requirements": [
+        "Real physical device (no emulators)",
+        "Sensor access permission"
+      ],
+      "task_status": "coming_soon",
+      "task_type": "passive",
+      "title": "Entropy generation"
+    }
+  ],
+  "task_status": "active",
+  "title": "Unetwork task"
+}

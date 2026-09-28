@@ -1,0 +1,35 @@
+{
+  "title": "SMS Testing",
+  "description": "Receive incentives for reporting the content of incoming test SMS messages. Help verify SMS delivery and content accuracy across different networks and regions. Test messages may come from various international numbers.",
+  "images": [ "images/0.png", "images/1.png" ],
+  "status": "active",
+  "difficulty": "easy",
+  "duration": "On-demand",
+  "earnings": [
+    {
+      "name": "1 Device",
+      "min_earnings": 4.0,
+      "max_earnings": 8.0,
+      "period": "month",
+      "features": ["Receive test SMS", "Report message content", "Minimal effort required"],
+      "is_popular": false
+    },
+    {
+      "name": "2-3 Devices",
+      "min_earnings": 12.0,
+      "max_earnings": 24.0,
+      "period": "month",
+      "features": ["Multiple phone numbers", "Higher test frequency", "Increased earnings"],
+      "is_popular": true
+    },
+    {
+      "name": "5+ Devices",
+      "min_earnings": 20.0,
+      "max_earnings": 40.0,
+      "period": "month",
+      "features": ["Maximum test volume", "Priority test routing", "Referral bonuses"],
+      "is_popular": false
+    }
+  ],
+  "requirements": ["Keep Unetwork app installed", "Verify your phone number via SMS"]
+}

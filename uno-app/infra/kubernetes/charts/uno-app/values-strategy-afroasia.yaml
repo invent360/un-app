@@ -1,0 +1,55 @@
+# AFRO-ASIA Deployment Strategy
+# Single region serving Africa + Asia-Pacific
+# Cost: ~$230/month
+#
+# Cloudflare geo-routing configuration:
+#   NSAF (Africa) → APAC pool
+#   SAS, SEAS, NEAS, OC (Asia-Pacific) → APAC pool
+#   Fallback: APAC pool
+
+region: apac
+provider: digitalocean
+databaseRole: primary  # This is the primary database for this strategy
+
+# Deployment target
+app:
+  replicaCount: 2
+
+  # Upgraded instances for serving 2 continents
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  nodeSelector:
+    region: apac
+
+# Higher scaling limits for multi-continent traffic
+hpa:
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPU: 70
+  targetMemory: 75
+
+# Enable all components
+cloudflared:
+  enabled: true
+  replicaCount: 2
+
+monitoring:
+  enabled: true
+
+# Strategy metadata
+strategy:
+  name: afroasia
+  regionsServed:
+    - NSAF   # Africa
+    - SAS    # South Asia
+    - SEAS   # Southeast Asia
+    - NEAS   # Northeast Asia
+    - OC     # Oceania
+  estimatedMonthlyCost: 230
+  latencyNote: "~50-150ms for Asia-Pacific, ~200-350ms for Africa"

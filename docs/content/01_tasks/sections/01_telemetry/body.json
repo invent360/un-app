@@ -1,0 +1,35 @@
+{
+  "title": "Telemetry Collection",
+  "description": "Share anonymous network performance data to help improve internet services worldwide. Your device collects basic connectivity metrics like signal strength, latency, and throughput data. This runs passively in the background with minimal battery and data usage.",
+  "images": ["/images/0.png", "/images/1.png"],
+  "status": "active",
+  "difficulty": "easy",
+  "duration": "Always running",
+  "earnings": [
+    {
+      "name": "1 Device",
+      "min_earnings": 5.0,
+      "max_earnings": 8.0,
+      "period": "month",
+      "features": ["Enabled by default", "Minimal battery usage", "~50MB data/month"],
+      "is_popular": false
+    },
+    {
+      "name": "2-3 Devices",
+      "min_earnings": 15.0,
+      "max_earnings": 24.0,
+      "period": "month",
+      "features": ["Use old phones too", "Higher uptime bonus", "All task types enabled"],
+      "is_popular": true
+    },
+    {
+      "name": "5+ Devices",
+      "min_earnings": 25.0,
+      "max_earnings": 40.0,
+      "period": "month",
+      "features": ["Maximum earnings", "Priority support", "Referral bonuses"],
+      "is_popular": false
+    }
+  ],
+  "requirements": ["Internet connectivity", "Background app permission"]
+}

@@ -1,0 +1,80 @@
+{{- if .Values.cloudflared.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  namespace: {{ .Values.cloudflared.namespace }}
+  labels:
+    {{- include "cloudflared.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.cloudflared.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "cloudflared.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        {{- include "cloudflared.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        runAsUser: {{ .Values.cloudflared.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.cloudflared.securityContext.runAsGroup }}
+        runAsNonRoot: {{ .Values.cloudflared.securityContext.runAsNonRoot }}
+      {{- if .Values.cloudflared.podAntiAffinity.enabled }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    {{- include "cloudflared.selectorLabels" . | nindent 20 }}
+                topologyKey: {{ .Values.cloudflared.podAntiAffinity.topologyKey }}
+      {{- end }}
+      containers:
+        - name: cloudflared
+          image: "{{ .Values.cloudflared.image.repository }}:{{ .Values.cloudflared.image.tag }}"
+          imagePullPolicy: {{ .Values.cloudflared.image.pullPolicy }}
+          args:
+            - tunnel
+            - --no-autoupdate
+            - run
+          env:
+            - name: TUNNEL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare-tunnel
+                  key: token
+          resources:
+            requests:
+              cpu: {{ .Values.cloudflared.resources.requests.cpu }}
+              memory: {{ .Values.cloudflared.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.cloudflared.resources.limits.cpu }}
+              memory: {{ .Values.cloudflared.resources.limits.memory }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.cloudflared.containerSecurityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.cloudflared.containerSecurityContext.readOnlyRootFilesystem }}
+            capabilities:
+              drop:
+                {{- toYaml .Values.cloudflared.containerSecurityContext.capabilities.drop | nindent 16 }}
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+{{- end }}

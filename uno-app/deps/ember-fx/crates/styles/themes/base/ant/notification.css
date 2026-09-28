@@ -1,0 +1,439 @@
+/* ============================================
+   Ant Design - Notification Components
+   ember-fx-components
+   Alert, Badge, Tag, Progress, Spinner
+   ============================================ */
+
+/* ============================================
+   Alert
+   ============================================ */
+.fx-alert-ant {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--fx-radius-md, 6px);
+  font-size: 14px;
+  line-height: 1.5715;
+}
+
+.fx-alert-ant-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.fx-alert-ant-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-alert-ant-message {
+  font-weight: 500;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-alert-ant-description {
+  margin-top: 4px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+}
+
+.fx-alert-ant-close {
+  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  transition: color 0.2s;
+}
+
+.fx-alert-ant-close:hover {
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+/* Alert types */
+.fx-alert-ant-success {
+  background: var(--fx-color-success-bg, rgba(82, 196, 26, 0.1));
+  border: 1px solid var(--fx-color-success-border, rgba(82, 196, 26, 0.3));
+}
+
+.fx-alert-ant-success .fx-alert-ant-icon {
+  color: var(--fx-color-success, #52c41a);
+}
+
+.fx-alert-ant-info {
+  background: var(--fx-color-info-bg, rgba(22, 119, 255, 0.1));
+  border: 1px solid var(--fx-color-info-border, rgba(22, 119, 255, 0.3));
+}
+
+.fx-alert-ant-info .fx-alert-ant-icon {
+  color: var(--fx-color-info, #1677ff);
+}
+
+.fx-alert-ant-warning {
+  background: var(--fx-color-warning-bg, rgba(250, 173, 20, 0.1));
+  border: 1px solid var(--fx-color-warning-border, rgba(250, 173, 20, 0.3));
+}
+
+.fx-alert-ant-warning .fx-alert-ant-icon {
+  color: var(--fx-color-warning, #faad14);
+}
+
+.fx-alert-ant-error {
+  background: var(--fx-color-error-bg, rgba(255, 77, 79, 0.1));
+  border: 1px solid var(--fx-color-error-border, rgba(255, 77, 79, 0.3));
+}
+
+.fx-alert-ant-error .fx-alert-ant-icon {
+  color: var(--fx-color-error, #ff4d4f);
+}
+
+/* ============================================
+   Badge
+   ============================================ */
+.fx-badge-ant {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.fx-badge-ant-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+  white-space: nowrap;
+  background: var(--fx-color-error, #ff4d4f);
+  color: var(--fx-color-error-content, #ffffff);
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px var(--fx-color-bg-container, #141414);
+}
+
+.fx-badge-ant-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: var(--fx-color-error, #ff4d4f);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--fx-color-bg-container, #141414);
+}
+
+/* Badge status */
+.fx-badge-ant-status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.fx-badge-ant-status-text {
+  margin-left: 8px;
+  font-size: 14px;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+.fx-badge-ant-status-success .fx-badge-ant-status-dot {
+  background: var(--fx-color-success, #52c41a);
+}
+
+.fx-badge-ant-status-processing .fx-badge-ant-status-dot {
+  background: var(--fx-color-primary, #1677ff);
+  animation: fx-badge-processing 1.2s ease-in-out infinite;
+}
+
+.fx-badge-ant-status-warning .fx-badge-ant-status-dot {
+  background: var(--fx-color-warning, #faad14);
+}
+
+.fx-badge-ant-status-error .fx-badge-ant-status-dot {
+  background: var(--fx-color-error, #ff4d4f);
+}
+
+.fx-badge-ant-status-default .fx-badge-ant-status-dot {
+  background: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+}
+
+@keyframes fx-badge-processing {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+/* ============================================
+   Tag
+   ============================================ */
+.fx-tag-ant {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: var(--fx-radius-sm, 4px);
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  border: 1px solid var(--fx-color-border-secondary, #303030);
+}
+
+.fx-tag-ant-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--fx-color-text-tertiary, rgba(255, 255, 255, 0.45));
+  transition: color 0.2s;
+}
+
+.fx-tag-ant-close:hover {
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+/* Tag colors */
+.fx-tag-ant-blue {
+  background: rgba(22, 119, 255, 0.1);
+  border-color: rgba(22, 119, 255, 0.3);
+  color: #1677ff;
+}
+
+.fx-tag-ant-green {
+  background: rgba(82, 196, 26, 0.1);
+  border-color: rgba(82, 196, 26, 0.3);
+  color: #52c41a;
+}
+
+.fx-tag-ant-orange {
+  background: rgba(250, 140, 22, 0.1);
+  border-color: rgba(250, 140, 22, 0.3);
+  color: #fa8c16;
+}
+
+.fx-tag-ant-red {
+  background: rgba(255, 77, 79, 0.1);
+  border-color: rgba(255, 77, 79, 0.3);
+  color: #ff4d4f;
+}
+
+.fx-tag-ant-purple {
+  background: rgba(114, 46, 209, 0.1);
+  border-color: rgba(114, 46, 209, 0.3);
+  color: #722ed1;
+}
+
+.fx-tag-ant-cyan {
+  background: rgba(19, 194, 194, 0.1);
+  border-color: rgba(19, 194, 194, 0.3);
+  color: #13c2c2;
+}
+
+.fx-tag-ant-magenta {
+  background: rgba(235, 47, 150, 0.1);
+  border-color: rgba(235, 47, 150, 0.3);
+  color: #eb2f96;
+}
+
+.fx-tag-ant-gold {
+  background: rgba(250, 173, 20, 0.1);
+  border-color: rgba(250, 173, 20, 0.3);
+  color: #faad14;
+}
+
+/* Checkable tag */
+.fx-tag-ant-checkable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fx-tag-ant-checkable:hover {
+  background: var(--fx-color-primary-bg-hover, rgba(22, 119, 255, 0.15));
+}
+
+.fx-tag-ant-checkable-checked {
+  background: var(--fx-color-primary, #1677ff);
+  border-color: var(--fx-color-primary, #1677ff);
+  color: var(--fx-color-primary-content, #ffffff);
+}
+
+/* ============================================
+   Progress
+   ============================================ */
+.fx-progress-ant {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Line Progress */
+.fx-progress-ant-line {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fx-progress-ant-outer {
+  width: 100%;
+  height: 8px;
+  background: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fx-progress-ant-inner {
+  height: 100%;
+  background: var(--fx-color-primary, #1677ff);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.fx-progress-ant-text {
+  font-size: 14px;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+  white-space: nowrap;
+}
+
+/* Circle Progress */
+.fx-progress-ant-circle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fx-progress-ant-circle-trail {
+  stroke: var(--fx-color-fill-secondary, rgba(255, 255, 255, 0.06));
+}
+
+.fx-progress-ant-circle-path {
+  stroke: var(--fx-color-primary, #1677ff);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.fx-progress-ant-circle-text {
+  position: absolute;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--fx-color-text, rgba(255, 255, 255, 0.85));
+}
+
+/* Dashboard Progress */
+.fx-progress-ant-dashboard .fx-progress-ant-circle-path {
+  stroke-linecap: round;
+}
+
+/* Progress states */
+.fx-progress-ant-success .fx-progress-ant-inner,
+.fx-progress-ant-success .fx-progress-ant-circle-path {
+  background: var(--fx-color-success, #52c41a);
+  stroke: var(--fx-color-success, #52c41a);
+}
+
+.fx-progress-ant-exception .fx-progress-ant-inner,
+.fx-progress-ant-exception .fx-progress-ant-circle-path {
+  background: var(--fx-color-error, #ff4d4f);
+  stroke: var(--fx-color-error, #ff4d4f);
+}
+
+/* ============================================
+   Spinner / Loading
+   ============================================ */
+.fx-spinner-ant {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fx-color-primary, #1677ff);
+}
+
+.fx-spinner-ant-dot {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 3px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: fx-spin 1s linear infinite;
+}
+
+.fx-spinner-ant-sm .fx-spinner-ant-dot {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.fx-spinner-ant-lg .fx-spinner-ant-dot {
+  width: 48px;
+  height: 48px;
+  border-width: 4px;
+}
+
+.fx-spinner-ant-tip {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--fx-color-text-secondary, rgba(255, 255, 255, 0.65));
+}
+
+/* Spinning container */
+.fx-spinner-ant-spinning {
+  position: relative;
+}
+
+.fx-spinner-ant-container {
+  position: relative;
+  transition: opacity 0.3s;
+}
+
+.fx-spinner-ant-blur {
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
+.fx-spinner-ant-nested {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Loading component */
+.fx-loading-ant {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--fx-color-primary, #1677ff);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: fx-spin 1s linear infinite;
+}
+
+.fx-loading-ant-sm {
+  width: 16px;
+  height: 16px;
+}
+
+.fx-loading-ant-lg {
+  width: 40px;
+  height: 40px;
+  border-width: 3px;
+}
+
+@keyframes fx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,20 @@
+[package]
+name = "ember-fx-utils"
+description = "DOM utilities and helpers for ember-fx"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default = ["csr"]
+csr = []
+
+[dependencies]
+ember-fx-common = { workspace = true }
+web-sys = { workspace = true }
+wasm-bindgen = { workspace = true }
+js-sys = { workspace = true }

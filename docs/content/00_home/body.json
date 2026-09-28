@@ -1,0 +1,286 @@
+{
+  "home_page": {
+    "content_type": "home_page",
+    "slug": "home",
+    "status": "draft",
+    "display_order": 1,
+    "is_featured": true,
+    "content": {
+      "title": "Home Page",
+      "sections": [
+        {
+          "section_type": "hero",
+          "display_order": 1,
+          "is_visible": true,
+          "headline": "Your Phone Can Earn Money",
+          "headline_highlight": "For Free",
+          "subheadline": "Turn your smartphone into a passive income machine. No investment. No skills needed. Just install and earn.",
+          "cta_button": {
+            "text": "Claim Your License",
+            "link": "/claim",
+            "style": "primary"
+          },
+          "highlights": [
+            { "text": "100% Free", "icon": "check" },
+            { "text": "$5-15/month", "icon": "check" },
+            { "text": "Works in Background", "icon": "check" }
+          ],
+          "media": ["sections/01_intro/images/cover/1.png"]
+        },
+        {
+          "section_type": "how_it_works",
+          "display_order": 2,
+          "is_visible": true,
+          "title": "How It Works",
+          "subtitle": "Start earning in 3 simple steps",
+          "steps": [
+            {
+              "order": 1,
+              "icon": "download",
+              "title": "Download App",
+              "description": "Install the free app from App Store or Play Store. Takes less than 2 minutes."
+            },
+            {
+              "order": 2,
+              "icon": "play",
+              "title": "Let It Run",
+              "description": "App runs automatically in the background. No interaction needed. Use your phone normally."
+            },
+            {
+              "order": 3,
+              "icon": "wallet",
+              "title": "Get Paid",
+              "description": "Withdraw to BTC, ETH, USDC anytime. Minimum $5. Your money, your choice."
+            }
+          ],
+          "download_buttons": [
+            { "platform": "app_store", "link": "https://apps.apple.com/app/unetwork", "is_visible": true },
+            { "platform": "google_play", "link": "https://play.google.com/store/apps/details?id=com.unetwork", "is_visible": true },
+            { "platform": "apk", "link": "/downloads/unetwork.apk", "is_visible": true }
+          ]
+        },
+        {
+          "section_type": "earnings",
+          "display_order": 3,
+          "is_visible": true,
+          "title": "Real Earnings",
+          "subtitle": "Honest numbers from real users",
+          "tiers": [
+            {
+              "name": "1 Device",
+              "min_earnings": 5.0,
+              "max_earnings": 8.0,
+              "period": "month",
+              "features": [
+                "Basic connection tasks",
+                "Minimal battery usage",
+                "~50MB data/month"
+              ],
+              "is_popular": false
+            },
+            {
+              "name": "2-3 Devices",
+              "min_earnings": 15.0,
+              "max_earnings": 25.0,
+              "period": "month",
+              "features": [
+                "All task types enabled",
+                "Use old phones too",
+                "Higher uptime bonus"
+              ],
+              "is_popular": true
+            },
+            {
+              "name": "5+ Devices",
+              "min_earnings": 40.0,
+              "max_earnings": 60.0,
+              "period": "month",
+              "features": [
+                "Maximum earnings",
+                "Priority support",
+                "Referral bonuses"
+              ],
+              "is_popular": false
+            }
+          ],
+          "disclaimer": "Earnings vary based on location, uptime, and network demand. These are typical ranges, not guarantees."
+        },
+        {
+          "section_type": "testimonials",
+          "display_order": 4,
+          "is_visible": true,
+          "title": "Real People. Real Earnings.",
+          "subtitle": "Join 500+ active earners in our community",
+          "testimonials": [
+            {
+              "quote": "Finally a passive income app that actually pays. Transparent split, fast withdrawals. Been using for 4 months now.",
+              "author_name": "Raj",
+              "author_location": "India",
+              "author_avatar": null,
+              "rating": 5,
+              "is_featured": false
+            },
+            {
+              "quote": "Started with one phone, now running 5. Earning about $85/month passively. The referral program is a nice bonus too!",
+              "author_name": "Sofia",
+              "author_location": "Brazil",
+              "author_avatar": null,
+              "rating": 5,
+              "is_featured": true
+            },
+            {
+              "quote": "Love how straightforward it is. Download, activate, earn. No complicated setup. Been recommending to all my friends.",
+              "author_name": "Chen",
+              "author_location": "Singapore",
+              "author_avatar": null,
+              "rating": 4,
+              "is_featured": false
+            }
+          ]
+        }
+      ]
+    },
+    "translations": {
+      "es": {
+        "direction": "ltr",
+        "sections": [
+          {
+            "section_type": "hero",
+            "headline": "Tu Telefono Puede Ganar Dinero",
+            "headline_highlight": "Gratis",
+            "subheadline": "Convierte tu smartphone en una maquina de ingresos pasivos. Sin inversion. Sin habilidades necesarias. Solo instala y gana.",
+            "cta_button": { "text": "Reclama Tu Licencia" },
+            "highlights": [
+              { "text": "100% Gratis" },
+              { "text": "$5-15/mes" },
+              { "text": "Funciona en Segundo Plano" }
+            ]
+          },
+          {
+            "section_type": "how_it_works",
+            "title": "Como Funciona",
+            "subtitle": "Comienza a ganar en 3 simples pasos",
+            "steps": [
+              {
+                "order": 1,
+                "title": "Descarga la App",
+                "description": "Instala la app gratuita desde App Store o Play Store. Toma menos de 2 minutos."
+              },
+              {
+                "order": 2,
+                "title": "Dejala Funcionar",
+                "description": "La app se ejecuta automaticamente en segundo plano. No necesita interaccion. Usa tu telefono normalmente."
+              },
+              {
+                "order": 3,
+                "title": "Recibe Tu Pago",
+                "description": "Retira a BTC, ETH, USDC en cualquier momento. Minimo $5. Tu dinero, tu eleccion."
+              }
+            ]
+          },
+          {
+            "section_type": "earnings",
+            "title": "Ganancias Reales",
+            "subtitle": "Numeros honestos de usuarios reales",
+            "disclaimer": "Las ganancias varian segun la ubicacion, tiempo activo y demanda de la red. Estos son rangos tipicos, no garantias."
+          },
+          {
+            "section_type": "testimonials",
+            "title": "Personas Reales. Ganancias Reales.",
+            "subtitle": "Unete a mas de 500 usuarios activos en nuestra comunidad"
+          }
+        ]
+      },
+      "ar": {
+        "direction": "rtl",
+        "sections": [
+          {
+            "section_type": "hero",
+            "headline": "هاتفك يمكن ان يكسب المال",
+            "headline_highlight": "مجانا",
+            "subheadline": "حول هاتفك الذكي الى الة دخل سلبي. بدون استثمار. بدون مهارات مطلوبة. فقط ثبت واكسب.",
+            "cta_button": { "text": "احصل على ترخيصك" },
+            "highlights": [
+              { "text": "مجاني 100%" },
+              { "text": "$5-15/شهر" },
+              { "text": "يعمل في الخلفية" }
+            ]
+          },
+          {
+            "section_type": "how_it_works",
+            "title": "كيف يعمل",
+            "subtitle": "ابدا الكسب في 3 خطوات بسيطة",
+            "steps": [
+              {
+                "order": 1,
+                "title": "حمل التطبيق",
+                "description": "ثبت التطبيق المجاني من App Store او Play Store. يستغرق اقل من دقيقتين."
+              },
+              {
+                "order": 2,
+                "title": "دعه يعمل",
+                "description": "التطبيق يعمل تلقائيا في الخلفية. لا حاجة للتفاعل. استخدم هاتفك بشكل طبيعي."
+              },
+              {
+                "order": 3,
+                "title": "احصل على المال",
+                "description": "اسحب الى BTC, ETH, USDC في اي وقت. الحد الادنى $5. مالك، اختيارك."
+              }
+            ]
+          },
+          {
+            "section_type": "earnings",
+            "title": "ارباح حقيقية",
+            "subtitle": "ارقام صادقة من مستخدمين حقيقيين",
+            "disclaimer": "الارباح تختلف حسب الموقع ووقت التشغيل وطلب الشبكة. هذه نطاقات نموذجية وليست ضمانات."
+          },
+          {
+            "section_type": "testimonials",
+            "title": "اشخاص حقيقيون. ارباح حقيقية.",
+            "subtitle": "انضم الى اكثر من 500 مستخدم نشط في مجتمعنا"
+          }
+        ]
+      },
+      "pt": {
+        "direction": "ltr",
+        "sections": [
+          {
+            "section_type": "hero",
+            "headline": "Seu Celular Pode Ganhar Dinheiro",
+            "headline_highlight": "De Graca",
+            "subheadline": "Transforme seu smartphone em uma maquina de renda passiva. Sem investimento. Sem habilidades necessarias. Apenas instale e ganhe.",
+            "cta_button": { "text": "Reivindique Sua Licenca" },
+            "highlights": [
+              { "text": "100% Gratis" },
+              { "text": "$5-15/mes" },
+              { "text": "Funciona em Segundo Plano" }
+            ]
+          }
+        ]
+      },
+      "hi": {
+        "direction": "ltr",
+        "sections": [
+          {
+            "section_type": "hero",
+            "headline": "आपका फोन पैसे कमा सकता है",
+            "headline_highlight": "मुफ्त में",
+            "subheadline": "अपने स्मार्टफोन को पैसिव इनकम मशीन में बदलें। कोई निवेश नहीं। कोई कौशल की जरूरत नहीं। बस इंस्टॉल करें और कमाएं।",
+            "cta_button": { "text": "अपना लाइसेंस प्राप्त करें" },
+            "highlights": [
+              { "text": "100% मुफ्त" },
+              { "text": "$5-15/महीना" },
+              { "text": "बैकग्राउंड में काम करता है" }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "image_mappings": {
+    "hero/phone-mockup.png": {
+      "section": "hero",
+      "description": "Phone mockup showing the Unetwork app dashboard"
+    }
+  }
+}

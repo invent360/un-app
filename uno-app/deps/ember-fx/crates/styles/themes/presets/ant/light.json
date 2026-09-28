@@ -1,0 +1,156 @@
+{
+  "name": "light",
+  "displayName": "Light",
+  "colorScheme": "light",
+  "designSystem": "ant",
+  "colors": {
+    "primary": "#1677ff",
+    "primaryBg": "#e6f4ff",
+    "primaryBgHover": "#bae0ff",
+    "primaryBorder": "#91caff",
+    "primaryBorderHover": "#69b1ff",
+    "primaryHover": "#4096ff",
+    "primaryActive": "#0958d9",
+    "primaryContent": "#ffffff",
+
+    "secondary": "#722ed1",
+    "secondaryContent": "#ffffff",
+
+    "accent": "#13c2c2",
+    "accentContent": "#ffffff",
+
+    "neutral": "#8c8c8c",
+    "neutralContent": "#ffffff",
+
+    "base-100": "#ffffff",
+    "base-200": "#fafafa",
+    "base-300": "#f5f5f5",
+    "baseContent": "rgba(0, 0, 0, 0.88)",
+
+    "bgContainer": "#ffffff",
+    "bgElevated": "#ffffff",
+    "bgLayout": "#f5f5f5",
+    "bgSpotlight": "#fafafa",
+    "bgTextHover": "rgba(0, 0, 0, 0.04)",
+    "bgContainerDisabled": "#f5f5f5",
+
+    "info": "#1677ff",
+    "infoContent": "#ffffff",
+
+    "success": "#52c41a",
+    "successBg": "#f6ffed",
+    "successBorder": "#b7eb8f",
+    "successContent": "#ffffff",
+
+    "warning": "#faad14",
+    "warningBg": "#fffbe6",
+    "warningBorder": "#ffe58f",
+    "warningContent": "#000000",
+
+    "error": "#ff4d4f",
+    "errorBg": "#fff2f0",
+    "errorBorder": "#ffccc7",
+    "errorContent": "#ffffff",
+
+    "border": "#d9d9d9",
+    "borderHover": "#4096ff",
+    "borderSecondary": "#f0f0f0",
+
+    "fill": "rgba(0, 0, 0, 0.15)",
+    "fillSecondary": "rgba(0, 0, 0, 0.06)",
+    "fillTertiary": "rgba(0, 0, 0, 0.04)",
+
+    "text": "rgba(0, 0, 0, 0.88)",
+    "textSecondary": "rgba(0, 0, 0, 0.65)",
+    "textTertiary": "rgba(0, 0, 0, 0.45)",
+    "textDisabled": "rgba(0, 0, 0, 0.25)",
+
+    "link": "#1677ff",
+    "linkHover": "#69b1ff",
+    "linkActive": "#0958d9",
+
+    "landingBg1": "#f0f5ff",
+    "landingBg2": "#e6f0ff",
+    "landingBg3": "#d6e4ff",
+    "landingCardBg": "rgba(255, 255, 255, 0.9)",
+    "landingCardBgHover": "rgba(255, 255, 255, 1)",
+    "landingGradientStart": "rgba(240, 245, 255, 0.9)",
+    "landingGradientEnd": "rgba(230, 240, 255, 0.95)",
+    "landingCardGradientStart": "rgba(255, 255, 255, 0.8)",
+    "landingCardGradientEnd": "rgba(245, 250, 255, 0.9)",
+    "landingCardGradientStartStrong": "rgba(255, 255, 255, 0.95)",
+    "landingCardGradientEndStrong": "rgba(240, 248, 255, 1)",
+
+    "glowPrimary": "rgba(22, 119, 255, 0.25)",
+    "glowPrimarySoft": "rgba(22, 119, 255, 0.1)",
+    "glowPrimaryStrong": "rgba(22, 119, 255, 0.35)",
+    "glowRadialBg": "rgba(22, 119, 255, 0.06)",
+    "glowRadialBgSoft": "rgba(22, 119, 255, 0.04)",
+    "glowRadialBgFaint": "rgba(22, 119, 255, 0.03)",
+    "borderGlow": "rgba(22, 119, 255, 0.4)",
+    "borderGlowWeak": "rgba(22, 119, 255, 0.2)",
+
+    "phoneScreenBg1": "#e6f0ff",
+    "phoneScreenBg2": "#f0f5ff",
+    "highlightGradientEnd": "#4096ff",
+
+    "chartLine": "#6366f1",
+    "chartLineSecondary": "#06b6d4",
+    "chartBar": "#a855f7",
+    "chartAreaFill": "rgba(139, 92, 246, 0.15)",
+    "chartAreaStroke": "#8b5cf6",
+    "chartGrid": "#e2e8f0",
+    "chartAxis": "#94a3b8",
+
+    "statMenusBg": "rgba(139, 92, 246, 0.1)",
+    "statMenus": "#8b5cf6",
+    "statOrdersBg": "rgba(249, 115, 22, 0.1)",
+    "statOrders": "#f97316",
+    "statClientsBg": "rgba(6, 182, 212, 0.1)",
+    "statClients": "#06b6d4",
+    "statRevenueBg": "rgba(34, 197, 94, 0.1)",
+    "statRevenue": "#22c55e"
+  },
+  "radius": {
+    "xs": "2px",
+    "sm": "4px",
+    "md": "6px",
+    "lg": "8px",
+    "xl": "12px",
+    "full": "9999px"
+  },
+  "spacing": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "effects": {
+    "shadowSm": "0 1px 2px 0 rgba(0, 0, 0, 0.03)",
+    "shadow": "0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02)",
+    "shadowMd": "0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05)",
+    "shadowLg": "0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05)",
+    "blur": "8px",
+    "blurLg": "16px"
+  },
+  "motion": {
+    "unit": "0.1s",
+    "base": "0s",
+    "easeOut": "cubic-bezier(0.215, 0.61, 0.355, 1)",
+    "easeInOut": "cubic-bezier(0.645, 0.045, 0.355, 1)",
+    "easeOutBack": "cubic-bezier(0.12, 0.4, 0.29, 1.46)",
+    "easeInBack": "cubic-bezier(0.71, -0.46, 0.88, 0.6)"
+  },
+  "font": {
+    "family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "familyCode": "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
+    "size": "14px",
+    "sizeSm": "12px",
+    "sizeLg": "16px",
+    "sizeXl": "20px"
+  },
+  "lineWidth": "1px"
+}
