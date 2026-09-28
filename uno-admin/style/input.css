@@ -1,0 +1,995 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================================================
+   CSS Variable Aliases - Bridge to ember-fx-styles tokens
+   These map local variable names to ember-fx CSS variables for backwards compatibility.
+   Theme-specific values come from ember-fx via [data-theme="..."] selectors.
+   ============================================================================= */
+
+:root {
+  /* Chart variables - alias to ember-fx tokens */
+  --chart-line-color: var(--fx-color-chart-line, #6366f1);
+  --chart-line-secondary: var(--fx-color-chart-line-secondary, #06b6d4);
+  --chart-bar-color: var(--fx-color-chart-bar, #a855f7);
+  --chart-area-fill: var(--fx-color-chart-area-fill, rgba(139, 92, 246, 0.15));
+  --chart-area-stroke: var(--fx-color-chart-area-stroke, #8b5cf6);
+  --chart-grid-color: var(--fx-color-chart-grid, #e2e8f0);
+  --chart-axis-color: var(--fx-color-chart-axis, #94a3b8);
+
+  /* Stat icon variables - alias to ember-fx tokens */
+  --stat-menus-bg: var(--fx-color-stat-menus-bg, rgba(139, 92, 246, 0.1));
+  --stat-menus-color: var(--fx-color-stat-menus, #8b5cf6);
+  --stat-orders-bg: var(--fx-color-stat-orders-bg, rgba(249, 115, 22, 0.1));
+  --stat-orders-color: var(--fx-color-stat-orders, #f97316);
+  --stat-clients-bg: var(--fx-color-stat-clients-bg, rgba(6, 182, 212, 0.1));
+  --stat-clients-color: var(--fx-color-stat-clients, #06b6d4);
+  --stat-revenue-bg: var(--fx-color-stat-revenue-bg, rgba(34, 197, 94, 0.1));
+  --stat-revenue-color: var(--fx-color-stat-revenue, #22c55e);
+}
+
+/* Note: Theme-specific overrides are no longer needed here.
+   ember-fx-styles provides theme-aware values via [data-theme="dark"],
+   [data-theme="light"], and [data-theme="unity"] selectors. */
+
+/* =============================================================================
+   Base Overrides
+   ============================================================================= */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 transition-colors duration-200;
+}
+
+.theme-dark body {
+  @apply bg-slate-900 text-slate-50;
+}
+
+/* =============================================================================
+   Component Classes
+   ============================================================================= */
+
+.stat-icon-menus {
+  background: var(--stat-menus-bg);
+  color: var(--stat-menus-color);
+}
+
+.stat-icon-orders {
+  background: var(--stat-orders-bg);
+  color: var(--stat-orders-color);
+}
+
+.stat-icon-clients {
+  background: var(--stat-clients-bg);
+  color: var(--stat-clients-color);
+}
+
+.stat-icon-revenue {
+  background: var(--stat-revenue-bg);
+  color: var(--stat-revenue-color);
+}
+
+/* Chart SVG styles */
+.chart-line {
+  stroke: var(--chart-line-color);
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-line-secondary {
+  stroke: var(--chart-line-secondary);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-bar {
+  fill: var(--chart-bar-color);
+}
+
+.chart-area {
+  fill: var(--chart-area-fill);
+  stroke: var(--chart-area-stroke);
+  stroke-width: 2;
+}
+
+.chart-grid {
+  stroke: var(--chart-grid-color);
+  stroke-width: 1;
+}
+
+.chart-axis-label {
+  fill: var(--chart-axis-color);
+  font-size: 11px;
+  text-anchor: middle;
+}
+
+/* Badge */
+.badge-new {
+  @apply bg-violet-500 text-white text-xs font-medium px-2 py-0.5 rounded-full;
+}
+
+.theme-dark .badge-new {
+  @apply bg-violet-400;
+}
+
+/* =============================================================================
+   Utilities
+   ============================================================================= */
+
+/* Override py-4 for tighter top padding on licenses page */
+.py-4 {
+  padding-top: 5px !important;
+  padding-bottom: 1rem !important;
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* =============================================================================
+   Progress Spinner Components (PrimeReact-style)
+   ============================================================================= */
+
+/* Main spinner container */
+.p-progress-spinner {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+}
+
+/* Size variants */
+.p-progress-spinner-sm {
+  width: 50px;
+  height: 50px;
+}
+
+.p-progress-spinner-default {
+  width: 100px;
+  height: 100px;
+}
+
+.p-progress-spinner-lg {
+  width: 150px;
+  height: 150px;
+}
+
+/* SVG container - rotation animation */
+.p-progress-spinner-svg {
+  width: 100%;
+  height: 100%;
+  animation: p-progress-spinner-rotate 2s linear infinite;
+  transform-origin: center center;
+}
+
+/* Circle stroke - dash and color animations */
+.p-progress-spinner-circle {
+  stroke-dasharray: 89, 200;
+  stroke-dashoffset: 0;
+  stroke: currentColor;
+  animation:
+    p-progress-spinner-dash 1.5s ease-in-out infinite,
+    p-progress-spinner-color 6s ease-in-out infinite;
+  stroke-linecap: round;
+}
+
+/* Single color variant (no color cycling) */
+.p-progress-spinner-circle-single {
+  animation: p-progress-spinner-dash 1.5s ease-in-out infinite;
+  stroke: var(--fx-color-primary, #8b5cf6);
+}
+
+/* Rotation animation */
+@keyframes p-progress-spinner-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dash animation - creates chasing effect */
+@keyframes p-progress-spinner-dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -124px;
+  }
+}
+
+/* Color cycle animation */
+@keyframes p-progress-spinner-color {
+  0%, 100% {
+    stroke: #dc2626; /* red-600 */
+  }
+  25% {
+    stroke: #3b82f6; /* blue-500 */
+  }
+  50% {
+    stroke: #22c55e; /* green-500 */
+  }
+  75% {
+    stroke: #f97316; /* orange-500 */
+  }
+}
+
+/* Full-page loading overlay */
+.p-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.85); /* slate-900 with transparency */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.p-loading-overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.p-loading-overlay-message {
+  font-size: 16px;
+  font-weight: 500;
+  color: #e2e8f0; /* slate-200 */
+  text-align: center;
+  max-width: 280px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Light theme variant */
+.theme-light .p-loading-overlay {
+  background: rgba(248, 250, 252, 0.9); /* slate-50 with transparency */
+}
+
+.theme-light .p-loading-overlay-message {
+  color: #334155; /* slate-700 */
+}
+
+/* Inline spinner for buttons */
+.p-inline-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.p-inline-spinner-icon {
+  display: inline-block;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-right-color: currentColor;
+  border-radius: 50%;
+  animation: p-inline-spinner-rotate 0.75s linear infinite;
+}
+
+.p-inline-spinner-text {
+  font-size: 14px;
+  color: inherit;
+}
+
+@keyframes p-inline-spinner-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* =============================================================================
+   ember-fx Slider Components - uno-admin Overrides
+   Force proper vertical centering and cyan theme
+   Using !important to override ember-fx base styles
+   ============================================================================= */
+
+/* ============================================
+   Root Slider Container - Override base height
+   ============================================ */
+.fx-slider-ant,
+.fx-slider-ant-range,
+.fx-slider-prime,
+.fx-slider-prime-range {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 24px !important;
+  touch-action: none !important;
+  user-select: none !important;
+}
+
+.fx-slider-ant-small,
+.fx-slider-prime-small {
+  height: 20px !important;
+}
+
+/* ============================================
+   Rail - CRITICAL: Must be full height for centering
+   ============================================ */
+.fx-slider-ant-rail,
+.fx-slider-prime-rail {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: transparent !important;
+  cursor: pointer !important;
+}
+
+/* Visual track line via pseudo-element - centered in full-height rail */
+.fx-slider-ant-rail::before,
+.fx-slider-prime-rail::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 9999px !important;
+  pointer-events: none !important;
+}
+
+/* ============================================
+   Track (Filled Portion) - Centered cyan bar
+   ============================================ */
+.fx-slider-ant-track,
+.fx-slider-prime-track {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  height: 4px !important;
+  background: #818cf8 !important;
+  border-radius: 9999px !important;
+  transition: background 0.15s ease !important;
+}
+
+.fx-slider-ant:hover .fx-slider-ant-track,
+.fx-slider-ant-range:hover .fx-slider-ant-track,
+.fx-slider-prime:hover .fx-slider-prime-track,
+.fx-slider-prime-range:hover .fx-slider-prime-track {
+  background: #a5b4fc !important;
+}
+
+/* ============================================
+   Handle (Thumb) - Vertically centered circles
+   ============================================ */
+.fx-slider-ant-handle,
+.fx-slider-prime-handle {
+  position: absolute !important;
+  top: 50% !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin-top: -8px !important;  /* Half of height to center */
+  transform: translateX(-50%) !important;
+  background: #1e293b !important;
+  border: 2px solid #818cf8 !important;
+  border-radius: 50% !important;
+  cursor: grab !important;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  z-index: 1 !important;
+  outline: none !important;
+}
+
+.fx-slider-ant-handle:hover,
+.fx-slider-prime-handle:hover {
+  transform: translateX(-50%) scale(1.15) !important;
+  border-color: #a5b4fc !important;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.25), 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.fx-slider-ant-handle:active,
+.fx-slider-prime-handle:active,
+.fx-slider-ant-handle-dragging,
+.fx-slider-prime-handle-dragging {
+  cursor: grabbing !important;
+  transform: translateX(-50%) scale(1.2) !important;
+  border-color: #a5b4fc !important;
+}
+
+.fx-slider-prime-handle-focused {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.fx-slider-prime-handle-active {
+  z-index: 2;
+}
+
+/* Small size handle */
+.fx-slider-prime-small .fx-slider-prime-handle {
+  width: 14px;
+  height: 14px;
+}
+
+/* ============================================
+   Tooltip - Prime Theme
+   ============================================ */
+.fx-slider-prime-tooltip {
+  position: absolute;
+  padding: 6px 10px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.fx-slider-prime-tooltip-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Tooltip placements */
+.fx-slider-prime-tooltip-top {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  margin-bottom: 8px;
+}
+
+.fx-slider-prime-tooltip-visible.fx-slider-prime-tooltip-top {
+  transform: translateX(-50%) translateY(0);
+}
+
+.fx-slider-prime-tooltip-bottom {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  margin-top: 8px;
+}
+
+.fx-slider-prime-tooltip-visible.fx-slider-prime-tooltip-bottom {
+  transform: translateX(-50%) translateY(0);
+}
+
+.fx-slider-prime-small .fx-slider-prime-tooltip {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+/* ============================================
+   Marks - Prime Theme
+   ============================================ */
+.fx-slider-prime-marks {
+  position: absolute;
+  top: 22px;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.fx-slider-prime-mark {
+  position: absolute;
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.fx-slider-prime-mark-active {
+  color: #0ea5e9;
+}
+
+/* Mark dots */
+.fx-slider-prime-dot {
+  position: absolute;
+  top: -16px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: #0f172a;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.fx-slider-prime-dot-active {
+  border-color: #0ea5e9;
+  background: #0ea5e9;
+}
+
+/* ============================================
+   Disabled State - Prime Theme
+   ============================================ */
+.fx-slider-prime-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.fx-slider-prime-disabled * {
+  cursor: not-allowed !important;
+}
+
+.fx-slider-prime-disabled .fx-slider-prime-handle {
+  border-color: #64748b;
+}
+
+.fx-slider-prime-disabled .fx-slider-prime-track {
+  background: #64748b;
+}
+
+/* ============================================
+   Ant Design Fallback (redirect to Prime styles)
+   For components that default to ant design system
+   ============================================ */
+.fx-slider-ant,
+.fx-slider-ant-range {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 24px;
+  touch-action: none;
+  user-select: none;
+}
+
+.fx-slider-ant-small,
+.fx-slider-ant-small.fx-slider-ant-range {
+  height: 20px;
+}
+
+.fx-slider-ant-rail {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.fx-slider-ant-rail::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+.fx-slider-ant-small .fx-slider-ant-rail::before {
+  height: 3px;
+}
+
+.fx-slider-ant-track {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  background: #0ea5e9;
+  border-radius: 9999px;
+  transition: background 0.15s ease;
+}
+
+.fx-slider-ant:hover .fx-slider-ant-track,
+.fx-slider-ant-range:hover .fx-slider-ant-track {
+  background: #38bdf8;
+}
+
+.fx-slider-ant-small .fx-slider-ant-track {
+  height: 3px;
+}
+
+.fx-slider-ant-handle {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translate(-50%, -50%);
+  background: #1e293b;
+  border: 2px solid #0ea5e9;
+  border-radius: 50%;
+  cursor: grab;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  z-index: 1;
+  outline: none;
+}
+
+.fx-slider-ant-handle:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.25), 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.fx-slider-ant-handle:active,
+.fx-slider-ant-handle-dragging {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.2);
+  border-color: #38bdf8;
+}
+
+.fx-slider-ant-handle-focused {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.fx-slider-ant-handle-active {
+  z-index: 2;
+}
+
+.fx-slider-ant-small .fx-slider-ant-handle {
+  width: 14px;
+  height: 14px;
+}
+
+/* =============================================================================
+   Native Dual Range Slider (Prime theme - Cyan)
+   Two overlapping range inputs - both fully interactive
+   ============================================================================= */
+
+.dual-range-container {
+  position: relative;
+}
+
+.dual-range-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  z-index: 3;
+}
+
+/* Min slider on top with higher z-index */
+.dual-range-input.dual-range-min {
+  z-index: 4;
+}
+
+/* Track - invisible, we draw our own */
+.dual-range-input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dual-range-input::-moz-range-track {
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Thumb styling - dark fill with cyan border (Prime theme) */
+.dual-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #1e293b;
+  border: 2px solid #0ea5e9;
+  border-radius: 50%;
+  cursor: grab;
+  margin-top: -5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.dual-range-input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #1e293b;
+  border: 2px solid #0ea5e9;
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dual-range-input::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25);
+}
+
+.dual-range-input::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25);
+}
+
+.dual-range-input::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.2);
+  border-color: #38bdf8;
+}
+
+.dual-range-input::-moz-range-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.2);
+  border-color: #38bdf8;
+}
+
+.dual-range-input:focus {
+  outline: none;
+}
+
+/* =============================================================================
+   Native Range Slider - Smooth browser-native dual range
+   Both inputs must overlap in the same space
+   ============================================================================= */
+
+.native-range-slider {
+  position: relative !important;
+  width: 100%;
+  height: 20px;
+}
+
+/* Background track - gray line */
+.native-range-track-bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Filled track between handles - purple/indigo */
+.native-range-track-fill {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  background: #818cf8;
+  border-radius: 9999px;
+  pointer-events: none;
+  transition: background 0.15s ease;
+  z-index: 2;
+}
+
+.native-range-slider:hover .native-range-track-fill {
+  background: #a5b4fc;
+}
+
+/* Range inputs - MUST be absolutely positioned and overlapping */
+.native-range-input {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  cursor: pointer;
+  pointer-events: none; /* Let clicks pass through */
+}
+
+/* Only the thumb is interactive */
+.native-range-input::-webkit-slider-thumb {
+  pointer-events: auto !important;
+}
+
+.native-range-input::-moz-range-thumb {
+  pointer-events: auto !important;
+}
+
+/* Min slider on top */
+.native-range-input.native-range-min {
+  z-index: 4 !important;
+}
+
+/* Max slider below */
+.native-range-input.native-range-max {
+  z-index: 3 !important;
+}
+
+/* Track - completely transparent (we draw our own) */
+.native-range-input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 20px;
+  background: transparent !important;
+  cursor: pointer;
+}
+
+.native-range-input::-moz-range-track {
+  height: 20px;
+  background: transparent !important;
+  cursor: pointer;
+  border: none;
+}
+
+/* Thumb (handle) - circle with purple border */
+.native-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #1e293b;
+  border: 2px solid #818cf8;
+  border-radius: 50%;
+  cursor: grab;
+  margin-top: -6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease, border-color 0.1s ease;
+  pointer-events: auto;
+}
+
+.native-range-input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #1e293b;
+  border: 2px solid #818cf8;
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease, border-color 0.1s ease;
+  pointer-events: auto;
+}
+
+.native-range-input::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  border-color: #a5b4fc;
+}
+
+.native-range-input::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  border-color: #a5b4fc;
+}
+
+.native-range-input::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+  border-color: #a5b4fc;
+}
+
+.native-range-input::-moz-range-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+  border-color: #a5b4fc;
+}
+
+.native-range-input:focus {
+  outline: none;
+}
+
+/* =============================================================================
+   License Detail Container - Reset children styles
+   ============================================================================= */
+
+.license-detail-container {
+  padding: 5px;
+}
+
+.license-detail-container *,
+.license-detail-container *::before,
+.license-detail-container *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0px;
+}
+
+/* =============================================================================
+   PrimeReact-Style Slider - Document-level drag for smooth UX
+   ============================================================================= */
+
+.p-slider {
+  position: relative;
+  background: transparent;
+}
+
+.p-slider-horizontal {
+  height: 20px;
+}
+
+/* Background track */
+.p-slider-track-bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+/* Filled range between handles */
+.p-slider-range {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  background: #06b6d4;
+  border-radius: 9999px;
+  pointer-events: none;
+  transition: background 0.15s ease;
+}
+
+.p-slider:hover .p-slider-range {
+  background: #22d3ee;
+}
+
+/* Handle (thumb) - draggable circle */
+.p-slider-handle {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+  background: #0f172a;
+  border: 2px solid #06b6d4;
+  border-radius: 50%;
+  cursor: grab;
+  touch-action: none;
+  z-index: 1;
+  transition: transform 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease;
+}
+
+.p-slider-handle:hover {
+  transform: scale(1.15);
+  border-color: #22d3ee;
+  box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.25);
+}
+
+.p-slider-handle:active {
+  cursor: grabbing;
+  transform: scale(1.2);
+  border-color: #22d3ee;
+  box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.35);
+}
+
+/* Active handle gets higher z-index */
+.p-slider-handle-active {
+  z-index: 2;
+}
+
