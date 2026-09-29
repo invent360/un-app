@@ -46,7 +46,7 @@ pub use stats_repository::StatsRepository;
 pub use faq_repository::FaqRepository;
 pub use content_repository::ContentRepository;
 pub use referral_repository::{ReferralRepository, ReferralInput};
-pub use claim_repository::ClaimRepository;
+pub use claim_repository::{ClaimRepository, ReservationResult, ClaimResult, RESERVATION_EXPIRY_SECS};
 pub use review_repository::ReviewRepository;
 pub use audit_repository::AuditRepository;
 pub use rbac_repository::RbacRepository;

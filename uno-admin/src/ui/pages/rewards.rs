@@ -5,8 +5,9 @@ use crate::api::{
     fetch_allocations_page_handler,
 };
 
-/// Default JWT token from environment (compile-time for WASM)
-const DEFAULT_JWT_TOKEN: Option<&str> = option_env!("UNITY_JWT_TOKEN");
+// SECURITY FIX: Removed compile-time JWT token embedding
+// JWT tokens must NEVER be compiled into WASM builds
+// Token is now retrieved from server-side context or user session
 const PAGE_SIZE: u32 = 5;
 const DOWNLOAD_PAGE_SIZE: u32 = 100;
 
@@ -86,51 +87,57 @@ pub fn RewardsPage() -> impl IntoView {
         use wasm_bindgen_futures::spawn_local;
 
         move |page: u32| {
-            // Debug: Log token status on first fetch attempt
+            // SECURITY FIX: JWT tokens are no longer embedded at compile time.
+            // Authentication must be handled via server functions.
+            // This WASM path now requires the token to be retrieved from
+            // a server-side session or wallet authentication flow.
+            //
+            // TODO: Integrate with wallet_auth.rs to get JWT after SIWE authentication
+            // For now, show an authentication required message.
+
             if page == 0 {
-                match DEFAULT_JWT_TOKEN {
-                    Some(t) if !t.is_empty() => {
-                        web_sys::console::log_1(&format!("[Rewards] JWT token available ({} chars)", t.len()).into());
-                    }
-                    Some(_) => {
-                        web_sys::console::warn_1(&"[Rewards] JWT token is empty! Set UNITY_JWT_TOKEN env var before building.".into());
-                    }
-                    None => {
-                        web_sys::console::warn_1(&"[Rewards] No JWT token! Set UNITY_JWT_TOKEN env var before building.".into());
-                    }
-                }
+                web_sys::console::warn_1(&"[Rewards] This feature requires authentication. Please use server-side fetching.".into());
             }
 
-            if let Some(env_token) = DEFAULT_JWT_TOKEN {
-                if !env_token.is_empty() {
-                    set_loading.set(true);
-                    set_error.set(None);
+            // Try to get token from localStorage (set by wallet auth flow)
+            let token = web_sys::window()
+                .and_then(|w| w.local_storage().ok())
+                .flatten()
+                .and_then(|s| s.get_item("unity_jwt_token").ok())
+                .flatten()
+                .unwrap_or_default();
 
-                    let token = env_token.to_string();
-
-                    spawn_local(async move {
-                        web_sys::console::log_1(&format!("[Rewards] Fetching page {} (skip={}, take={})", page, page * PAGE_SIZE, PAGE_SIZE).into());
-
-                        match fetch_allocations_page_handler(token, page, PAGE_SIZE).await {
-                            Ok(response) => {
-                                web_sys::console::log_1(&format!("[Rewards] Got {} items, has_more={}", response.data.len(), response.has_more).into());
-
-                                // Append new data
-                                set_all_allocations.update(|all| {
-                                    all.extend(response.data);
-                                });
-                                set_has_more.set(response.has_more);
-                                set_highest_fetched_page.set(page as i32);
-                            }
-                            Err(e) => {
-                                web_sys::console::log_1(&format!("[Rewards] Error: {}", e).into());
-                                set_error.set(Some(e));
-                            }
-                        }
-                        set_loading.set(false);
-                    });
-                }
+            if token.is_empty() {
+                set_error.set(Some("Authentication required. Please connect your wallet first.".to_string()));
+                return;
             }
+
+            set_loading.set(true);
+            set_error.set(None);
+
+            let token = token.clone();
+
+            spawn_local(async move {
+                web_sys::console::log_1(&format!("[Rewards] Fetching page {} (skip={}, take={})", page, page * PAGE_SIZE, PAGE_SIZE).into());
+
+                match fetch_allocations_page_handler(token, page, PAGE_SIZE).await {
+                    Ok(response) => {
+                        web_sys::console::log_1(&format!("[Rewards] Got {} items, has_more={}", response.data.len(), response.has_more).into());
+
+                        // Append new data
+                        set_all_allocations.update(|all| {
+                            all.extend(response.data);
+                        });
+                        set_has_more.set(response.has_more);
+                        set_highest_fetched_page.set(page as i32);
+                    }
+                    Err(e) => {
+                        web_sys::console::log_1(&format!("[Rewards] Error: {}", e).into());
+                        set_error.set(Some(e));
+                    }
+                }
+                set_loading.set(false);
+            });
         }
     };
 

@@ -1,9 +1,14 @@
 //! Debug Dashboard - Temporary page to verify data sync from uno-admin
 //!
+//! WARNING: This module exposes sensitive data and should NEVER be enabled in production.
+//! It is gated behind the `debug-routes` feature flag.
+//!
 //! Displays:
 //! - All licenses from PostgreSQL
 //! - All referrals from PostgreSQL
 //! - Visitor stats by country
+
+#![cfg(feature = "debug-routes")]
 
 use leptos::prelude::*;
 

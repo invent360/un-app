@@ -49,6 +49,18 @@ pub enum StorageError {
     #[error("Invalid file type: {0}")]
     InvalidFileType(String),
 
+    /// Path traversal attack detected
+    #[error("Path traversal rejected: {0}")]
+    PathTraversalRejected(String),
+
+    /// Invalid resource identifier
+    #[error("Invalid resource ID: {0}")]
+    InvalidResourceId(String),
+
+    /// Symlink attack detected
+    #[error("Symlink not allowed: {0}")]
+    SymlinkRejected(String),
+
     /// Network error
     #[error("Network error: {0}")]
     NetworkError(String),
@@ -94,7 +106,8 @@ impl StorageError {
             Self::AuthenticationError(_) => 401,
             Self::AuthorizationError(_) => 403,
             Self::NotFound(_) => 404,
-            Self::InvalidUrl(_) | Self::InvalidFileType(_) => 400,
+            Self::InvalidUrl(_) | Self::InvalidFileType(_) | Self::InvalidResourceId(_) => 400,
+            Self::PathTraversalRejected(_) | Self::SymlinkRejected(_) => 403,
             Self::FileTooLarge { .. } => 413,
             Self::RateLimited { .. } => 429,
             Self::Timeout(_) => 504,

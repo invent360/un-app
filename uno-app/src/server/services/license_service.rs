@@ -1,19 +1,153 @@
 //! License claiming service for end users
+//!
+//! Implements atomic reservation and claim operations with:
+//! - Session-bound reservations with unguessable tokens
+//! - Immutable referral attribution
+//! - Owner verification for confirmations
 
 use std::sync::Arc;
 use crate::types::{ClaimRequest, ClaimResponse, ClaimPageData, License, LicenseDto, LicenseSummary, SplitType, AppError};
+use crate::server::repositories::{ClaimRepository, ReservationResult, ClaimResult};
 use uno_api::traits::LicenseRepository;
+
+/// Extended claim response with session token for two-phase flow
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ReservationResponse {
+    pub success: bool,
+    pub message: Option<String>,
+    pub license_id: Option<String>,
+    pub lease_code: Option<String>,
+    pub session_token: Option<String>,
+    pub expires_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub split_type: Option<SplitType>,
+    pub referral_validated: bool,
+}
+
+impl ReservationResponse {
+    pub fn success(result: ReservationResult) -> Self {
+        Self {
+            success: true,
+            message: None,
+            license_id: Some(result.license_id.to_string()),
+            lease_code: Some(result.lease_code),
+            session_token: Some(result.session_token),
+            expires_at: Some(result.expires_at),
+            split_type: SplitType::from_str(&result.split_type),
+            referral_validated: result.referral_validated,
+        }
+    }
+
+    pub fn error(message: &str) -> Self {
+        Self {
+            success: false,
+            message: Some(message.to_string()),
+            license_id: None,
+            lease_code: None,
+            session_token: None,
+            expires_at: None,
+            split_type: None,
+            referral_validated: false,
+        }
+    }
+}
 
 /// License service for claim operations
 #[derive(Clone)]
 pub struct LicenseService {
     license_repo: Arc<dyn LicenseRepository + Send + Sync>,
+    claim_repo: Option<Arc<dyn ClaimRepository>>,
 }
 
 impl LicenseService {
     /// Create a new license service.
     pub fn new(license_repo: Arc<dyn LicenseRepository + Send + Sync>) -> Self {
-        Self { license_repo }
+        Self {
+            license_repo,
+            claim_repo: None,
+        }
+    }
+
+    /// Create a new license service with claim repository for atomic operations.
+    pub fn with_claim_repo(
+        license_repo: Arc<dyn LicenseRepository + Send + Sync>,
+        claim_repo: Arc<dyn ClaimRepository>,
+    ) -> Self {
+        Self {
+            license_repo,
+            claim_repo: Some(claim_repo),
+        }
+    }
+
+    /// Atomically reserve a license with session binding (Phase 1)
+    ///
+    /// Returns a session token that must be used to confirm the claim.
+    /// The reservation expires after 2 minutes.
+    pub async fn atomic_reserve(
+        &self,
+        split_type: Option<SplitType>,
+        referral_code: Option<String>,
+    ) -> Result<ReservationResponse, AppError> {
+        let claim_repo = self.claim_repo.as_ref()
+            .ok_or_else(|| AppError::ConfigError("Claim repository not configured".into()))?;
+
+        let split_str = split_type.map(|st| convert_to_db_split(st));
+        let result = claim_repo.atomic_reserve(
+            split_str.as_deref(),
+            referral_code.as_deref(),
+        ).await?;
+
+        Ok(ReservationResponse::success(result))
+    }
+
+    /// Atomically confirm a reservation and claim the license (Phase 2)
+    ///
+    /// Requires the session token from the reservation.
+    /// Referral attribution is immutable - once set, cannot be changed.
+    pub async fn atomic_confirm(
+        &self,
+        license_id: &str,
+        session_token: &str,
+        device_id: Option<String>,
+        referral_id: Option<i32>,
+    ) -> Result<ClaimResponse, AppError> {
+        let claim_repo = self.claim_repo.as_ref()
+            .ok_or_else(|| AppError::ConfigError("Claim repository not configured".into()))?;
+
+        let id = uuid::Uuid::parse_str(license_id)
+            .map_err(|e| AppError::ValidationError(format!("Invalid license ID: {}", e)))?;
+
+        let result = claim_repo.atomic_confirm(
+            id,
+            session_token,
+            device_id.as_deref(),
+            referral_id,
+        ).await?;
+
+        // Convert to ClaimResponse
+        Ok(ClaimResponse {
+            success: true,
+            message: None,
+            license_id: Some(result.license_id.to_string()),
+            license_key: Some(result.lease_code.clone()),
+            claimed_at: Some(result.claimed_at),
+            license: None, // Full license details not included in atomic confirm
+            error: None,
+        })
+    }
+
+    /// Release a reservation (allows other users to claim)
+    pub async fn release_reservation(
+        &self,
+        license_id: &str,
+        session_token: &str,
+    ) -> Result<(), AppError> {
+        let claim_repo = self.claim_repo.as_ref()
+            .ok_or_else(|| AppError::ConfigError("Claim repository not configured".into()))?;
+
+        let id = uuid::Uuid::parse_str(license_id)
+            .map_err(|e| AppError::ValidationError(format!("Invalid license ID: {}", e)))?;
+
+        claim_repo.release_reservation(id, session_token).await
     }
 
     /// Claim a license by split type (auto-assigns an available license).
@@ -266,6 +400,14 @@ fn convert_to_api_split(local_split: SplitType) -> uno_api::models::SplitType {
         SplitType::Split5050 => uno_api::models::SplitType::Split5050,
         SplitType::Split5545 => uno_api::models::SplitType::Split5545,
         SplitType::Split6040 => uno_api::models::SplitType::Split6040,
+    }
+}
+
+fn convert_to_db_split(local_split: SplitType) -> String {
+    match local_split {
+        SplitType::Split5050 => "50:50".to_string(),
+        SplitType::Split5545 => "55:45".to_string(),
+        SplitType::Split6040 => "60:40".to_string(),
     }
 }
 

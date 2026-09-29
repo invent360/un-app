@@ -27,9 +27,14 @@ pub fn sign_payload<T: serde::Serialize>(
     hex::encode(mac.finalize().into_bytes())
 }
 
+/// Maximum allowed clock skew for future timestamps (seconds).
+/// Allows small clock drift but rejects obvious attacks.
+const MAX_FUTURE_SKEW_SECS: i64 = 5;
+
 /// Verify a signature.
 ///
 /// Returns an error if:
+/// - The timestamp is in the future (beyond clock skew tolerance)
 /// - The timestamp is too old (replay protection)
 /// - The signature doesn't match
 pub fn verify_signature<T: serde::Serialize>(
@@ -37,10 +42,16 @@ pub fn verify_signature<T: serde::Serialize>(
     secret_key: &[u8],
     max_age_secs: i64,
 ) -> Result<(), AuthError> {
-    // Check timestamp freshness
+    // Check timestamp - reject future timestamps (prevents pre-signed attacks)
     let now = chrono::Utc::now().timestamp();
-    let age = (now - request.timestamp).abs();
+    let age = now - request.timestamp;
 
+    // Reject timestamps in the future (allowing small clock skew)
+    if age < -MAX_FUTURE_SKEW_SECS {
+        return Err(AuthError::TimestampInFuture);
+    }
+
+    // Reject timestamps that are too old
     if age > max_age_secs {
         return Err(AuthError::TimestampExpired);
     }
@@ -58,6 +69,37 @@ pub fn verify_signature<T: serde::Serialize>(
     if !constant_time_eq(expected.as_bytes(), request.signature.as_bytes()) {
         return Err(AuthError::InvalidSignature);
     }
+
+    Ok(())
+}
+
+/// Verify a signature with full replay protection.
+///
+/// This is the recommended verification function for production use.
+/// It combines signature verification with nonce tracking to prevent
+/// replay attacks even within the timestamp validity window.
+///
+/// Returns an error if:
+/// - The timestamp is in the future (beyond clock skew tolerance)
+/// - The timestamp is too old (replay protection)
+/// - The nonce has already been used (replay attack)
+/// - The signature doesn't match
+pub fn verify_with_replay_protection<T: serde::Serialize>(
+    request: &super::SignedRequest<T>,
+    secret_key: &[u8],
+    max_age_secs: i64,
+    nonce_registry: &super::NonceRegistry,
+) -> Result<(), AuthError> {
+    // First verify the signature (checks timestamp too)
+    verify_signature(request, secret_key, max_age_secs)?;
+
+    // Then check and register the nonce
+    // This prevents replays within the validity window
+    nonce_registry.check_and_register(
+        &request.client_id,
+        &request.nonce,
+        request.timestamp,
+    )?;
 
     Ok(())
 }
@@ -151,5 +193,109 @@ mod tests {
 
         let result = verify_signature(&request, b"test_secret", 300);
         assert!(matches!(result, Err(AuthError::InvalidSignature)));
+    }
+
+    #[test]
+    fn test_future_timestamp_rejected() {
+        let payload = TestPayload {
+            data: "test".to_string(),
+        };
+        let client_id = "test_client";
+        let secret_key = b"test_secret";
+        // 10 seconds in the future (beyond MAX_FUTURE_SKEW_SECS)
+        let timestamp = chrono::Utc::now().timestamp() + 10;
+        let nonce = "test_nonce";
+
+        let signature = sign_payload(client_id, secret_key, &payload, timestamp, nonce);
+
+        let request = super::super::SignedRequest {
+            client_id: client_id.to_string(),
+            timestamp,
+            nonce: nonce.to_string(),
+            signature,
+            payload,
+        };
+
+        let result = verify_signature(&request, secret_key, 300);
+        assert!(matches!(result, Err(AuthError::TimestampInFuture)));
+    }
+
+    #[test]
+    fn test_small_future_skew_allowed() {
+        let payload = TestPayload {
+            data: "test".to_string(),
+        };
+        let client_id = "test_client";
+        let secret_key = b"test_secret";
+        // 3 seconds in the future (within MAX_FUTURE_SKEW_SECS)
+        let timestamp = chrono::Utc::now().timestamp() + 3;
+        let nonce = "test_nonce";
+
+        let signature = sign_payload(client_id, secret_key, &payload, timestamp, nonce);
+
+        let request = super::super::SignedRequest {
+            client_id: client_id.to_string(),
+            timestamp,
+            nonce: nonce.to_string(),
+            signature,
+            payload,
+        };
+
+        // Should succeed - small clock skew is tolerated
+        assert!(verify_signature(&request, secret_key, 300).is_ok());
+    }
+
+    #[test]
+    fn test_replay_protection_first_use() {
+        let registry = super::super::NonceRegistry::new(300);
+        let payload = TestPayload {
+            data: "test".to_string(),
+        };
+        let client_id = "test_client";
+        let secret_key = b"test_secret";
+        let timestamp = chrono::Utc::now().timestamp();
+        let nonce = "unique_nonce_1";
+
+        let signature = sign_payload(client_id, secret_key, &payload, timestamp, nonce);
+
+        let request = super::super::SignedRequest {
+            client_id: client_id.to_string(),
+            timestamp,
+            nonce: nonce.to_string(),
+            signature,
+            payload,
+        };
+
+        // First use should succeed
+        assert!(verify_with_replay_protection(&request, secret_key, 300, &registry).is_ok());
+    }
+
+    #[test]
+    fn test_replay_protection_rejects_replay() {
+        let registry = super::super::NonceRegistry::new(300);
+        let payload = TestPayload {
+            data: "test".to_string(),
+        };
+        let client_id = "test_client";
+        let secret_key = b"test_secret";
+        let timestamp = chrono::Utc::now().timestamp();
+        let nonce = "replayed_nonce";
+
+        let signature = sign_payload(client_id, secret_key, &payload, timestamp, nonce);
+
+        let request = super::super::SignedRequest {
+            client_id: client_id.to_string(),
+            timestamp,
+            nonce: nonce.to_string(),
+            signature,
+            payload,
+        };
+
+        // First use succeeds
+        assert!(verify_with_replay_protection(&request, secret_key, 300, &registry).is_ok());
+
+        // Replay is rejected
+        let result = verify_with_replay_protection(&request, secret_key, 300, &registry);
+        assert!(matches!(result, Err(AuthError::NonceReused)));
     }
 }

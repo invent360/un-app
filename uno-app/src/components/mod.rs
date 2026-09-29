@@ -2,6 +2,7 @@
 
 pub mod chatbot;
 pub mod common;
+pub mod economics;
 pub mod faq;
 pub mod layout;
 pub mod license;

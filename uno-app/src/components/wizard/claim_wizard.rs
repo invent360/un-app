@@ -2,12 +2,23 @@
 //!
 //! This component provides the modal overlay and container for the
 //! license claim wizard, using distinct stage components for each step.
+//!
+//! ## Wizard Flow
+//!
+//! 1. EconomicsReview - Show 50/40/10 split transparency
+//! 2. Review - Accept terms and optional referral code
+//! 3. Reserve - Atomic license reservation (auto-proceeds)
+//! 4. Claim - Display and confirm license key
+//! 5. WhatNext - Guides and next steps
 
 use leptos::prelude::*;
 use crate::hooks::t;
 use crate::types::AvailabilityStatus;
 use super::state::{ClaimWizardStage, ClaimWizardState};
-use super::stages::{ReviewStage, ClaimStage, WhatNextStage, SoldOutStage, ComingSoonStage};
+use super::stages::{
+    EconomicsReviewStage, ReviewStage, ReserveStage,
+    ClaimStage, WhatNextStage, SoldOutStage, ComingSoonStage
+};
 use super::components::WizardProgressBar;
 
 /// License claiming wizard container
@@ -94,8 +105,9 @@ fn StageContent(
                 }.into_any();
             }
 
-            // Check availability status on Review stage
-            if state.stage.get() == ClaimWizardStage::Review {
+            // Check availability status on EconomicsReview or Review stage
+            let current_stage = state.stage.get();
+            if current_stage == ClaimWizardStage::EconomicsReview || current_stage == ClaimWizardStage::Review {
                 match state.global_availability.get() {
                     AvailabilityStatus::AllClaimed => {
                         return view! { <SoldOutStage /> }.into_any();
@@ -108,15 +120,21 @@ fn StageContent(
                         return view! { <SoldOutStage /> }.into_any();
                     }
                     AvailabilityStatus::Available => {
-                        // Continue to normal Review stage
+                        // Continue to normal stage rendering
                     }
                 }
             }
 
             // Normal stage rendering
-            match state.stage.get() {
+            match current_stage {
+                ClaimWizardStage::EconomicsReview => view! {
+                    <EconomicsReviewStage />
+                }.into_any(),
                 ClaimWizardStage::Review => view! {
                     <ReviewStage />
+                }.into_any(),
+                ClaimWizardStage::Reserve => view! {
+                    <ReserveStage />
                 }.into_any(),
                 ClaimWizardStage::Claim => view! {
                     <ClaimStage />

@@ -1,0 +1,20 @@
+[package]
+name = "ember-multichain"
+version = "0.1.0"
+edition = "2021"
+description = "Stub package for multi-chain wallet operations (placeholder for vendoring)"
+license = "MIT"
+
+# NOTE: This is a minimal stub to allow compilation.
+# The full ember-multichain crate should be vendored or referenced via git.
+# See README.md for setup instructions.
+
+[dependencies]
+async-trait = "0.1"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+[features]
+default = []
+evm = []

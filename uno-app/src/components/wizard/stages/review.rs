@@ -43,19 +43,22 @@ pub fn ReviewStage() -> impl IntoView {
             None
         };
 
-        s.start_claiming();
+        // Transition to Reserve stage (shows loading animation)
+        s.start_reservation();
 
         // Call the reserve API - gets the next available license
         spawn_local(async move {
             match reserve_next_license(referral_code.clone()).await {
                 Ok(response) => {
                     if response.success {
+                        // Transition from Reserve to Claim stage
                         s.set_reservation_success(
                             response.license_id,
                             response.license_key,
                             referral_code,
                         );
                     } else {
+                        // Show error on Reserve stage (has retry button)
                         s.set_claim_error(response.error.unwrap_or_else(|| "No licenses available".to_string()));
                     }
                 }

@@ -15,6 +15,7 @@ mod schema_handler;
 mod content_item_handler;
 
 use actix_web::web;
+use crate::server::middleware::{AdminAuth, RateLimiter, RateLimitConfig};
 
 pub use licenses_handler::*;
 pub use admin_handler::configure_admin_routes;
@@ -33,8 +34,10 @@ pub use content_item_handler::*;
 /// Configure all API routes
 pub fn configure_api_routes(cfg: &mut web::ServiceConfig) {
     // Configure admin API routes with nested content routes
+    // Protected by AdminAuth middleware - requires valid API key in Authorization header
     cfg.service(
         web::scope("/api/v1/admin")
+            .wrap(AdminAuth::from_env())
             // License admin routes
             .route("/licenses", web::post().to(admin_handler::publish_licenses))
             .route("/licenses/import", web::post().to(admin_handler::import_csv))
@@ -107,12 +110,14 @@ pub fn configure_api_routes(cfg: &mut web::ServiceConfig) {
     // Cloud file storage routes (GCS/S3)
     file_handler::configure_routes(cfg);
 
-    // Then configure public API routes
+    // Then configure public API routes with rate limiting
     cfg.service(
         web::scope("/api/v1")
+            // Apply rate limiting to public endpoints (100 req/min default)
+            .wrap(RateLimiter::new(RateLimitConfig::default()))
             // Health check
             .route("/health", web::get().to(health_check))
-            // Licenses
+            // Licenses (claim endpoint is particularly sensitive)
             .route("/licenses/variants", web::get().to(get_variants))
             .route("/licenses/claim", web::post().to(claim_license))
             // FAQ

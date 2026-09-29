@@ -1,19 +1,19 @@
 //! Unity API configuration
 //!
 //! Configuration for connecting to the Unity API.
+//!
+//! SECURITY NOTE: JWT tokens and API secrets must NEVER be compiled into WASM builds.
+//! For WASM/browser builds, authentication must be handled server-side via API calls.
 
 /// Default Unity API base URL
 pub const DEFAULT_BASE_URL: &str = "https://api.unityedge.io";
 
-/// Default API key for Unity
+/// Default API key for Unity (publishable key - safe to expose)
 pub const DEFAULT_API_KEY: &str = "sb_publishable_yKqi0fu5vV6G4ryUIMJuzw_NCoFEl1c";
 
-/// JWT token captured at compile time (for WASM builds)
-/// API_TOKEN takes precedence over UNITY_JWT_TOKEN for inline overrides
-const COMPILE_TIME_JWT_TOKEN: Option<&str> = match option_env!("API_TOKEN") {
-    Some(token) if !token.is_empty() => Some(token),
-    _ => option_env!("UNITY_JWT_TOKEN"),
-};
+// SECURITY FIX: Removed COMPILE_TIME_JWT_TOKEN
+// JWT tokens must NEVER be embedded in browser builds via option_env!
+// Use server-side token management instead.
 
 /// Configuration for the Unity API client
 #[derive(Debug, Clone)]
@@ -35,19 +35,22 @@ impl UnityApiConfig {
 
     /// Create configuration from environment variables
     ///
-    /// For WASM: Uses compile-time environment variables (option_env!)
+    /// For WASM: Returns config WITHOUT JWT token - browser builds must not contain secrets.
+    ///           Authenticated operations must be performed via server-side API calls.
     /// For SSR: Uses runtime environment variables (std::env::var)
     ///
     /// Reads:
     /// - `UNITY_API_URL` (optional, defaults to https://api.unityedge.io)
     /// - `UNITY_API_KEY` (optional, defaults to publishable key)
-    /// - `UNITY_JWT_TOKEN` (required for authenticated requests)
+    /// - `UNITY_JWT_TOKEN` (SSR only - required for authenticated requests)
     #[cfg(target_arch = "wasm32")]
     pub fn from_env() -> Self {
+        // SECURITY: WASM builds never include JWT tokens
+        // All authenticated operations must go through server-side endpoints
         Self {
-            base_url: option_env!("UNITY_API_URL").unwrap_or(DEFAULT_BASE_URL).to_string(),
-            api_key: option_env!("UNITY_API_KEY").unwrap_or(DEFAULT_API_KEY).to_string(),
-            jwt_token: COMPILE_TIME_JWT_TOKEN.unwrap_or("").to_string(),
+            base_url: DEFAULT_BASE_URL.to_string(),
+            api_key: DEFAULT_API_KEY.to_string(),
+            jwt_token: String::new(), // No token in browser builds
         }
     }
 

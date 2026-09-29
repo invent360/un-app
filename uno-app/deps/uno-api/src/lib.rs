@@ -82,6 +82,7 @@
 pub mod config;
 pub mod error;
 pub mod models;
+pub mod privacy;
 pub mod traits;
 
 #[cfg(feature = "services")]

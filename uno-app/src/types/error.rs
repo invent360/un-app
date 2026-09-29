@@ -54,6 +54,9 @@ pub enum AppError {
 
     #[error("Internal server error: {0}")]
     InternalServerError(String),
+
+    #[error("Configuration error: {0}")]
+    ConfigError(String),
 }
 
 impl AppError {
@@ -70,6 +73,7 @@ impl AppError {
             AppError::LicenseUnavailable(_) => "LICENSE_UNAVAILABLE",
             AppError::ImportError(_) => "IMPORT_ERROR",
             AppError::InternalServerError(_) => "INTERNAL_SERVER_ERROR",
+            AppError::ConfigError(_) => "CONFIG_ERROR",
         };
         ErrorResponse::new(self.to_string(), code.to_string())
     }
@@ -94,6 +98,7 @@ mod ssr_impl {
                 AppError::DBError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 AppError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 AppError::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                AppError::ConfigError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             }
         }
 

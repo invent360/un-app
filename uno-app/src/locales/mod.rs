@@ -31,6 +31,7 @@ pub mod pt;
 pub mod fr;
 pub mod ar;
 pub mod id;
+pub mod bn;  // Bengali/Bangla - Phase 9
 pub mod lazy_loader;
 pub mod intl;
 
@@ -48,6 +49,7 @@ pub fn get_translations(locale: &str) -> &'static Map<&'static str, &'static str
         "fr" => &fr::TRANSLATIONS,
         "ar" => &ar::TRANSLATIONS,
         "id" => &id::TRANSLATIONS,
+        "bn" => &bn::TRANSLATIONS,
         _ => &en::TRANSLATIONS, // Fallback to English
     }
 }
@@ -89,6 +91,9 @@ pub const COUNTRY_LOCALES: &[(&str, &str)] = &[
 
     // Indonesian
     ("ID", "id"),
+
+    // Bengali/Bangla-speaking
+    ("BD", "bn"),  // Bangladesh
 ];
 
 /// Check if a country is bilingual and get its locale options
@@ -124,6 +129,7 @@ pub fn locale_display_name(code: &str) -> &'static str {
         "fr" => "Français",
         "ar" => "العربية",
         "id" => "Bahasa Indonesia",
+        "bn" => "বাংলা",
         _ => "English",
     }
 }
@@ -134,4 +140,4 @@ pub fn is_rtl(locale: &str) -> bool {
 }
 
 /// All supported locale codes
-pub const SUPPORTED_LOCALES: &[&str] = &["en", "es", "tl", "hi", "sw", "pt", "fr", "ar", "id"];
+pub const SUPPORTED_LOCALES: &[&str] = &["en", "es", "tl", "hi", "sw", "pt", "fr", "ar", "id", "bn"];

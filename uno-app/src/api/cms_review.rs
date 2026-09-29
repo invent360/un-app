@@ -1,6 +1,9 @@
 //! CMS Review Workflow API endpoints
 //!
 //! Server functions for content review, approval, and publishing workflow.
+//!
+//! SECURITY: All mutating operations require authentication. User identity is
+//! extracted from the request context, not from client-provided parameters.
 
 use leptos::prelude::*;
 use crate::types::{
@@ -10,22 +13,40 @@ use crate::types::{
 };
 
 /// Submit content version for review
+///
+/// # Security
+/// The `submitted_by` identity is validated against the authenticated user.
+/// If provided value doesn't match authenticated user, the server uses the authenticated identity.
 #[server(SubmitForReview, "/api/cms")]
 pub async fn submit_for_review(
     version_id: i32,
     submitted_by: String,
     notes: Option<String>,
 ) -> Result<ContentReview, ServerFnError> {
-    use actix_web::web::Data;
+    use actix_web::{web::Data, HttpRequest};
     use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
+    use crate::server::extractors::auth::get_authenticated_user;
     use crate::types::SubmitReviewRequest;
+
+    // SECURITY: Extract authenticated user from request context
+    let req: HttpRequest = extract().await?;
+    let auth_user = get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    // Use authenticated user ID, not client-provided value
+    let verified_submitter = auth_user.id;
+    tracing::info!(
+        authenticated_user = %verified_submitter,
+        claimed_user = %submitted_by,
+        "Submit for review - using authenticated identity"
+    );
 
     let factory: Data<ServiceFactory> = extract().await?;
 
     let request = SubmitReviewRequest {
         version_id,
-        submitted_by,
+        submitted_by: verified_submitter,
         notes,
     };
 
@@ -38,22 +59,39 @@ pub async fn submit_for_review(
 }
 
 /// Approve a content review
+///
+/// # Security
+/// Requires authentication. Reviewer identity is taken from authenticated user.
 #[server(ApproveReview, "/api/cms")]
 pub async fn approve_review(
     review_id: i32,
     reviewed_by: String,
     notes: Option<String>,
 ) -> Result<ContentReview, ServerFnError> {
-    use actix_web::web::Data;
+    use actix_web::{web::Data, HttpRequest};
     use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
+    use crate::server::extractors::auth::get_authenticated_user;
     use crate::types::{ReviewDecisionRequest, ReviewDecision};
+
+    // SECURITY: Extract authenticated user
+    let req: HttpRequest = extract().await?;
+    let auth_user = get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    let verified_reviewer = auth_user.id;
+    tracing::info!(
+        authenticated_user = %verified_reviewer,
+        claimed_user = %reviewed_by,
+        review_id = review_id,
+        "Approve review - using authenticated identity"
+    );
 
     let factory: Data<ServiceFactory> = extract().await?;
 
     let request = ReviewDecisionRequest {
         review_id,
-        reviewed_by,
+        reviewed_by: verified_reviewer,
         decision: ReviewDecision::Approve,
         notes,
     };
@@ -67,26 +105,37 @@ pub async fn approve_review(
 }
 
 /// Request changes on a review
+///
+/// # Security
+/// Requires authentication. Reviewer identity is taken from authenticated user.
 #[server(RequestChanges, "/api/cms")]
 pub async fn request_changes(
     review_id: i32,
     reviewed_by: String,
     notes: String,
 ) -> Result<ContentReview, ServerFnError> {
-    use actix_web::web::Data;
+    use actix_web::{web::Data, HttpRequest};
     use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
+    use crate::server::extractors::auth::get_authenticated_user;
     use crate::types::{ReviewDecisionRequest, ReviewDecision};
 
     if notes.trim().is_empty() {
         return Err(ServerFnError::new("Notes are required when requesting changes"));
     }
 
+    // SECURITY: Extract authenticated user
+    let req: HttpRequest = extract().await?;
+    let auth_user = get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    let verified_reviewer = auth_user.id;
+
     let factory: Data<ServiceFactory> = extract().await?;
 
     let request = ReviewDecisionRequest {
         review_id,
-        reviewed_by,
+        reviewed_by: verified_reviewer,
         decision: ReviewDecision::RequestChanges,
         notes: Some(notes),
     };
@@ -100,22 +149,33 @@ pub async fn request_changes(
 }
 
 /// Reject a review
+///
+/// # Security
+/// Requires authentication. Reviewer identity is taken from authenticated user.
 #[server(RejectReview, "/api/cms")]
 pub async fn reject_review(
     review_id: i32,
     reviewed_by: String,
     notes: Option<String>,
 ) -> Result<ContentReview, ServerFnError> {
-    use actix_web::web::Data;
+    use actix_web::{web::Data, HttpRequest};
     use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
+    use crate::server::extractors::auth::get_authenticated_user;
     use crate::types::{ReviewDecisionRequest, ReviewDecision};
+
+    // SECURITY: Extract authenticated user
+    let req: HttpRequest = extract().await?;
+    let auth_user = get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    let verified_reviewer = auth_user.id;
 
     let factory: Data<ServiceFactory> = extract().await?;
 
     let request = ReviewDecisionRequest {
         review_id,
-        reviewed_by,
+        reviewed_by: verified_reviewer,
         decision: ReviewDecision::Reject,
         notes,
     };
@@ -170,22 +230,33 @@ pub async fn get_my_submissions(
 }
 
 /// Create a preview token for a content version
+///
+/// # Security
+/// Requires authentication. Creator identity is taken from authenticated user.
 #[server(CreatePreviewToken, "/api/cms")]
 pub async fn create_preview_token(
     version_id: i32,
     created_by: String,
     expires_in_hours: Option<i32>,
 ) -> Result<PreviewToken, ServerFnError> {
-    use actix_web::web::Data;
+    use actix_web::{web::Data, HttpRequest};
     use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
+    use crate::server::extractors::auth::get_authenticated_user;
+
+    // SECURITY: Extract authenticated user
+    let req: HttpRequest = extract().await?;
+    let auth_user = get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    let verified_creator = auth_user.id;
 
     let factory: Data<ServiceFactory> = extract().await?;
 
     let hours = expires_in_hours.unwrap_or(24);
 
     let token = factory.review_repository
-        .create_preview_token(version_id, &created_by, hours)
+        .create_preview_token(version_id, &verified_creator, hours)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -224,15 +295,31 @@ pub async fn get_preview_content(
 }
 
 /// Publish approved content directly (skip review)
+///
+/// # Security
+/// Requires authentication. Publisher identity is taken from authenticated user.
 #[server(PublishDirect, "/api/cms")]
 pub async fn publish_direct(
     content_id: i32,
-    published_by: String,
+    _published_by: String,
     commit_message: Option<String>,
 ) -> Result<PublishResult, ServerFnError> {
-    use actix_web::web::Data;
+    use actix_web::{web::Data, HttpRequest};
     use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
+    use crate::server::extractors::auth::get_authenticated_user;
+
+    // SECURITY: Extract authenticated user
+    let req: HttpRequest = extract().await?;
+    let auth_user = get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    let verified_publisher = auth_user.id;
+    tracing::info!(
+        authenticated_user = %verified_publisher,
+        content_id = content_id,
+        "Direct publish - using authenticated identity"
+    );
 
     let factory: Data<ServiceFactory> = extract().await?;
 
@@ -256,14 +343,14 @@ pub async fn publish_direct(
 
     // Publish the content
     factory.content_service
-        .publish(content_id, Some(&published_by))
+        .publish(content_id, Some(&verified_publisher))
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     // If commit message provided, create a version note
     if let Some(_msg) = commit_message {
         // The publish already updates the version, so we just log it
-        tracing::info!("Direct publish of content {} by {}", content_id, published_by);
+        tracing::info!("Direct publish of content {} by {}", content_id, verified_publisher);
     }
 
     Ok(PublishResult {
@@ -275,14 +362,30 @@ pub async fn publish_direct(
 }
 
 /// Publish multiple approved content items
+///
+/// # Security
+/// Requires authentication. Publisher identity is taken from authenticated user.
 #[server(PublishApproved, "/api/cms")]
 pub async fn publish_approved(
     content_ids: Vec<i32>,
-    published_by: String,
+    _published_by: String,
 ) -> Result<PublishResult, ServerFnError> {
-    use actix_web::web::Data;
+    use actix_web::{web::Data, HttpRequest};
     use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
+    use crate::server::extractors::auth::get_authenticated_user;
+
+    // SECURITY: Extract authenticated user
+    let req: HttpRequest = extract().await?;
+    let auth_user = get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    let verified_publisher = auth_user.id;
+    tracing::info!(
+        authenticated_user = %verified_publisher,
+        content_count = content_ids.len(),
+        "Batch publish - using authenticated identity"
+    );
 
     let factory: Data<ServiceFactory> = extract().await?;
 
@@ -310,7 +413,7 @@ pub async fn publish_approved(
                 }
 
                 match factory.content_service
-                    .publish(content_id, Some(&published_by))
+                    .publish(content_id, Some(&verified_publisher))
                     .await
                 {
                     Ok(_) => published_count += 1,
@@ -500,20 +603,37 @@ pub async fn get_version_history(
 }
 
 /// Revert content to a previous version
+///
+/// # Security
+/// Requires authentication. User identity is taken from authenticated user.
 #[server(RevertToVersion, "/api/cms")]
 pub async fn revert_to_version(
     content_id: i32,
     version: i32,
-    reverted_by: String,
+    _reverted_by: String,
 ) -> Result<ContentVersion, ServerFnError> {
-    use actix_web::web::Data;
+    use actix_web::{web::Data, HttpRequest};
     use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
+    use crate::server::extractors::auth::get_authenticated_user;
+
+    // SECURITY: Extract authenticated user
+    let req: HttpRequest = extract().await?;
+    let auth_user = get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    let verified_user = auth_user.id;
+    tracing::info!(
+        authenticated_user = %verified_user,
+        content_id = content_id,
+        target_version = version,
+        "Revert to version - using authenticated identity"
+    );
 
     let factory: Data<ServiceFactory> = extract().await?;
 
-    let content = factory.content_service
-        .revert_to_version(content_id, version, Some(&reverted_by))
+    let _content = factory.content_service
+        .revert_to_version(content_id, version, Some(&verified_user))
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 

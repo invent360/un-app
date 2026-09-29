@@ -1,0 +1,274 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      region:
+        description: 'Region to deploy (or all)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - americas
+          - europe
+          - apac
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # ===========================================================================
+  # Build & Test
+  # ===========================================================================
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+      image_digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy, rustfmt
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: uno-app
+          cache-on-failure: true
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+        working-directory: uno-app
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --features ssr -- -D warnings
+        working-directory: uno-app
+
+      - name: Install cargo-leptos
+        run: cargo install cargo-leptos --locked
+
+      - name: Build Release
+        run: cargo leptos build --release
+        working-directory: uno-app
+
+      - name: Run unit tests
+        run: cargo test --all --features ssr
+        working-directory: uno-app
+
+      - name: Security audit
+        run: |
+          cargo install cargo-audit
+          cargo audit
+        working-directory: uno-app
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./uno-app
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+  # ===========================================================================
+  # Deploy Americas (Primary)
+  # ===========================================================================
+  deploy-americas:
+    name: Deploy Americas
+    needs: build
+    if: |
+      github.event_name != 'pull_request' &&
+      (github.event.inputs.region == 'all' || github.event.inputs.region == 'americas' || github.event.inputs.region == '')
+    runs-on: ubuntu-latest
+    environment: production-americas
+    concurrency:
+      group: deploy-americas
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.AMERICAS_KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy with Kustomize
+        run: |
+          cd infrastructure/kubernetes/overlays/americas
+          kustomize edit set image ghcr.io/unetwork/uno-app=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image_digest }}
+          kubectl apply -k .
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/uno-app -n uno-app --timeout=300s
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n uno-app -l app=uno-app
+          # Run health check
+          POD=$(kubectl get pods -n uno-app -l app=uno-app -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec -n uno-app $POD -- curl -sf http://localhost:3000/api/v1/health
+
+  # ===========================================================================
+  # Deploy Europe
+  # ===========================================================================
+  deploy-europe:
+    name: Deploy Europe
+    needs: [build, deploy-americas]
+    if: |
+      github.event_name != 'pull_request' &&
+      (github.event.inputs.region == 'all' || github.event.inputs.region == 'europe' || github.event.inputs.region == '')
+    runs-on: ubuntu-latest
+    environment: production-europe
+    concurrency:
+      group: deploy-europe
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.EUROPE_KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy with Kustomize
+        run: |
+          cd infrastructure/kubernetes/overlays/europe
+          kustomize edit set image ghcr.io/unetwork/uno-app=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image_digest }}
+          kubectl apply -k .
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/uno-app -n uno-app --timeout=300s
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n uno-app -l app=uno-app
+
+  # ===========================================================================
+  # Deploy APAC
+  # ===========================================================================
+  deploy-apac:
+    name: Deploy APAC
+    needs: [build, deploy-europe]
+    if: |
+      github.event_name != 'pull_request' &&
+      (github.event.inputs.region == 'all' || github.event.inputs.region == 'apac' || github.event.inputs.region == '')
+    runs-on: ubuntu-latest
+    environment: production-apac
+    concurrency:
+      group: deploy-apac
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.APAC_KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy with Kustomize
+        run: |
+          cd infrastructure/kubernetes/overlays/apac
+          kustomize edit set image ghcr.io/unetwork/uno-app=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image_digest }}
+          kubectl apply -k .
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/uno-app -n uno-app --timeout=300s
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n uno-app -l app=uno-app
+
+  # ===========================================================================
+  # Post-Deployment Verification
+  # ===========================================================================
+  verify:
+    name: Post-Deployment Verification
+    needs: [deploy-americas, deploy-europe, deploy-apac]
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Cloudflare Load Balancer Health
+        run: |
+          # Check all regions are healthy via load balancer
+          echo "Checking global health endpoint..."
+          curl -sf https://${{ vars.DOMAIN }}/api/v1/health | jq
+
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "Deployment completed successfully to all regions!"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Deployment failed! Check the logs above."
+          exit 1

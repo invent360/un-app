@@ -19,6 +19,7 @@ fn locale_to_flag(locale: Locale) -> FlagIcon {
         Locale::Fr => FlagIcon::Fr,  // France
         Locale::Ar => FlagIcon::Sa,  // Saudi Arabia (Arabic)
         Locale::Id => FlagIcon::Id,  // Indonesia
+        Locale::Bn => FlagIcon::Bd,  // Bangladesh (Bengali/Bangla)
     }
 }
 

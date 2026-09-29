@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 use crate::error::{ApiError, DbError};
 use crate::models::*;
+use crate::privacy::redact_credential;
 use crate::traits::{LicenseFilters, LicenseRepository};
 
 use super::csv_import::{parse_csv, ParsedCsv};
@@ -83,10 +84,12 @@ impl LicenseAdminService {
         }
 
         // Check if lease code already exists
+        // GOV-01: Redact lease code in error messages to prevent credential exposure
         if self.license_repo.lease_code_exists(&input.lease_code).await? {
+            let redacted = redact_credential(&input.lease_code);
             return Err(ApiError::conflict(format!(
                 "Lease code already exists: {}",
-                input.lease_code
+                redacted
             )));
         }
 

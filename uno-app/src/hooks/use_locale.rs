@@ -20,6 +20,7 @@ pub enum Locale {
     Fr,     // French
     Ar,     // Arabic
     Id,     // Bahasa Indonesia
+    Bn,     // Bengali/Bangla (Phase 9)
 }
 
 impl Locale {
@@ -34,6 +35,7 @@ impl Locale {
             Locale::Fr => "fr",
             Locale::Ar => "ar",
             Locale::Id => "id",
+            Locale::Bn => "bn",
         }
     }
 
@@ -52,6 +54,7 @@ impl Locale {
             "fr" => Some(Locale::Fr),
             "ar" => Some(Locale::Ar),
             "id" => Some(Locale::Id),
+            "bn" => Some(Locale::Bn),
             _ => None,
         }
     }
@@ -59,7 +62,7 @@ impl Locale {
     pub fn all() -> &'static [Locale] {
         &[
             Locale::En, Locale::Tl, Locale::Hi, Locale::Sw,
-            Locale::Es, Locale::Pt, Locale::Fr, Locale::Ar, Locale::Id,
+            Locale::Es, Locale::Pt, Locale::Fr, Locale::Ar, Locale::Id, Locale::Bn,
         ]
     }
 

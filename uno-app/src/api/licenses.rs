@@ -1,4 +1,8 @@
 //! License-related server functions
+//!
+//! Implements atomic two-phase claim flow:
+//! 1. Reserve: Get a license with session token, validate referral
+//! 2. Confirm: Claim with session verification, immutable referral attribution
 
 use leptos::prelude::*;
 use crate::types::{LicenseVariant, ClaimResponse, ClaimPageData, SplitType};
@@ -229,4 +233,126 @@ pub async fn confirm_license_claim(
     }
 
     Ok(response)
+}
+
+// ============================================================================
+// ATOMIC CLAIM FUNCTIONS (New Two-Phase Flow)
+// ============================================================================
+// These functions provide atomic reservation with session tokens and
+// immutable referral attribution.
+
+/// Response from atomic reservation
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AtomicReservationResponse {
+    pub success: bool,
+    pub message: Option<String>,
+    pub license_id: Option<String>,
+    pub lease_code: Option<String>,
+    /// Session token required for confirmation - keep secure!
+    pub session_token: Option<String>,
+    /// When the reservation expires (2 minutes from now)
+    pub expires_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub split_type: Option<SplitType>,
+    /// Whether the provided referral code was validated
+    pub referral_validated: bool,
+}
+
+/// Atomically reserve a license with session binding (Phase 1 - New)
+///
+/// This is the secure version that:
+/// - Atomically locks a license within a transaction
+/// - Returns a session token required for confirmation
+/// - Validates referral code (but doesn't attribute yet)
+/// - Expires after 2 minutes if not confirmed
+///
+/// Use `atomic_confirm_claim` with the session_token to complete the claim.
+#[server(AtomicReserveLicense, "/api")]
+pub async fn atomic_reserve_license(
+    split_type: Option<SplitType>,
+    referral_code: Option<String>,
+) -> Result<AtomicReservationResponse, ServerFnError> {
+    use actix_web::web::Data;
+    use leptos_actix::extract;
+    use crate::server::app::ServiceFactory;
+
+    let factory: Data<ServiceFactory> = extract().await?;
+
+    // Use atomic reserve
+    let response = factory.license_service.atomic_reserve(split_type, referral_code)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(AtomicReservationResponse {
+        success: response.success,
+        message: response.message,
+        license_id: response.license_id,
+        lease_code: response.lease_code,
+        session_token: response.session_token,
+        expires_at: response.expires_at,
+        split_type: response.split_type,
+        referral_validated: response.referral_validated,
+    })
+}
+
+/// Atomically confirm a reservation and claim the license (Phase 2 - New)
+///
+/// This is the secure version that:
+/// - Requires the session token from reservation
+/// - Verifies the reservation hasn't expired
+/// - Atomically sets claimed=true AND referral_id in one transaction
+/// - Referral attribution is immutable (once set, cannot be changed)
+/// - Idempotent - calling again returns success if already claimed by same session
+#[server(AtomicConfirmClaim, "/api")]
+pub async fn atomic_confirm_claim(
+    license_id: String,
+    session_token: String,
+    device_id: Option<String>,
+    referral_code: Option<String>,
+) -> Result<ClaimResponse, ServerFnError> {
+    use actix_web::web::Data;
+    use leptos_actix::extract;
+    use crate::server::app::ServiceFactory;
+
+    let factory: Data<ServiceFactory> = extract().await?;
+
+    // Get referral ID if code provided
+    let referral_id = if let Some(code) = referral_code {
+        let code = code.trim().to_uppercase();
+        if !code.is_empty() {
+            match factory.referral_repository.get_active_by_code(&code).await {
+                Ok(Some(referral)) => Some(referral.id),
+                _ => None,
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    // Use atomic confirm - this does everything in one transaction
+    factory.license_service.atomic_confirm(&license_id, &session_token, device_id, referral_id)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))
+}
+
+/// Release a reservation without claiming
+///
+/// Call this if the user abandons the claim flow before confirming.
+/// This frees the license for other users immediately instead of waiting
+/// for the 2-minute expiry.
+#[server(ReleaseReservation, "/api")]
+pub async fn release_reservation(
+    license_id: String,
+    session_token: String,
+) -> Result<(), ServerFnError> {
+    use actix_web::web::Data;
+    use leptos_actix::extract;
+    use crate::server::app::ServiceFactory;
+
+    let factory: Data<ServiceFactory> = extract().await?;
+
+    factory.license_service.release_reservation(&license_id, &session_token)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))
 }

@@ -7,6 +7,7 @@ pub mod dashboard_handler;
 pub mod sync_job_handler;
 pub mod analytics_handler;
 pub mod file_handler;
+pub mod health_handler;
 
 pub use rewards_handler::*;
 pub use license_handler::*;
@@ -17,3 +18,4 @@ pub use dashboard_handler::*;
 pub use sync_job_handler::*;
 pub use analytics_handler::*;
 pub use file_handler::*;
+pub use health_handler::*;

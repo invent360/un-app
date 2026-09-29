@@ -75,6 +75,8 @@ async fn main() -> std::io::Result<()> {
         tracing::info!("listening on http://{}", &addr);
 
         App::new()
+            // Health check endpoints (Kubernetes-style probes)
+            .configure(uno_admin::handler::health_handler::configure_routes)
             // WebSocket endpoint for real-time job updates
             .route("/ws/jobs", web::get().to(uno_admin::ws::ws_jobs_handler))
             // File upload endpoints (must be before generic /api handler)

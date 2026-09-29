@@ -41,6 +41,14 @@ pub enum AuthError {
     #[error("Request timestamp expired")]
     TimestampExpired,
 
+    /// Timestamp is in the future (clock skew attack).
+    #[error("Request timestamp is in the future")]
+    TimestampInFuture,
+
+    /// Nonce has already been used (replay attack).
+    #[error("Nonce already used")]
+    NonceReused,
+
     /// Unknown client ID.
     #[error("Unknown client: {0}")]
     UnknownClient(String),

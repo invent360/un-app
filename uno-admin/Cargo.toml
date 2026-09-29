@@ -59,16 +59,20 @@ base64 = { version = "0.22", optional = true }
 uno-api = { path = "../uno-api", features = ["client"], optional = true }
 
 # Multi-chain wallet library for Web3 authentication
-ember-multichain = { path = "../../../../Dev-x/polkanight/ember/ember-multichain", features = ["evm"], optional = true }
+# TODO: Vendor ember-multichain into deps/ or use git dependency
+# For now, SSR feature requires this dependency - use git clone to set up:
+#   git clone https://github.com/polkanight/ember-multichain.git ../deps/ember-multichain
+ember-multichain = { path = "../deps/ember-multichain", features = ["evm"], optional = true }
 
 # ember-fx UI Components (Table, Select, Button, etc.) with Prime styling
-ember-fx-components = { path = "../../../../Dev-x/polkanight/ember/ember-fx/crates/components", features = ["data", "selection", "input", "button", "notification", "layout", "prime", "slider"], optional = true }
+# Uses vendored copy from uno-app/deps/ember-fx
+ember-fx-components = { path = "../uno-app/deps/ember-fx/crates/components", features = ["data", "selection", "input", "button", "notification", "layout", "prime", "slider"], optional = true }
 
 # Theme context and providers
-ember-fx-core = { path = "../../../../Dev-x/polkanight/ember/ember-fx/crates/core", optional = true }
+ember-fx-core = { path = "../uno-app/deps/ember-fx/crates/core", optional = true }
 
 # Icons
-ember-fx-icons = { path = "../../../../Dev-x/polkanight/ember/ember-fx/crates/icons", features = ["tabler-system", "tabler-arrows", "flags"], optional = true }
+ember-fx-icons = { path = "../uno-app/deps/ember-fx/crates/icons", features = ["tabler-system", "tabler-arrows", "flags"], optional = true }
 
 [features]
 # Minimal feature for standalone database scripts (no UI dependencies)

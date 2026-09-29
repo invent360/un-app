@@ -1,4 +1,7 @@
 //! WebSocket connection handler for /ws/jobs
+//!
+//! SECURITY: WebSocket connections require authentication via query parameter.
+//! Use ?token=<API_KEY> to connect.
 
 use actix_web::{web, HttpRequest, HttpResponse};
 use actix_ws::Message;
@@ -10,11 +13,52 @@ use super::subscribe;
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(30);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 
+/// Query parameters for WebSocket authentication
+#[derive(Debug, serde::Deserialize)]
+pub struct WsAuthQuery {
+    /// Authentication token (API key or JWT)
+    pub token: Option<String>,
+}
+
+/// Verify the authentication token
+fn verify_token(token: &str) -> bool {
+    // Get expected API key from environment
+    let api_key = std::env::var("ADMIN_API_KEY")
+        .unwrap_or_else(|_| "dev-admin-key".to_string());
+
+    // Simple API key comparison for Phase 1
+    // TODO: Phase 2 - add JWT validation for user-specific auth
+    token == api_key
+}
+
 /// WebSocket endpoint handler for job updates
+///
+/// # Authentication
+/// Requires `token` query parameter with valid API key.
+/// Example: ws://host/ws/jobs?token=<API_KEY>
 pub async fn ws_jobs_handler(
     req: HttpRequest,
     stream: web::Payload,
+    query: web::Query<WsAuthQuery>,
 ) -> Result<HttpResponse, actix_web::Error> {
+    // SECURITY: Verify authentication before establishing WebSocket connection
+    let is_authenticated = query.token
+        .as_ref()
+        .map(|t| verify_token(t))
+        .unwrap_or(false);
+
+    if !is_authenticated {
+        tracing::warn!(
+            peer = ?req.peer_addr(),
+            "WebSocket connection rejected: missing or invalid token"
+        );
+        return Ok(HttpResponse::Unauthorized()
+            .json(serde_json::json!({
+                "error": "Unauthorized",
+                "message": "Valid token required for WebSocket connection"
+            })));
+    }
+
     let (response, mut session, mut msg_stream) = actix_ws::handle(&req, stream)?;
 
     // Subscribe to job events

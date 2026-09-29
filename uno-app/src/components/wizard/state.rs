@@ -2,17 +2,98 @@
 //!
 //! This module provides state management for the license claim wizard,
 //! integrating with ember-fx's WizardStage trait for type-safe navigation.
+//!
+//! ## Wizard Flow
+//!
+//! The claim wizard follows a 5-stage journey:
+//!
+//! 1. **EconomicsReview** - Show 50/40/10 split transparency
+//! 2. **Review** - Review license details and accept terms
+//! 3. **Reserve** - Atomic reservation (license locked for user)
+//! 4. **Claim** - Show license key after copy confirmation
+//! 5. **WhatNext** - Guides, tasks, and next steps
+//!
+//! Post-claim touchpoints (D1, D3, D7, D30) are handled separately
+//! based on claim timestamp.
 
 use leptos::prelude::*;
 use crate::types::{LicenseVariant, AvailabilityStatus};
 
-/// Wizard stages - simplified 3-step flow
+/// Wizard stages - enhanced journey flow
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
 pub enum ClaimWizardStage {
+    /// Step 1: Economics transparency (50/40/10 split explanation)
     #[default]
-    Review,     // Review license details and accept terms
-    Claim,      // Claim the license (shows license key after success)
-    WhatNext,   // What's next: guides, tasks, warnings
+    EconomicsReview,
+    /// Step 2: Review license details and accept terms
+    Review,
+    /// Step 3: Atomic reservation in progress (license locked)
+    Reserve,
+    /// Step 4: Claim the license (shows license key after copy)
+    Claim,
+    /// Step 5: What's next - guides, tasks, warnings
+    WhatNext,
+}
+
+/// Journey touchpoint stages (post-claim engagement)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum JourneyTouchpoint {
+    /// Day 1: Initial setup and activation
+    D1,
+    /// Day 3: First earnings check
+    D3,
+    /// Day 7: Week one review
+    D7,
+    /// Day 30: Monthly milestone
+    D30,
+}
+
+impl JourneyTouchpoint {
+    /// Get the day number for this touchpoint
+    pub fn day(&self) -> u32 {
+        match self {
+            Self::D1 => 1,
+            Self::D3 => 3,
+            Self::D7 => 7,
+            Self::D30 => 30,
+        }
+    }
+
+    /// Get display name
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Self::D1 => "Day 1: Getting Started",
+            Self::D3 => "Day 3: First Earnings",
+            Self::D7 => "Week 1: Review",
+            Self::D30 => "Month 1: Milestone",
+        }
+    }
+
+    /// Get description
+    pub fn description(&self) -> &'static str {
+        match self {
+            Self::D1 => "Set up your license and start earning",
+            Self::D3 => "Check your first earnings and device status",
+            Self::D7 => "Review your first week's performance",
+            Self::D30 => "Celebrate your first month milestone",
+        }
+    }
+
+    /// Calculate touchpoint from days since claim
+    pub fn from_days_since_claim(days: u32) -> Option<Self> {
+        match days {
+            0..=1 => Some(Self::D1),
+            2..=3 => Some(Self::D3),
+            4..=7 => Some(Self::D7),
+            8..=30 => Some(Self::D30),
+            _ => None,
+        }
+    }
+
+    /// Get all touchpoints in order
+    pub fn all() -> Vec<Self> {
+        vec![Self::D1, Self::D3, Self::D7, Self::D30]
+    }
 }
 
 /// Implement ember-fx WizardStage trait for type-safe wizard navigation
@@ -20,7 +101,9 @@ pub enum ClaimWizardStage {
 impl ember_fx_components::form::WizardStage for ClaimWizardStage {
     fn display_name(&self) -> &'static str {
         match self {
+            Self::EconomicsReview => "Economics",
             Self::Review => "Review",
+            Self::Reserve => "Reserve",
             Self::Claim => "Claim",
             Self::WhatNext => "What Next",
         }
@@ -28,7 +111,9 @@ impl ember_fx_components::form::WizardStage for ClaimWizardStage {
 
     fn all_stages() -> Vec<Self> {
         vec![
+            Self::EconomicsReview,
             Self::Review,
+            Self::Reserve,
             Self::Claim,
             Self::WhatNext,
         ]
@@ -43,22 +128,26 @@ impl ClaimWizardStage {
     /// Get the stage number (1-based for display)
     pub fn number(&self) -> u8 {
         match self {
-            Self::Review => 1,
-            Self::Claim => 2,
-            Self::WhatNext => 3,
+            Self::EconomicsReview => 1,
+            Self::Review => 2,
+            Self::Reserve => 3,
+            Self::Claim => 4,
+            Self::WhatNext => 5,
         }
     }
 
     /// Total number of stages
     pub fn total() -> u8 {
-        3
+        5
     }
 
     /// Progress percentage (0-100)
     pub fn progress(&self) -> f64 {
         match self {
-            Self::Review => 0.0,
-            Self::Claim => 50.0,
+            Self::EconomicsReview => 0.0,
+            Self::Review => 25.0,
+            Self::Reserve => 50.0,
+            Self::Claim => 75.0,
             Self::WhatNext => 100.0,
         }
     }
@@ -66,7 +155,9 @@ impl ClaimWizardStage {
     /// Get next stage
     pub fn next(&self) -> Option<Self> {
         match self {
-            Self::Review => Some(Self::Claim),
+            Self::EconomicsReview => Some(Self::Review),
+            Self::Review => Some(Self::Reserve),
+            Self::Reserve => Some(Self::Claim),
             Self::Claim => Some(Self::WhatNext),
             Self::WhatNext => None,
         }
@@ -75,9 +166,11 @@ impl ClaimWizardStage {
     /// Get previous stage
     pub fn prev(&self) -> Option<Self> {
         match self {
-            Self::Review => None,               // First stage
-            Self::Claim => Some(Self::Review),  // Can go back to review
-            Self::WhatNext => Some(Self::Claim),
+            Self::EconomicsReview => None,                    // First stage
+            Self::Review => Some(Self::EconomicsReview),
+            Self::Reserve => Some(Self::Review),
+            Self::Claim => None,                              // Cannot go back after claim
+            Self::WhatNext => None,                           // Cannot go back
         }
     }
 
@@ -91,6 +184,11 @@ impl ClaimWizardStage {
         matches!(self, Self::Claim | Self::WhatNext)
     }
 
+    /// Check if this is the reservation stage
+    pub fn is_reserving(&self) -> bool {
+        matches!(self, Self::Reserve)
+    }
+
     /// Check if this is the final stage
     pub fn is_final(&self) -> bool {
         matches!(self, Self::WhatNext)
@@ -98,15 +196,33 @@ impl ClaimWizardStage {
 
     /// Check if this is the first stage
     pub fn is_first(&self) -> bool {
-        matches!(self, Self::Review)
+        matches!(self, Self::EconomicsReview)
+    }
+
+    /// Check if this stage shows economics information
+    pub fn shows_economics(&self) -> bool {
+        matches!(self, Self::EconomicsReview)
     }
 
     /// Get stage description for accessibility
     pub fn description(&self) -> &'static str {
         match self {
+            Self::EconomicsReview => "Review how earnings are split: 50% to you, 40% to platform, 10% to referrer",
             Self::Review => "Review your license details and accept terms",
+            Self::Reserve => "Your license is being reserved exclusively for you",
             Self::Claim => "Claim your license and receive your license key",
             Self::WhatNext => "Get started with guides, tasks, and next steps",
+        }
+    }
+
+    /// Get short title for progress display
+    pub fn short_title(&self) -> &'static str {
+        match self {
+            Self::EconomicsReview => "Economics",
+            Self::Review => "Terms",
+            Self::Reserve => "Reserve",
+            Self::Claim => "License",
+            Self::WhatNext => "Setup",
         }
     }
 }
@@ -160,7 +276,7 @@ impl ClaimWizardState {
     /// Create new wizard state
     pub fn new() -> Self {
         Self {
-            stage: RwSignal::new(ClaimWizardStage::Review),
+            stage: RwSignal::new(ClaimWizardStage::EconomicsReview),
             selected_variant: RwSignal::new(None),
             lease_code: RwSignal::new(String::new()),
             terms_accepted: RwSignal::new(false),
@@ -185,7 +301,7 @@ impl ClaimWizardState {
 
     /// Reset wizard to initial state
     pub fn reset(&self) {
-        self.stage.set(ClaimWizardStage::Review);
+        self.stage.set(ClaimWizardStage::EconomicsReview);
         self.selected_variant.set(None);
         self.lease_code.set(String::new());
         self.terms_accepted.set(false);
@@ -300,6 +416,13 @@ impl ClaimWizardState {
         self.selected_variant.set(Some(variant));
     }
 
+    /// Start the reservation process (transition to Reserve stage)
+    pub fn start_reservation(&self) {
+        self.is_claiming.set(true);
+        self.error.set(None);
+        self.stage.set(ClaimWizardStage::Reserve);
+    }
+
     /// Set reservation result (license reserved but not yet confirmed)
     pub fn set_reservation_success(&self, license_id: Option<String>, license_key: Option<String>, referral_code: Option<String>) {
         self.claimed_license_id.set(license_id);
@@ -308,6 +431,7 @@ impl ClaimWizardState {
         self.is_claiming.set(false);
         self.is_confirmed.set(false);
         self.error.set(None);
+        // Move from Reserve to Claim stage
         self.stage.set(ClaimWizardStage::Claim);
     }
 
@@ -318,6 +442,11 @@ impl ClaimWizardState {
         self.is_claiming.set(false);
         self.error.set(None);
         self.stage.set(ClaimWizardStage::Claim);
+    }
+
+    /// Proceed from EconomicsReview to Review
+    pub fn accept_economics(&self) {
+        self.stage.set(ClaimWizardStage::Review);
     }
 
     /// Set claim error
@@ -354,11 +483,30 @@ impl ClaimWizardState {
     /// Check if wizard can proceed to next stage
     pub fn can_proceed(&self) -> bool {
         match self.stage.get() {
+            ClaimWizardStage::EconomicsReview => true, // Always can proceed after viewing economics
             ClaimWizardStage::Review => {
-                self.terms_accepted.get() && self.selected_variant.get().is_some()
+                self.terms_accepted.get()
             }
-            _ => true,
+            ClaimWizardStage::Reserve => false, // Auto-proceeds on success
+            ClaimWizardStage::Claim => self.is_confirmed.get(), // Must confirm to proceed
+            ClaimWizardStage::WhatNext => false, // Final stage
         }
+    }
+
+    /// Get the journey step number (1-10) for marketing plan tracking
+    pub fn journey_step(&self) -> u8 {
+        match self.stage.get() {
+            ClaimWizardStage::EconomicsReview => 1,
+            ClaimWizardStage::Review => 2,
+            ClaimWizardStage::Reserve => 3,
+            ClaimWizardStage::Claim => 4,
+            ClaimWizardStage::WhatNext => 5,
+        }
+    }
+
+    /// Check if wizard is in a loading/processing state
+    pub fn is_processing(&self) -> bool {
+        self.is_claiming.get() || self.is_confirming.get() || self.is_loading_variants.get()
     }
 }
 

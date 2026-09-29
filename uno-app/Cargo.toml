@@ -89,11 +89,14 @@ uno-api = { path = "deps/uno-api", features = ["services", "auth"], optional = t
 # GeoIP lookup
 maxminddb = { version = "0.24", optional = true }
 
-# File storage for cloud uploads (GCS, S3, etc.)
-file-storage = { path = "deps/file-storage", features = ["gcs"], optional = true }
+# File storage for local filesystem (production default)
+file-storage = { path = "deps/file-storage", features = ["local"], optional = true }
 
 [features]
 default = []
+# WARNING: Never enable debug-routes in production - exposes sensitive data!
+# Only enable for local development debugging.
+debug-routes = []
 csr = ["leptos/csr", "dep:web-sys", "dep:wasm-bindgen-futures", "dep:gloo-timers", "dep:serde-wasm-bindgen", "dep:ember-fx-icons", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-utils", "ember-fx-components/csr", "ember-fx-core/csr"]
 hydrate = ["leptos/hydrate", "dep:web-sys", "dep:wasm-bindgen-futures", "dep:gloo-timers", "dep:serde-wasm-bindgen", "dep:ember-fx-icons", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-utils", "ember-fx-components/hydrate", "ember-fx-core/hydrate"]
 ssr = [

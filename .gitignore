@@ -16,7 +16,7 @@ target/
 debug/
 *.pdb
 **/*.rs.bk
-Cargo.lock
+# Note: Cargo.lock is committed for reproducible builds (executables)
 
 # IDE
 .idea/

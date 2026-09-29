@@ -14,7 +14,7 @@ async fn main() -> std::io::Result<()> {
     use uno_app::server;
     use uno_app::server::db::ConnectionManager;
     use uno_app::server::app::ServiceFactory;
-    use uno_app::server::middleware::{RequestLogger, VisitorTracker, init_logging};
+    use uno_app::server::middleware::{RequestLogger, VisitorTracker, CsrfProtection, SecurityHeaders, init_logging};
     use uno_app::api::{register_faq_server_fns, register_guides_server_fns, register_tasks_server_fns, register_home_server_fns};
 
     // Load environment variables
@@ -115,6 +115,12 @@ async fn main() -> std::io::Result<()> {
                 }
             })
             .app_data(web::Data::new(leptos_options.to_owned()))
+            // Add security headers (X-Frame-Options, CSP, etc.)
+            .wrap(SecurityHeaders)
+            // Add CSRF protection (skip API routes which use token auth)
+            .wrap(CsrfProtection::new(
+                std::env::var("CSRF_SECRET_KEY").unwrap_or_else(|_| "dev-csrf-secret-key-change-in-prod".to_string())
+            ).skip_api(true))
             // Add visitor tracking middleware
             .wrap(VisitorTracker)
             // Add request logging middleware last (wraps all routes)

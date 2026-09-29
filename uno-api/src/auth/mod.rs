@@ -40,11 +40,13 @@
 
 mod client_registry;
 mod hmac;
+mod nonce_registry;
 mod preview_token;
 mod signed_request;
 
 pub use client_registry::{ClientCredentials, ClientRegistry};
-pub use hmac::{sign_payload, verify_signature};
+pub use hmac::{sign_payload, verify_signature, verify_with_replay_protection};
+pub use nonce_registry::NonceRegistry;
 pub use preview_token::{
     generate_preview_token, validate_preview_token, PreviewTokenPayload,
     DEFAULT_PREVIEW_DURATION_SECS,
@@ -69,6 +71,9 @@ where
 ///
 /// Checks timestamp freshness and signature validity.
 /// Returns the client credentials if verification succeeds.
+///
+/// Note: This does not include nonce-based replay protection.
+/// For production use, prefer `verify_request_with_replay_protection`.
 pub fn verify_request<T: serde::Serialize>(
     request: &SignedRequest<T>,
     registry: &ClientRegistry,
@@ -79,6 +84,33 @@ pub fn verify_request<T: serde::Serialize>(
 
     // Verify the signature
     hmac::verify_signature(request, &credentials.secret_key, max_age_secs)?;
+
+    Ok(credentials)
+}
+
+/// Verify a signed request with full replay protection.
+///
+/// This is the recommended verification function for production use.
+/// It combines signature verification with nonce tracking to prevent
+/// replay attacks even within the timestamp validity window.
+///
+/// Returns the client credentials if verification succeeds.
+pub fn verify_request_with_replay_protection<T: serde::Serialize>(
+    request: &SignedRequest<T>,
+    client_registry: &ClientRegistry,
+    nonce_registry: &NonceRegistry,
+    max_age_secs: i64,
+) -> Result<ClientCredentials, crate::error::AuthError> {
+    // Get client credentials
+    let credentials = client_registry.get(&request.client_id)?;
+
+    // Verify signature with replay protection (timestamp + nonce)
+    hmac::verify_with_replay_protection(
+        request,
+        &credentials.secret_key,
+        max_age_secs,
+        nonce_registry,
+    )?;
 
     Ok(credentials)
 }

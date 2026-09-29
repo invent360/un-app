@@ -1,7 +1,12 @@
 //! CMS-driven Earnings section component
+//!
+//! Includes transparent 50/40/10 split visualization to show how earnings
+//! are distributed between users, platform, and referrers.
 
 use leptos::prelude::*;
 use crate::api::HomeSection;
+use crate::hooks::t;
+use crate::components::economics::{SplitDisplay, SplitBar};
 
 /// Earnings tier data from CMS
 #[derive(Debug, Clone)]
@@ -63,6 +68,16 @@ pub fn CmsEarningsSection(
             <div class="container">
                 <h2 class="section-title">{title}</h2>
                 <p class="section-subtitle">{subtitle}</p>
+
+                // Transparent 50/40/10 Split Disclosure
+                <div class="earnings-transparency">
+                    <div class="transparency-header">
+                        <h3 class="transparency-title">{move || t("economics.split_title")}</h3>
+                        <p class="transparency-description">{move || t("economics.split_description")}</p>
+                    </div>
+                    <SplitDisplay compact=true />
+                    <p class="transparency-note">{move || t("economics.transparency_note")}</p>
+                </div>
 
                 <div class="earnings-grid">
                     {tiers.into_iter().map(|tier| {

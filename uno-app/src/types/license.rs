@@ -192,6 +192,12 @@ pub struct ClaimResponse {
     /// The license key (same as lease_code)
     pub license_key: Option<String>,
     pub error: Option<String>,
+    /// Optional message (for errors or info)
+    #[serde(default)]
+    pub message: Option<String>,
+    /// When the license was claimed
+    #[serde(default)]
+    pub claimed_at: Option<DateTime<Utc>>,
 }
 
 impl ClaimResponse {
@@ -199,12 +205,15 @@ impl ClaimResponse {
     pub fn success(license: License) -> Self {
         let license_id = license.id.to_string();
         let license_key = license.lease_code.clone();
+        let claimed_at = license.claimed_at;
         Self {
             success: true,
             license: Some(LicenseDto::from(license)),
             license_id: Some(license_id),
             license_key: Some(license_key),
             error: None,
+            message: None,
+            claimed_at,
         }
     }
 
@@ -216,6 +225,8 @@ impl ClaimResponse {
             license_id: None,
             license_key: None,
             error: Some(message.into()),
+            message: None,
+            claimed_at: None,
         }
     }
 }

@@ -5,8 +5,10 @@
 //! application to provide the actual implementations.
 
 mod csv_import;
+pub mod forecast;
 mod license_admin;
 pub mod unetwork;
 
 pub use csv_import::*;
+pub use forecast::{simulate, validate};
 pub use license_admin::*;

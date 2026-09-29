@@ -1,5 +1,6 @@
 //! Data models and DTOs for uno-api.
 
+mod forecast;
 mod import;
 mod license;
 pub mod marketplace;
@@ -8,6 +9,7 @@ mod variant;
 pub mod request;
 pub mod response;
 
+pub use forecast::*;
 pub use import::*;
 pub use license::*;
 pub use variant::*;

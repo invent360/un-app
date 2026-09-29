@@ -1,14 +1,120 @@
-//! File API handlers for cloud storage (GCS/S3)
+//! File API handlers for storage (local filesystem and cloud)
 //!
-//! Provides endpoints for uploading files to cloud storage and
-//! serving them via signed URLs.
+//! Provides endpoints for uploading files and serving them.
+//! For local storage, files are served directly with proper security headers.
+//! For cloud storage, files are redirected to signed URLs.
 
 use actix_web::{HttpResponse, web, http::header};
 use file_storage::{create_client_from_env, FileStorageClient};
 use uuid::Uuid;
+use crate::server::middleware::AdminAuth;
+
+/// MIME type mapping for file extensions
+fn mime_from_extension(path: &str) -> &'static str {
+    let ext = std::path::Path::new(path)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+
+    match ext.as_str() {
+        "jpg" | "jpeg" => "image/jpeg",
+        "png" => "image/png",
+        "gif" => "image/gif",
+        "webp" => "image/webp",
+        "avif" => "image/avif",
+        "svg" => "image/svg+xml",
+        "pdf" => "application/pdf",
+        "mp4" => "video/mp4",
+        "webm" => "video/webm",
+        "mov" => "video/quicktime",
+        "mp3" => "audio/mpeg",
+        "wav" => "audio/wav",
+        "ogg" => "audio/ogg",
+        "json" => "application/json",
+        "xml" => "application/xml",
+        "txt" => "text/plain",
+        "csv" => "text/csv",
+        _ => "application/octet-stream",
+    }
+}
+
+/// GET /files/{resource_id}/{filename}
+/// Serves local files directly with security headers
+pub async fn serve_local_file(
+    path: web::Path<(String, String)>,
+) -> HttpResponse {
+    let (resource_id, filename) = path.into_inner();
+
+    // Basic path validation (additional checks in file-storage)
+    if resource_id.contains("..") || filename.contains("..")
+        || resource_id.contains('/') || resource_id.contains('\\') {
+        return HttpResponse::Forbidden().json(serde_json::json!({
+            "error": "Path traversal rejected",
+            "code": "FORBIDDEN"
+        }));
+    }
+
+    let client = match create_client_from_env() {
+        Ok(c) => c,
+        Err(e) => {
+            tracing::error!("Failed to create storage client: {}", e);
+            return HttpResponse::ServiceUnavailable().json(serde_json::json!({
+                "error": "Storage service unavailable",
+                "code": "SERVICE_UNAVAILABLE"
+            }));
+        }
+    };
+
+    // Get base path from environment
+    let base_path = std::env::var("FILE_STORAGE_LOCAL_PATH")
+        .unwrap_or_else(|_| "/data/uploads".to_string());
+
+    // Construct the storage URL for the file (file://{base_path}/{relative_path})
+    let relative_path = format!("{}/{}", resource_id, filename);
+    let storage_url = format!("file://{}/{}", base_path, relative_path);
+
+    // Get file content from storage
+    match client.get_file(&storage_url).await {
+        Ok(data) => {
+            let mime_type = mime_from_extension(&filename);
+
+            HttpResponse::Ok()
+                .insert_header((header::CONTENT_TYPE, mime_type))
+                .insert_header((header::CACHE_CONTROL, "public, max-age=31536000, immutable"))
+                .insert_header((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
+                // Prevent XSS via uploaded content
+                .insert_header((header::CONTENT_SECURITY_POLICY, "default-src 'none'; style-src 'unsafe-inline'"))
+                // Prevent files from being framed
+                .insert_header((header::X_FRAME_OPTIONS, "DENY"))
+                .body(data)
+        }
+        Err(e) => {
+            let status_code = e.status_code();
+            match status_code {
+                404 => HttpResponse::NotFound().json(serde_json::json!({
+                    "error": "File not found",
+                    "code": "NOT_FOUND"
+                })),
+                403 => HttpResponse::Forbidden().json(serde_json::json!({
+                    "error": "Access denied",
+                    "code": "FORBIDDEN"
+                })),
+                _ => {
+                    tracing::error!("Failed to serve file: {}", e);
+                    HttpResponse::InternalServerError().json(serde_json::json!({
+                        "error": "Failed to retrieve file",
+                        "code": "INTERNAL_ERROR"
+                    }))
+                }
+            }
+        }
+    }
+}
 
 /// GET /api/files/{storage_url}
-/// Redirects to a signed display URL for the file
+/// Redirects to a signed display URL for the file (cloud storage)
+/// or serves directly for local storage
 pub async fn get_file(
     path: web::Path<String>,
 ) -> HttpResponse {
@@ -31,6 +137,28 @@ pub async fn get_file(
         }
     };
 
+    // For local files, serve directly instead of redirecting
+    if storage_url.starts_with("file://") {
+        match client.get_file(&storage_url).await {
+            Ok(data) => {
+                let mime_type = mime_from_extension(&storage_url);
+                return HttpResponse::Ok()
+                    .insert_header((header::CONTENT_TYPE, mime_type))
+                    .insert_header((header::CACHE_CONTROL, "public, max-age=31536000, immutable"))
+                    .insert_header((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
+                    .body(data);
+            }
+            Err(e) => {
+                tracing::error!("Failed to serve local file: {}", e);
+                return HttpResponse::NotFound().json(serde_json::json!({
+                    "error": "File not found",
+                    "code": "NOT_FOUND"
+                }));
+            }
+        }
+    }
+
+    // For cloud storage, redirect to display URL
     let display_url = client.storage_to_display_url(&storage_url);
 
     HttpResponse::TemporaryRedirect()
@@ -256,6 +384,14 @@ pub async fn delete_files(
 
 /// Configure file storage routes
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
+    // Public file serving for local storage
+    // GET /files/{resource_id}/{filename}
+    cfg.service(
+        web::scope("/files")
+            .route("/{resource_id}/{filename:.*}", web::get().to(serve_local_file))
+    );
+
+    // API routes for storage URL management
     cfg.service(
         web::scope("/api/files")
             .route("/display-url", web::get().to(get_display_url))
@@ -263,8 +399,10 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route("/serve/{storage_url:.*}", web::get().to(get_file))
     );
 
+    // Admin file routes - protected by AdminAuth
     cfg.service(
         web::scope("/api/admin/files")
+            .wrap(AdminAuth::from_env())
             .route("/upload", web::post().to(upload_files))
             .route("/{resource_id}", web::delete().to(delete_files))
     );

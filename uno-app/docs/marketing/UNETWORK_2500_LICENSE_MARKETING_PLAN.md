@@ -1,13 +1,17 @@
 # Unetwork: a cost-controlled plan to activate 2,500 ULO licences
 
 **Prepared:** 28 September 2026  
-**Revision 2:** historical 50:50 interpretation; proposed ULO 50% / UNO 40% / referral 10%; UNO-funded credits; CSV-only reward evidence.  
+**Revision 4:** adds a task-driven weekly revenue, expense, profit and cash-flow forecast; editable calculator; 52-week continuation and payback; explicit scenario assumptions. Retains all Revision 3 review improvements and ULO 50% / UNO 40% / referral 10%.  
 **Objective:** build a repeatable acquisition operation capable of at least 250 net additional productive licences per week, until 2,500 are productively deployed.  
-**Basis:** the supplied incentive CSV, the owner’s clarifications and public participation terms. No estimated daily task rates are used in this revision. Budgets, conversion targets and market allocations remain planning assumptions.
+**Basis:** the supplied incentive CSV, the owner’s clarifications and public participation terms. Section 3 uses CSV evidence only. Section 16 introduces explicitly illustrative daily reward assumptions for scenario forecasting, not measured rates or promises. Budgets, conversion targets and market allocations remain planning assumptions.
+
+**Revenue forecast:** Section 16 provides week-by-week results after configured expenses and a pluggable algorithm. Open the companion `UNETWORK_REVENUE_CALCULATOR.html` in a browser to change tasks and regenerate up to 260 weeks.
 
 ## 1. Recommended strategy and conditions for success
 
-Use **trusted local community partners, adult digital-skills groups, small creators and one-level referrals**, supported by short onboarding clinics. Recruit people who already own suitable phones and already have affordable, stable internet. Begin in two markets; expand into six only after local operation and withdrawals are demonstrated. Retain international reach through an eligibility-screened waiting list.
+**Decision first:** do not commit to the 250-per-week production schedule until measured rewards cover UNO-funded credits, support and acquisition with room for overhead; participants choose to continue after full disclosure; and the next cohort has credible task and recruitment capacity. If those conditions fail, improve the economics or reduce scope before adding funded licences.
+
+The proposed route to test first uses **trusted local community partners, adult digital-skills groups, small creators and one-level referrals**, supported by short onboarding clinics. Recruit people who already own suitable phones and already have affordable, stable internet. Begin in two markets; expand into six only after local operation and withdrawals are demonstrated. Retain international reach through an eligibility-screened waiting list.
 
 Position the opportunity as **small supplementary rewards for optional device tasks**, with clearly disclosed costs. It is not employment, a salary, guaranteed daily income or a reason to buy a phone, broadband connection or GPU.
 
@@ -17,13 +21,22 @@ The revised offer is **50% ULO / 40% UNO / 10% referral of the distributable lic
 
 The historical split is confirmed by the owner as 50:50, and the export covers only licences distributed within its timeframe. The calculations below **interpret `ups` as the UNO’s credited share**, because this is presented as a UNO incentive export. Confirm that column’s recipient definition against the ledger before treating reconstructed totals as verified pool amounts. If `ups` is already the combined pool, do not double it. There is no basis for treating the export as 2,500 fully active licences.
 
-**Three conditions must be resolved before broad recruitment:**
+### Launch and expansion gates
 
-1. **Promotion permission:** terms §5.6 broadly restrict outside-ecosystem promotion or facilitation of operator-licence transfers/sublicensing. Obtain a platform-approved recruitment/referral arrangement, permitted copy and official activation route. A free lease does not automatically remove this restriction. The external channels below are conditional on that arrangement; otherwise use authorised in-platform discovery and support only. [S2]
-2. **Positive participant economics:** measure credited rewards against the actual paid licence-months of distributed devices. Confirm the `ups` recipient definition and actual credit charge. Do not apply another 75% haircut to already credited operator rewards.
-3. **Proven participation:** verify device/country eligibility, credit pricing, actual task earnings, data use and withdrawal with a small pilot. Projected Entropy and Windows GPU rewards do not fund the base plan.
+The UNO owns the decision log; the coordinator gathers evidence and reports failures. A gate is passed with dated evidence, not a checklist assertion. All pilot participation also requires an authorised recruitment route.
 
-This is a target-driven operating plan, not a guarantee that markets will produce 250 activations weekly. If the conversion or economics gates fail, adjust the offer or timeline rather than conceal costs or recruit unsuitable participants.
+| Gate | Required evidence | If it fails |
+|---|---|---|
+| Permission and settlement | Applicable lease terms; platform-approved recruitment route and copy; supported 50/40/10 accounting and UNO credit funding | Use only authorised discovery; resolve settlement before promising referral payouts |
+| Product and eligibility | Official Android build installs on intended devices; applicable attestation/KYC works; an accepted task reward appears; eligible withdrawal route checked | Pause the affected device/market; do not infer support from a download link |
+| Data and billing | Export recipient and task labels defined; funded licence-months reconciled; actual credit invoice, exemptions, renewal and reassignment rules recorded | No per-device earnings claims or large credit commitment |
+| Task availability at increasing scale | Compare incumbent and new-cohort accepted activity, reward per eligible device-day and zero-reward days; obtain platform guidance on task/country quotas and onboarding capacity | Hold the next cohort; diagnose workload, eligibility or connectivity rather than assume marketing can fix it |
+| UNO commercial margin | Realised contribution after credits/support is positive and expected retained contribution covers acquisition plus allocated overhead | Reduce acquisition cost, improve productivity or negotiate credit price; do not pass costs back to ULOs |
+| Participant value | Positive measured net outcomes plus informed uptake and voluntary continued participation in each tested market | Change the offer or stop that market; positive cash alone is insufficient |
+| Promoter and funnel capacity | Partners accept disclosed compensation; two completed weekly cohorts demonstrate sufficient unique opt-ins, conversion and retention | Replace unproven channel quotas or extend preparation |
+| Funding and inventory | Credits, earned referral liabilities and support are funded; active trials plus productive licences stay within 2,500 | Limit admissions to funded, legally reusable slots |
+
+The CSV does not establish total network capacity. This is a conditional operating plan, not a guarantee of 250 weekly activations. The production clock starts only after validation; a two-week diagnostic pilot is not a deadline for declaring success.
 
 ## 2. What the incentive CSV actually establishes
 
@@ -51,6 +64,14 @@ This is a target-driven operating plan, not a guarantee that markets will produc
 | 28 September | 0.033500 | Latest date may be incomplete; excluded from recent completed-date windows |
 
 The owner confirms a **historical 50% UNO / 50% ULO split** and that the export covers **licences distributed within the stated timeframe**, not all owned licences. It still does not identify distributed counts, deployment dates, paid licence-months, country, device or uptime. The `ups` recipient is interpreted as UNO credit for the reconstruction below, subject to ledger confirmation. The fall from July to August cannot be attributed to reduced rates, churn or demand without those fields. The recent totals are not a defensible portfolio revenue forecast.
+
+### Scope and capacity: do not divide a partial cohort by the full inventory
+
+Under the conditional `P = 2H` reconstruction, the latest completed 28-day window normalises to about **69.397369 UP of pool per 30 days**. Dividing that by all 2,500 owned licences gives 0.027759 UP, but that is not an observed per-licence yield: the export does not show 2,500 funded licences contributing for the entire period. Comparing it with the $14,000 portfolio break-even is a **fixed-total-income stress case**, not proof of a 202-fold network shortfall. If the cohort's total reward really stayed fixed while costs grew to 2,500 funded licences, scaling would fail; that fixed-budget premise must be tested, not assumed.
+
+Similarly, allocation counts do not establish a 23-device network ceiling. Establish the accounting unit and the export population first. Capacity for scarce calls can differ from capacity for continuous telemetry: request task-, country- and eligibility-specific demand information rather than one universal device-day quota.
+
+The `Other` category records **2.5 UP per allocation in every row**. For example, 25 UP represents ten allocations. It does not prove a 25× premium tier, nor recurring premium work. Similar average rewards across other task labels do not prove equal units of work. Retain the categories without inventing mappings or multipliers.
 
 ### Additional data needed for a decision-grade pilot
 
@@ -129,6 +150,20 @@ Sensitivity values below are **arbitrary pool levels for break-even analysis**, 
 
 The CSV does not supply paid licence-months, so it cannot show which row represents the distributed population. The 30-day-normalised recent UNO credit would cover at most about **13 fully billed licence-months of $1.99 credits alone**, or **12 including $0.25 support**, if it represented the entire comparable cohort’s income. This is a conditional budget bound, not an estimate of the actual number of distributed or active licences.
 
+### Credit-cost sensitivity and full commercial margin
+
+Licence ownership and recurring operating credits are separate questions. Published terms describe credits starting at $1.99 monthly and the FAQ permits the licence holder to fund the operator's plan. Confirm the actual charge with the platform; a zero-cost scenario requires an exemption, included credits or another documented basis. Prepaid credits may remove current cash expenditure but still have an economic cost or expiry. [S2, S8]
+
+| Credit cost per funded licence-month | Support assumption | Operating break-even pool | Pool to recover $2 acquisition over three retained months, before overhead/churn |
+|---|---:|---:|---:|
+| $0.00 | $0.25 | $0.625 | $2.292 |
+| $1.99 | $0.25 | $5.60 | $7.267 |
+| $3.99 | $0.25 | $10.60 | $12.267 |
+
+The $5.60 figure is a threshold, **not a predicted or base-case yield**. The 50/40/10 split is not inherently insolvent, but it has less UNO margin than a 50% UNO share on the same pool. Credit cost does not change the allocation identity `new UNO reward = 0.8 × historical UNO reward`; it changes net contribution afterwards.
+
+For planning, let `A` be acquisition expense per retained operator, `T` expected paid retained months and `F` allocated fixed overhead per funded licence-month. Required pool before tax and capital recovery is `(C + S + A/T + F) / 0.40`. In practice, use survival-weighted monthly contribution: `CAC ceiling = sum(probability active in month t × contribution in month t)`, less overhead and a cash buffer. Do not count the same partner fee or support time in both acquisition and recurring costs.
+
 ### Required denominator and acquisition cap
 
 Record distribution/activation date, renewal dates, credits actually paid, task credits and releases per licence. For continuous proportional pricing, use billed licence-days divided by 30. If credits are sold in full-month blocks, use actual purchased blocks for cash profitability; do not prorate away non-refundable charges. The distribution timeframe alone is not enough to calculate these quantities.
@@ -173,6 +208,20 @@ Second-wave discovery candidates: Indonesia, Vietnam, Nepal, Pakistan, Sri Lanka
 
 Score each market out of 100: verified task/withdrawal access 25, participant net return 25, affordable existing connectivity 20, partner access 15, support/language fit 10, independent geographic distribution 5. Require 70+ and no failed eligibility/economics condition. These weights are planning choices.
 
+### Participant value test for each pilot market
+
+National GNI is background context, not a participation threshold or median household income. Do not assert that rewards below 5% of national income are worthless. Test whether the specific offer is worthwhile for people who already have suitable equipment and connectivity.
+
+| Measure | Collection method | Decision use |
+|---|---|---|
+| Informed uptake | Explain measured rewards, 50/40/10, permissions, KYC, withdrawal and UNO-funded credits before acceptance; record invited/eligible/accepted counts | Low uptake after disclosure means the value proposition needs revision |
+| Participant net cash | Actual ULO rewards less incremental data, electricity and withdrawal costs; include zero-reward users | Pause cohorts with negative median net cash; investigate lower-quartile losses |
+| Time and inconvenience | Setup minutes, help requests, battery/connection issues and voluntary time valuation | Report separately from cash; do not declare time free |
+| Voluntary continuation | Ask whether the participant wants to continue at the observed reward, without recruitment bonus; check D7 and D30 behaviour | Initial management target: at least 70% of respondents willing to continue, plus D7/D30 targets in Section 13; report non-response separately |
+| Exit reasons | Optional short interview: earnings, trust, permissions, data, battery, verification, payment or technical problems | Fix the actual cause rather than increasing recruitment pressure |
+
+These are pilot decision targets, not market benchmarks. Start with up to 30 total participants across two markets; small samples are directional, not population estimates. Review results by market and device; expand the sample when it is too small to distinguish a repeatable outcome. Do not use a pooled positive average to hide a loss-making market. No purchase of hardware or new data service is required to qualify for the test.
+
 ## 6. Offer and distribution mechanics
 
 The proposed offer: an official in-app licence lease with **no upfront licence-acquisition charge**, transparent 50% ULO / 40% UNO / 10% referral allocation and UNO-funded activation credits, task-specific eligibility and plain-language exit terms. Describe the licence and credits as UNO-funded; disclose remaining device, connection and withdrawal costs rather than promising cost-free earnings. Do not represent it as a gift of NFT ownership when it is a lease.
@@ -207,7 +256,7 @@ All external execution is conditional on the platform-approved programme in Sect
 | Platform marketplace/community | Immediate | Optimise the authorised lease offer and support reputation; ask the platform for approved operator discovery. Best fallback if external promotion is not permitted. |
 | Existing community admins | Core | Obtain moderator permission, give a transparent economics sheet, host one Q&A and track actual activation. Pay for retained outcomes, not member counts. |
 | Adult training providers and alumni groups | Core | Offer an optional device/network literacy demonstration outside class obligations. Institution participation is not blanket student consent. |
-| Small local tech creators | Core test | Demonstrate real installation and verified pilot results. Prefer modest performance fees over large upfront sponsorships. Disclose compensation. |
+| Small local tech creators | Conditional compensation test | Demonstrate real installation and verified pilot results. Test the recurring referral offer first; separately price any production or onboarding service and include it in CAC. Disclose compensation. |
 | One-level referrals | Core after proof | Reward verified retention, not recruiting recruiters; no downlines, deposits or earnings from recruitment fees. Cap cash liability. |
 | Smartphone repair/accessory shops | Test | Approved leaflet/QR for customers who opt in; no staff installation without device-owner consent. Avoid commissions that exceed CAC ceiling. |
 | Broadband/ISP community partnerships | Test | Ask for an approved informational placement to already-connected customers. Never imply internet service is paid for by the rewards. |
@@ -231,6 +280,19 @@ All external execution is conditional on the platform-approved programme in Sect
 
 WhatsApp business messaging requires suitable opt-in and respecting opt-outs; Reddit prohibits unsolicited mass engagement and communities set their own promotion rules. These are operating constraints, not reasons to avoid all community outreach. [S6, S7]
 
+### Telcos, NGOs and other potentially subsidised channels
+
+Keep these as additional partnership experiments, not guaranteed sources in the weekly quota.
+
+| Channel | Commercial or mission hypothesis | Evidence needed before counting weekly output |
+|---|---|---|
+| ISP/telco customer placement | An optional service may support customer engagement or an approved network-quality programme | Named counterpart, agreed permitted audience, privacy boundaries, delivery dates and measured productive activations |
+| Sponsored data / zero-rating | Sponsor funds participating traffic because documented outcomes justify the expense | Written eligible-traffic and cost terms, technical feasibility, applicable policy review, setup/support costs and task eligibility; zero-rated data does not guarantee connectivity or power |
+| NGO/digital-literacy programme | Optional participation may complement digital-skills training if independently measured participant benefits outweigh burden | Explicit programme approval, informed consent process, staff budget, benefit measurement and a funded agreement; no assumption a grant will be awarded |
+| Crypto/airdrop communities | Members may be familiar with wallet-based rewards | Test honest small-reward messaging, unique productive operators and D30 retention; no speculative token promises or bulk-account incentives |
+
+Revenue share is an economic cost, and organic acquisition consumes labour. A federation configuration or directory listing is not a signed partner. If any strategic partner needs another share, identify its funding source without silently increasing the 10% referral allocation or reducing the ULO's 50%.
+
 ## 8. Partner recruitment playbook
 
 ### Build the supply of promoters before promising the weekly volume
@@ -244,6 +306,12 @@ A coordinator handles roughly 20 tailored approaches per business day for one we
 Give each partner a one-page brief: eligibility, realistic net examples, exact cost payer, official links, prohibited claims, support route, attribution and compensation. Include a “who should not join” box: costly data, negative measured net outcomes, unsupported phone/country, unwillingness to complete required verification, or expectation of salary-scale income.
 
 ### Compensation model
+
+**Separate occasional referrers from active service providers.** A participant making an occasional introduction receives the disclosed 10% recurring share. An ambassador expected to prospect, host sessions or resolve installations must first agree to a realistic scope and compensation; do not assume recurring shares fund a job.
+
+Run a two-week promoter test with a small set of willing partners. Record unique opt-ins, D7/D30 operators, hours spent, actual referral accrual, paid service fees and willingness to continue. At the illustrative $5.60 pool, fifty retained licences yield $28 monthly referral income; this is not a salary claim. At ten hours of work it is $2.80 per hour for that month's accrual, excluding future income and other costs—not an agreed fair rate. Use actual local terms and include continuing support effort.
+
+Count a promoter's weekly quota only after demonstrated output and acceptance of the actual agreement. The $150/week service ceiling is a budget constraint, not evidence it buys ten ambassadors. If it cannot buy sufficient agreed capacity, lower the quota, replace the channel or extend the schedule. Do not require unpaid labour to preserve the model.
 
 Replace the default fixed acquisition bounty with the **single-level 10% recurring referral allocation in Section 4**. Partners and ambassadors receive only the share for their directly attributed productive licences, after reward reconciliation. Display the full three-way split to the ULO; do not call the referral payment an additional deduction from the ULO’s 50%.
 
@@ -297,7 +365,17 @@ Keep language-specific help sessions twice weekly, one pinned setup video and a 
 | Days 4–7 | Recruit up to 30 consented pilot participants across two markets; establish device/task measurements | Confirm current tasks and affordability; projected tasks remain excluded |
 | Days 8–14 | Evaluate seven-day retention, support time, data consumption and credited rewards; verify eligible withdrawal process; train partners | D7 ≥85%; participant net economics positive; credible channel pipeline |
 
-A two-week pilot does not establish D30 retention. Begin scale conditionally, settle referral shares only against actual accepted rewards and review D30 before releasing the full expansion budget. If a first-week 250 target is required from a cold start, the supplied evidence is insufficient to promise it; pre-launch partner capacity is essential.
+A two-week pilot does not establish D30 retention. Continue with bounded validation cohorts, settle referral shares only against actual accepted rewards and observe at least one D30 cohort before committing the full production budget. If a first-week 250 target is required from a cold start, the supplied evidence is insufficient to promise it; pre-launch partner capacity is essential.
+
+### Capacity-validation ladder before the production clock
+
+Use up to 30 pilot participants, then bounded cohorts toward 100 and 250 total productive licences, only while Section 1 gates pass. These are test ceilings, not mandatory additions or proof of network limits. Reconcile pre-production participants into opening inventory; do not recruit or bill them twice. Existing verified cohorts can provide equivalent evidence.
+
+For each addition, compare at least seven complete days of incumbent and new-cohort observations: funded licence-days, eligible device-days, accepted task activity, zero-reward proportion, realised pool, support and participant net outcomes. Normalise task/country/device mix. A greater than 20% fall in incumbent reward per comparable eligible device-day, or a greater than 10 percentage-point rise in zero-reward days, triggers a hold and investigation; these are management alerts, not statistically proven saturation thresholds. Hold immediately if either party's economics fail. Short-term seasonality, connectivity and eligibility must be separated from demand saturation.
+
+Ask the platform whether rewards come from a fixed pool or qualifying incremental work, whether task/country quotas apply, and what onboarding capacity is supported. Do not claim a maximum network capacity without this evidence. Confirm Android installation and credited activity using the official published build; APK availability alone is not an execution test. [S9]
+
+After validation, require two completed weekly recruitment cohorts to demonstrate enough funnel capacity for the chosen schedule, at measured CAC. A successful 30-user test cannot prove 250-per-week acquisition. Validation can exceed two weeks; never compress it to preserve an advertised date.
 
 ### Ten production weeks: net 250 productive licences added weekly
 
@@ -322,6 +400,20 @@ This is a cohort planning approximation; onboarding precedes its D7 report by on
 A steady 300 D7/week engine provides limited buffer: at 2,250 opening licences it supports 255 net additions under 2% churn. If churn is 5%, net additions fall to about 188. Achieving net 250 then requires about 363 D7 additions, or roughly 1,210 opted-in prospects at 30% conversion. Retention is therefore part of the acquisition strategy.
 
 Once 2,500 are active, stop promising 250 new placements/week. The goal becomes maintaining capacity; at 2% weekly churn, replacement demand is around 50 productive activations/week. Keep a consented waiting list, not an oversold licence queue.
+
+### Downside schedule and automatic response
+
+The illustrative downside conversion is `0.60 × 0.60 × 0.60 × 0.70 = 15.12%` from opt-in to D7 productive. Required unique opt-ins are rounded up:
+
+| Situation | D7 additions required | Opt-ins at 15.12% |
+|---|---:|---:|
+| Initial 250 net additions, no opening churn | 250 | 1,654/week |
+| Final scheduled week: 250 net plus 45 replacements | 295 | 1,952/week |
+| Maintain 2,500 at 2% weekly churn | 50 | 331/week |
+
+At 1,000 opt-ins weekly and 15.12% conversion, expected D7 additions are 151.2. Under the simplified recurrence `N_next = 0.98 × N + 151.2`, starting at zero and with unrestricted legitimate slot recycling, reaching 2,500 takes approximately **20 production weeks**, plus preparation and reporting time. This is a downside planning illustration, not a promised alternative timetable. At 5% churn the same calculation takes about 35 weeks; rounding, eligibility and slot-release delays can extend both.
+
+After two completed weekly cohorts below the conversion needed for the current target, choose one documented response: expand already-proven sources within the CAC ceiling; fix the failing funnel stage and retest; or reduce admissions and extend the schedule. Do not silently increase ad spend. Rebudget credits, support and coordination for every extension; the ten-week reserve below no longer applies unchanged. Recompute using current productive inventory, not a repeated zero-start assumption.
 
 ## 11. Budget, staffing and UNO-funded credit cash flow
 
@@ -371,6 +463,18 @@ A conservative reserve for the scheduled 3,211 onboarding activation attempts is
 
 This is a deliberately conservative reserve, not expected consumption and not claimed to be the platform’s billing mechanism. It assumes at most three billing blocks over the ten-week production window and timely cancellation of failed/inactive participation. The final reporting tail and delays can create additional renewals; fund them separately. Confirm whether credit follows a reusable licence, survives reassignment or must be repurchased for each new activation: reusable credits could substantially lower the reserve. Do not count pilot credits twice if pilot licences enter the production cohort.
 
+### Credit-reserve sensitivity
+
+Under the same conservative 8,211 monthly-block allowance (3,211 initial plus 5,000 renewal blocks), with the other campaign provisions held fixed:
+
+| Actual credit price per block | Production credit reserve | Campaign funding envelope including $5,750 other provisions |
+|---|---:|---:|
+| $0.00 | $0.00 | $5,750.00 |
+| $1.99 | $16,339.89 | $22,089.89 |
+| $3.99 | $32,761.89 | $38,511.89 |
+
+The zero-credit case is conditional on documented coverage or exemption; it is not inferred from ownership. These are funding allowances, not expenditure forecasts. The pilot's $200 provision remains unchanged in this comparison; replace it with actual cost when known. Validation beyond the diagnostic pilot, delayed deployment and additional billing blocks require an updated cash calendar before commitment. At each weekly review show opening cash, credit purchases/renewals, service costs, earned referral liabilities, settled receipts and closing cash; unsettled rewards are not available cash.
+
 ### Fully deployed portfolio break-even
 
 At $1.99 credits and $0.25 support, monthly UNO costs for 2,500 funded licences are **$5,600**, before recruitment, fixed overhead or tax. Covering that with a 40% share requires **$14,000/month in total distributable rewards** ($5.60 per funded licence).
@@ -382,7 +486,7 @@ At $1.99 credits and $0.25 support, monthly UNO costs for 2,500 funded licences 
 | $7.50 | $18,750 | $9,375 | $1,875 | $7,500 | $1,900 |
 | $10.00 | $25,000 | $12,500 | $2,500 | $10,000 | $4,400 |
 
-These pool levels are not projected from the CSV. The previous $12,000 revenue forecast and $1,385 UNO remainder are withdrawn. Until paid-licence-months are supplied, no credible 2,500-licence earnings forecast exists.
+These pool levels are not projected from the CSV. The previous $12,000 revenue forecast and $1,385 UNO remainder are withdrawn. Until paid-licence-months are supplied, no empirically calibrated 2,500-licence earnings forecast exists. Section 16 supplies conditional scenarios with explicit reward assumptions instead.
 
 At 2% weekly churn near full deployment, about 217 productive replacements/month are required. Incremental acquisition expense for those replacements must fit the post-credit margin; the referral share continues to be accounted for separately. Pre-fund credits without relying on unearned task rewards or future Entropy/GPU contributions.
 
@@ -424,7 +528,10 @@ Track country, source and cohort together. Minimum fields: opted-in prospects, e
 | Net productive additions | ≥250 until inventory full | Count net change, not gross code claims |
 | Incremental D30 acquisition cost | At most three months of positive measured UNO contribution, reduced for churn | $2 is affordable only if the measured pool is about $7.27/month or higher under the stated costs |
 | ULO net outcome | Positive after measured unavoidable costs | Do not scale loss-making country/device cohorts |
-| UNO contribution | Positive after support and incentives | Reject volume that increases losses |
+| UNO contribution | Positive after UNO-funded credits and support; sufficient retained margin for CAC and overhead | Reject volume that increases losses; reconcile referral share without deducting it twice |
+| Task capacity | Compare incumbent/new cohort yields and zero-reward days against Section 10 alerts | Hold expansion and diagnose deterioration |
+| Participant willingness | Informed uptake and voluntary continuation measured separately from cash outcome | Stop weak-value cohorts even if UNO economics pass |
+| Promoter viability | Agreed compensation plus demonstrated retained output and hours | Remove unproven ambassador capacity from the weekly quota |
 | Paid experiment | Maximum $30 first test | No automatic budget increase from click-through rate alone |
 | Source quality | Repeated duplicate/fake outcomes | Suspend disputed referral payouts for review; do not punish legitimate shared-network users automatically |
 
@@ -439,10 +546,278 @@ At high performance—75% eligible × 75% install × 80% activate × 90% D7—1,
 3. Prepare the approved offer and transparent eligibility/economics page.
 4. Recruit the two-market pilot and measure seven days of actual use; verify an eligible withdrawal path.
 5. Sign enough community and ambassador capacity to plausibly produce 1,000 genuine opt-ins weekly.
-6. Begin the ten-week production schedule only when participant and UNO economics pass; review D30 before broader commitment.
+6. Complete bounded capacity validation, observe D30 and demonstrate the recruitment funnel; start the production clock only when all launch gates pass. Reconcile opening inventory and adjust the ten-week illustration accordingly.
 7. Expand geographically using measured results, keep projections out of promised earnings, and stop net growth when the inventory is full.
 
-**The strongest cost-effective route is a permissioned, partner-led Android campaign for people already connected—not worldwide paid advertising or a GPU campaign.** The 250/week goal is operationally plausible only if the actual offer is worthwhile, the measured paid-licence economics work, partner capacity is established and retention is managed. If credited rewards do not cover UNO-funded credits and support after the 40% allocation, negotiate lower credit costs, improve measured productivity or reduce scope before scaling. Do not transfer that shortfall back to ULOs contrary to the offer.
+**The proposed route to test first is a permissioned, partner-led Android campaign for people already connected. Its relative cost-effectiveness remains to be demonstrated.** The 250/week goal is operationally plausible only if the actual offer is worthwhile, the measured paid-licence economics work, partner capacity is established and retention is managed. If credited rewards do not cover UNO-funded credits and support after the 40% allocation, negotiate lower credit costs, improve measured productivity or reduce scope before scaling. Do not transfer that shortfall back to ULOs contrary to the offer.
+
+## 15. Peer-review disposition and evidence boundaries
+
+| Review contribution | Decision in this revision |
+|---|---|
+| Arithmetic verification of splits, reserve and deployment recurrence | Retained; clearly separated thresholds, funding allowances and forecasts |
+| Put economics and capacity before acquisition | Accepted; explicit launch gates, bounded cohorts and hold triggers now precede production |
+| Add zero-credit sensitivity | Accepted alongside $1.99/$3.99; actual billing still controls |
+| Test participant value and ambassador compensation | Accepted; willingness, costs, hours and retained outcomes are separate tests |
+| Explicit downside response | Accepted; 1,654–1,952 weekly opt-ins at 15.12% or an extended schedule with revised funding |
+| Explore telcos, sponsored data and NGO partners | Retained as hypotheses requiring actual agreements and funded delivery |
+| Network-wide 202× shortfall or 23-device ceiling | Rejected: cohort export is not network capacity; retained only a clearly conditional fixed-income stress interpretation |
+| Premium 25× tier | Rejected: 25 UP / 10 allocations = 2.5 UP per allocation |
+| GNI-based universal participation threshold | Rejected: measure individual costs and willingness locally |
+| EMBER source code as Unetwork evidence | Excluded: no demonstrated production relationship; ECR, emctl and federation configuration cannot establish Unetwork features or partners |
+| 50/40/10 mathematically impossible | Rejected: viability depends on realised pool, costs, retention and CAC; allocation identities do not depend on credit price |
+| CSV unrecoverable | Corrected: supplied CSV remains available; preserve the source export and capture future export metadata |
+
+Keep a dated evidence register for source URL/build, export period and hash, billing evidence, pilot cohort, permission scope and decision owner. Public documentation is evidence of published rules; it is not proof of live payment, production security or all-country availability. This revision incorporates useful review findings without importing unsupported project, market or legal conclusions.
+
+## 16. Revenue growth forecast and pluggable task model
+
+### 16.1 What this forecast means
+
+The forecast now connects weekly productive licence growth to **reward revenue, the 50/40/10 distribution, all configured operating expenses, net profit, settlement timing and cumulative funding**. It runs from production week 1; preparation and validation happen before that clock. The companion calculator defaults to 52 weeks and supports up to 260.
+
+**Reference expectation, conditional on the inputs below:** reward revenue grows as devices join, but credit purchases, failed activations and acquisition spending make weeks 1–10 loss-making. The reference scenario first produces a positive weekly result in week 11, recovers its cumulative managerial loss in week 37 and recovers cumulative cash spending in week 50. This is a planning expectation under chosen inputs, not an earnings estimate derived from the CSV. The scenario should be recalibrated with observed per-device task rates before funds are committed.
+
+No probability-weighted expected value is claimed. “Downside”, “reference” and “upside” are sensitivity labels only. The forecast explicitly assumes that qualifying incremental device activity can earn the entered rates. If a task has a fixed reward budget, enter its daily pool cap; do not assume unlimited demand.
+
+### 16.2 Reference inputs and expense coverage
+
+| Input | Reference setting | Treatment |
+|---|---|---|
+| Opening productive licences | 0 | Illustrative production start; replace with verified opening inventory |
+| Net growth | 250/week, capped at 2,500 | Replace 2% weekly churn in addition to net growth |
+| Activation success | 85% | Round gross attempts up; unsuccessful attempts earn nothing |
+| Deployment timing | Successes spread evenly across each week | Half-day earnings on arrival; incumbents earn full days |
+| Device mix | 100% Android | Mutually exclusive Android/iOS/Windows fractions must sum to 1 |
+| Combined distributable reward | 0.25 UP per productive device-day | Synthetic reference pool = 7.50 UP per 30 full days; not a rate attributed to a named task |
+| UP conversion | $1 realised per UP | Editable cash-realisation assumption, not proof of withdrawal |
+| Shares | UNO 40%; ULO 50%; referral 10% | No additional upstream deduction; shares sum to 100% |
+| Credits | $1.99 per 30-day block | Each gross attempt buys a new block; surviving cohorts renew every 30 days |
+| Support | $0.25 per 30 device-days | Successful device exposure plus half a day per failed attempt |
+| Growth acquisition | $300/week | Existing marketing cash ceiling; referrals are already allocated from the pool |
+| Growth coordination | $150/week | Treated as actual cash pay here; earlier budget valued labour without establishing payment |
+| After capacity is reached | $60 acquisition + $60 coordination weekly | New maintenance planning inputs, not measured staffing costs; replacements continue |
+| Setup and diagnostic pilot | $450 before week 1 | $250 setup + $200 pilot; included in cumulative profit and funding, not charged again weekly |
+| UNO settlement lag | 2 weeks | Illustrative fixed lag; no receipt before maturity; no pre-existing receivables |
+| Opening funding | $25,000 | Demonstration cash balance, not required funding or an additional expense |
+| Additional overhead, task costs, fees, tax | $0 by default | Unknown amounts must be entered; zero is not a claim of exemption |
+| Historic licence cost allocation | $0 by default | Existing ownership treated as sunk cash; optional noncash charge over editable weeks |
+
+**“Net profit” here means after every configured expense, not after costs that have never been supplied.** The calculator includes fields for additional overhead (including financing/insurance/administration if applicable), per-task costs, UNO reward fees, a tax provision and optional original licence-cost allocation. Enter actual values before treating results as after-tax or full-investment profitability. ULO internet/electricity costs belong in participant economics unless the UNO subsidises them; subsidies must be entered as extra costs.
+
+The pre-production $450 covers only the stated diagnostic pilot/setup provision. Any further validation cohorts, travel or extended preparation must be added to setup or opening inventory/cash as appropriate; do not silently assume all pre-launch validation is funded by $450.
+
+**Credit accounting convention:** the model expenses each complete non-refundable credit block when purchased, including failed trials, with no residual prepaid asset. This is conservative managerial profit with lumpy renewal costs, not a formal accrual-accounting income statement. It avoids prorating away charges paid for unsuccessful devices. Cash differs from managerial profit mainly because reward receipts lag earnings and any optional historic capital allocation is noncash.
+
+Churn is applied proportionally to all incumbent cohorts at the start of each week. Failed trials consume a half-day of support and are assumed released before same-day successful placements; verify that the platform permits the necessary inventory turnover. Productive cohorts are fractional expected counts, while weekly gross activation attempts are rounded up. If trials last longer, reserve capacity and extend admissions; the nominal ten-week schedule is then not an executable promise.
+
+### 16.3 Weeks 1–10: reward revenue and distribution
+
+Each week's revenue reflects actual modelled device-days, not the closing licence count multiplied by seven. In week 1, 250 ending productive licences produce 875 device-days, equivalent to 125 operating for seven days. ULO and referral revenue are allocations from the pool, not additional costs deducted from the UNO's 40%.
+
+| Week | Ending productive | Productive device-days | Total pool | ULO 50% | Referral 10% | UNO 40% |
+|---|---|---|---|---|---|---|
+| 1 | 250 | 875.0 | $218.75 | $109.38 | $21.88 | $87.50 |
+| 2 | 500 | 2,607.5 | $651.88 | $325.94 | $65.19 | $260.75 |
+| 3 | 750 | 4,340.0 | $1,085.00 | $542.50 | $108.50 | $434.00 |
+| 4 | 1000 | 6,072.5 | $1,518.12 | $759.06 | $151.81 | $607.25 |
+| 5 | 1250 | 7,805.0 | $1,951.25 | $975.63 | $195.13 | $780.50 |
+| 6 | 1500 | 9,537.5 | $2,384.37 | $1,192.19 | $238.44 | $953.75 |
+| 7 | 1750 | 11,270.0 | $2,817.50 | $1,408.75 | $281.75 | $1,127.00 |
+| 8 | 2000 | 13,002.5 | $3,250.63 | $1,625.31 | $325.06 | $1,300.25 |
+| 9 | 2250 | 14,735.0 | $3,683.75 | $1,841.88 | $368.38 | $1,473.50 |
+| 10 | 2500 | 16,467.5 | $4,116.87 | $2,058.44 | $411.69 | $1,646.75 |
+
+### 16.4 Weeks 1–10: expenses and net result
+
+The “marketing + coordinator” column is $300 + $150 weekly. Other overhead, task costs, fees, tax and capital allocation are zero in this reference run; the calculator shows their separate columns when supplied. Cumulative profit includes the $450 pre-production expense.
+
+| Week | UNO earned | Credit purchases/renewals | Support | Marketing + coordinator | All weekly expenses | Net weekly profit | Cumulative profit |
+|---|---|---|---|---|---|---|---|
+| 1 | $87.50 | $587.05 | $7.48 | $450.00 | $1,044.53 | −$957.03 | −$1,407.03 |
+| 2 | $260.75 | $597.00 | $21.92 | $450.00 | $1,068.92 | −$808.17 | −$2,215.20 |
+| 3 | $434.00 | $608.94 | $36.36 | $450.00 | $1,095.30 | −$661.30 | −$2,876.49 |
+| 4 | $607.25 | $620.88 | $50.80 | $450.00 | $1,121.68 | −$514.43 | −$3,390.92 |
+| 5 | $780.50 | $960.59 | $65.24 | $450.00 | $1,475.83 | −$695.33 | −$4,086.26 |
+| 6 | $953.75 | $1,107.57 | $79.68 | $450.00 | $1,637.25 | −$683.50 | −$4,769.76 |
+| 7 | $1,127.00 | $1,128.64 | $94.13 | $450.00 | $1,672.76 | −$545.76 | −$5,315.52 |
+| 8 | $1,300.25 | $1,149.70 | $108.57 | $450.00 | $1,708.27 | −$408.02 | −$5,723.54 |
+| 9 | $1,473.50 | $1,352.16 | $123.01 | $450.00 | $1,925.17 | −$451.67 | −$6,175.21 |
+| 10 | $1,646.75 | $1,613.88 | $137.45 | $450.00 | $2,201.33 | −$554.58 | −$6,729.79 |
+
+Ten-week totals: total reward pool **$21,678.13**; UNO earned **$8,671.25**; credit expenditure **$9,726.41**; net result including setup **−$6,729.79**.
+
+This result is not improved by counting the 10% referral allocation twice or ignoring failed activation charges. Credit expenditure here is generated from daily cohorts; the conservative $16,339.89 reserve in Section 11 is a funding allowance, not another expense to add to this forecast. Likewise, do not add the whole $5,750 campaign envelope on top: its marketing, coordination and support components are already modelled, and setup/pilot is already $450.
+
+### 16.5 Weeks 1–10: cash flow and funding
+
+Only the UNO's 40% entitlement enters this treasury model. ULO/referral shares are assumed settled directly by the platform. If the UNO actually handles their payouts, add a matched pass-through cash ledger and liabilities; their gross receipts are not UNO revenue. Net UNO receipts arrive two weeks after accrual in this example.
+
+| Week | UNO cash received | Cash expenses | Net cash flow | Cumulative cash flow incl. setup | Closing cash from $25,000 |
+|---|---|---|---|---|---|
+| 1 | $0.00 | $1,044.53 | −$1,044.53 | −$1,494.53 | $23,505.47 |
+| 2 | $0.00 | $1,068.92 | −$1,068.92 | −$2,563.45 | $22,436.55 |
+| 3 | $87.50 | $1,095.30 | −$1,007.80 | −$3,571.24 | $21,428.76 |
+| 4 | $260.75 | $1,121.68 | −$860.93 | −$4,432.17 | $20,567.83 |
+| 5 | $434.00 | $1,475.83 | −$1,041.83 | −$5,474.01 | $19,525.99 |
+| 6 | $607.25 | $1,637.25 | −$1,030.00 | −$6,504.01 | $18,495.99 |
+| 7 | $780.50 | $1,672.76 | −$892.26 | −$7,396.27 | $17,603.73 |
+| 8 | $953.75 | $1,708.27 | −$754.52 | −$8,150.79 | $16,849.21 |
+| 9 | $1,127.00 | $1,925.17 | −$798.17 | −$8,948.96 | $16,051.04 |
+| 10 | $1,300.25 | $2,201.33 | −$901.08 | −$9,850.04 | $15,149.96 |
+
+The reference model's maximum cumulative cash deficit is **$9,850.04**, reached by week 10; this is the modelled minimum external funding before any contingency. It is not the same as the more conservative credit reserve or a recommended cash buffer. Unsettled rewards are receivables, not spendable funds. Longer settlement, verification holds or lower realised conversion can increase funding needs substantially.
+
+### 16.6 Continued growth in retained earnings after deployment
+
+From week 11, the portfolio stops net growth and replaces approximately 50 productive licences weekly. At 85% activation success that requires 59 gross attempts each week. The reference model reduces acquisition/coordination to the explicitly assumed maintenance amounts; if those reductions are infeasible, enter higher values and payback moves later. Productive exposure is about 17,325 device-days weekly because churned devices take time to replace.
+
+| Week | Ending productive | UNO earned | Total weekly expenses | Net weekly profit | Cumulative profit | Cumulative cash flow |
+|---|---|---|---|---|---|---|
+| 11 | 2500 | $1,732.50 | $1,320.67 | $411.83 | −$6,317.96 | −$9,697.21 |
+| 13 | 2500 | $1,732.50 | $1,411.43 | $321.07 | −$5,602.56 | −$9,067.56 |
+| 16 | 2500 | $1,732.50 | $1,345.50 | $387.00 | −$4,963.90 | −$8,428.90 |
+| 20 | 2500 | $1,732.50 | $1,352.59 | $379.91 | −$3,998.24 | −$7,463.24 |
+| 26 | 2500 | $1,732.50 | $1,472.25 | $260.25 | −$2,410.65 | −$5,875.65 |
+| 37 | 2500 | $1,732.50 | $1,388.98 | $343.52 | $246.46 | −$3,218.54 |
+| 50 | 2500 | $1,732.50 | $1,411.41 | $321.09 | $3,513.94 | $48.94 |
+| 52 | 2500 | $1,732.50 | $1,528.92 | $203.58 | $4,030.57 | $565.57 |
+
+Weekly profit is not perfectly smooth: monthly-block renewals follow cohort activation anniversaries. Distinguish **first positive week**, **cumulative profit payback**, and **cumulative cash payback**. One profitable week does not prove sustained profitability.
+
+### 16.7 Downside, reference and upside with identical costs
+
+Only the illustrative daily reward pool changes across these scenarios; device growth, support, credits, marketing and settlement assumptions remain identical. These are not the user-supplied $0.10 task estimates and are not fitted to the aggregate CSV.
+
+| Measure | Downside | Reference | Upside |
+|---|---|---|---|
+| Daily pool per productive device | 0.166667 UP | 0.250000 UP | 0.333333 UP |
+| 30-day equivalent pool | $5.00 | $7.50 | $10.00 |
+| Week 10 UNO earned | $1,097.83 | $1,646.75 | $2,195.67 |
+| Week 10 net profit | −$1,103.49 | −$554.58 | −$5.66 |
+| Cumulative profit through week 10 | −$9,620.20 | −$6,729.79 | −$3,839.37 |
+| Cumulative profit through week 26 | −$14,541.06 | −$2,410.65 | $9,719.77 |
+| Cumulative profit through week 52 | −$23,114.84 | $4,030.57 | $31,175.99 |
+| First positive week | None within 52 weeks | 11 | 8 |
+| Cumulative profit payback | Not within 52 weeks | 37 | 15 |
+| Cumulative cash payback | Not within 52 weeks | 50 | 20 |
+| Peak funding deficit through week 52 | $25,424.84 | $9,850.04 | $7,999.70 |
+
+The downside case continues losing money and eventually exceeds the illustrative $25,000 funding balance; it is not a viable rollout simply because licences are deployed. The upside case first turns positive in week 8 but can turn negative again at a renewal-heavy week. The reference case's long recovery period makes measured reward yield and credit cost central to the decision.
+
+### 16.8 Pluggable task schema
+
+Open `UNETWORK_REVENUE_CALCULATOR.html` locally in a modern browser. It contains the complete algorithm, editable controls, task table, revenue/profit chart, all weekly results, input JSON save/load and CSV export. No installation, external service or network connection is required. Edited inputs are not automatically saved; use **Save inputs JSON** before closing.
+
+| Task input | Meaning and unit | Example for an additional task, illustrative only |
+|---|---|---|
+| Name | Unique human-readable task label | New telemetry service |
+| Enabled | Include only when intentionally modelled | true |
+| Supported devices | Android/iOS/Windows boolean fields | Android=true, others=false |
+| Daily reward | UP per eligible device-day on the selected basis | 0.05 |
+| Rate basis | `pool`, `historical_uno` (50%), or current `ulo` | pool |
+| Eligible fraction | Eligible country/device subset within supported mix, 0–1 | 0.60 |
+| Activity factor | Expected rewarded activity on eligible device-days, 0–1 | 0.80 |
+| Start / end week | Production weeks in which task contributes | 5 / 52 |
+| Daily pool cap | Maximum UP across the portfolio per day; 0 means no entered cap | 0 |
+| Extra cost | Additional UNO cost in USD per qualifying device-day | 0 |
+
+The default active task is **Illustrative combined reward pool — REPLACE**. All real task names are disabled with rate zero until measured values are provided. Disable the placeholder before enabling real task rows. The calculator rejects an active illustrative pool combined with active named tasks, preventing accidental double counting. Multiple real tasks are additive only if they can operate concurrently; adjust activity/eligibility or use scenario runs for mutually exclusive workloads.
+
+For a per-call task: `daily_reward = reward_per_verified_call × expected_accepted_calls_per_eligible_device_day`. The CSV allocation column cannot supply that call denominator without definition. If a daily average already includes zero-activity days, use activity=1 rather than applying the same downtime reduction again.
+
+Rates entered as the historical UNO 50% share are divided by 0.50 to reconstruct the pool. Rates entered as current ULO receipts are divided by the selected ULO share. Pool rates require no reconstruction. A reward must not be grossed up twice. The historical 50% basis is fixed to the owner's supplied export convention; it is not the proposed 40% UNO share.
+
+### 16.9 Formula and regeneration algorithm
+
+Let `N_w` be opening productive licences, `K` capacity, `g` target net additions, `c` weekly churn and `a` activation success:
+
+```text
+churn_w       = c × N_w
+net_growth_w  = min(g, max(0, K − N_w))
+successes_w   = net_growth_w + churn_w
+attempts_w    = ceil(successes_w / a)
+failures_w    = attempts_w − successes_w
+closing_w     = N_w − churn_w + successes_w
+```
+
+The implementation subtracts a tiny floating-point tolerance before `ceil` to avoid spurious rounding from values such as 300.00000000000006. Expected productive counts can be fractional; actual operational counts are integers reconciled each week.
+
+Distribute successes equally across seven days. On day `d`, let `B_d` be surviving previously active devices and `A_d` new successful devices:
+
+```text
+productive_device_days_d = B_d + 0.5 × A_d
+supported_share_j        = sum(device_mix_k for supported device types k)
+qualifying_device_days_jd = productive_device_days_d
+                           × supported_share_j × eligible_j × activity_j
+pool_rate_j = daily_reward_j × USD_per_UP / basis_share_j
+  where basis_share = 1 for pool, 0.50 for historical UNO,
+                      current ULO share for ULO-denominated rewards
+raw_reward_jd = qualifying_device_days_jd × pool_rate_j
+reward_jd = min(raw_reward_jd, daily_cap_j × USD_per_UP) if cap > 0
+            otherwise raw_reward_jd
+weekly_pool_w = sum(reward_jd for enabled tasks and days in week w)
+UNO_earned_w   = UNO_share × weekly_pool_w
+ULO_earned_w   = ULO_share × weekly_pool_w
+referral_w     = referral_share × weekly_pool_w
+```
+
+Only tasks within their start/end weeks contribute. Fixed mix fractions sum to one, so a task supporting Android and Windows does not count the same device twice. Capacity caps apply to each task independently; a shared cross-task budget must be represented through adjusted task caps or a future shared-budget extension.
+
+```text
+credit_cost_w = credit_price × (gross attempts + surviving 30-day renewals)
+support_w = support_per_month / 30
+            × (productive_device_days_w + 0.5 × failed_attempts_w)
+task_cost_w = sum(qualifying_device_days_jd × extra_cost_j)
+fees_w = fee_fraction × UNO_earned_w
+capital_allocation_w = historic_licence_cost / allocation_weeks
+                       during the selected allocation period; otherwise 0
+pretax_w = UNO_earned_w − credits_w − support_w − task_cost_w
+           − acquisition_w − coordinator_w − overhead_w − fees_w
+           − capital_allocation_w
+tax_w = max(0, pretax_w) × tax_fraction
+net_profit_w = pretax_w − tax_w
+cumulative_profit_w = −setup_cost + sum(net_profit_1 ... net_profit_w)
+
+UNO_receipts_w = (UNO_earned − fees) from week (w − settlement_lag)
+                or zero if that week precedes the forecast
+cash_expenses_w = credits + support + task_cost + acquisition
+                  + coordinator + overhead + tax
+net_cash_flow_w = UNO_receipts_w − cash_expenses_w
+cumulative_cash_flow_w = −setup_cost + sum(net_cash_flow_1 ... net_cash_flow_w)
+closing_cash_w = opening_funding + cumulative_cash_flow_w
+required_funding = max(0, −minimum cumulative cash flow including setup)
+```
+
+Fee expense is recognised on earned UNO rewards and deducted from the eventual receipt, avoiding a second cash fee deduction. Tax is a simplified positive-week provision paid immediately with no loss offsets; it is not jurisdiction-specific tax advice. Historic licence-cost allocation reduces profit but not future cash because the model assumes the licences are already purchased. Future purchases or debt repayments must be budgeted as cash costs separately.
+
+Cohorts retain their activation day. On each day 30, 60, 90, etc. after activation, surviving licences buy a new credit block. Churn reduces each cohort before that week's renewals. Opening productive licences, if entered, are assumed to need fresh blocks immediately for surviving inventory; prepaid balances or differing renewal ages require an adjusted initial cohort schedule. This limitation matters when reusing the model for an existing portfolio.
+
+### 16.10 Adding a task: worked incremental example
+
+After replacing the illustrative pool with your verified existing tasks, add an Android task paying **0.05 UP/day**, eligible fraction **60%**, activity **80%**, starting week 5, with no entered cap or extra cost. Keep every other setting unchanged. At the reference week-10 device exposure:
+
+```text
+Incremental effective pool rate = 0.05 × 0.60 × 0.80 = 0.024 UP/device-day
+Incremental week-10 pool        = 16,467.5 × 0.024 = 395.22 UP
+Incremental ULO revenue         = 395.22 × 50% = 197.61 UP
+Incremental referral revenue    = 395.22 × 10% = 39.522 UP
+Incremental UNO revenue/profit  = 395.22 × 40% = 158.088 UP
+```
+
+At $1/UP and zero additional fees/tax/cost, week-10 profit improves by **$158.09**. Credits, support, acquisition and coordinator costs do not change. With a two-week settlement lag, that week's additional UNO cash arrives in week 12. If the task introduces resource contention, extra support, transaction fees or tax, adjust those inputs rather than treating incremental revenue as cost-free.
+
+### 16.11 Refresh and decision workflow
+
+1. Reconcile active inventory, task naming and paid licence-days from actual records.
+2. Replace the placeholder with task-specific rates and correct reward basis; record measurement dates and sample size outside the calculator.
+3. Enter supported devices, eligible proportions, expected rewarded activity and known demand caps.
+4. Confirm credit billing, renewal/reassignment behaviour, support, recruitment, labour, additional overhead, fees, tax and settlement lag.
+5. Recalculate, inspect weekly net profit and lowest cash balance, then export inputs JSON and weekly CSV with a dated scenario name.
+6. Compare downside and reference outcomes. Release the next recruitment cohort only if Section 1 gates still pass and the cash requirement is funded.
+7. At each weekly review replace expectations with actuals in the operating ledger and regenerate the forward scenario. The calculator is a scenario engine, not an accounting ledger or live connection to Unetwork.
+
+**Validation performed:** the reference schedule reproduces 3,211 gross attempts over the first ten weeks; weekly reward shares reconcile to the pool; added tasks increase revenue by the formula above without changing other costs; device exclusions, caps, launch dates, zero credits, historical-share normalisation and settlement lag were checked. These checks validate model mechanics, not the chosen revenue assumptions.
 
 ## Sources and assumptions
 
@@ -454,6 +829,10 @@ At high performance—75% eligible × 75% install × 80% activate × 90% D7—1,
 - **S6 — [WhatsApp Business policy](https://business.whatsapp.com/policy):** consent and messaging rules, reviewed 28 September 2026.
 - **S7 — [Reddit spam policy](https://support.reddithelp.com/hc/en-us/articles/360043504051-Spam):** community distribution constraints, reviewed 28 September 2026.
 
+- **S8 — [Unetwork FAQ](https://unitynodes.io/faq):** per-operator-licence plan and licence-holder payment option, checked 28 September 2026.
+- **S9 — [Official Android release index](https://releases.unetwork.io/android/):** published APK artifacts, including 1.2.4 dated 23 September 2026; checked 28 September 2026. Publication does not certify compatibility or security.
+- **S10 — Peer review inputs:** supplied `LICENSE-DISTRIBUTION-MARKETING-PLAN.md` and the subsequent pasted review; evaluated against user clarifications, CSV and official sources. Disposition recorded in Section 15.
+
 All suggested conversion rates, weekly output quotas, churn rates, staffing costs and budgets are explicit planning assumptions. They are neither vendor quotations nor performance established by the CSV. This deliverable is a marketing and operating plan; no advertising was purchased, partner contacted, licence assigned or account changed.
 
-**Revision audit:** replaced 80/20 with 50/40/10; moved all activation credits to UNO; replaced estimated daily tasks with recorded CSV categories; reconstructed historical allocations conditionally; removed unsupported device-yield, withdrawal-time and portfolio forecasts; added paid-licence break-even, recurring referral rules and a credit-funded campaign reserve.
+**Revision audit:** Revision 2 established 50/40/10, UNO-funded credits and CSV-only task evidence. Revision 3 retains those foundations and the channel inventory, message drafts, churn model and reserve; adds launch/capacity gates, zero-credit sensitivity, participant/promoter tests, strategic partnership hypotheses and a downside schedule; corrects overconfident channel positioning and distinguishes validation time from production time. No per-device earnings or network capacity is inferred from the aggregate export. Revision 4 adds transparent conditional revenue projections and a self-contained task-driven calculator; reference reward assumptions are illustrative and replaceable.

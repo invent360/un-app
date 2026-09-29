@@ -16,8 +16,10 @@ use crate::routes::{
     ContactPage,
     ReferralsPage,
     PreviewPage,
-    DebugPage,
 };
+
+#[cfg(feature = "debug-routes")]
+use crate::routes::DebugPage;
 use crate::components::layout::{Header, Footer};
 use crate::components::chatbot::ChatWidget;
 use crate::components::common::LocalePopup;
@@ -101,7 +103,14 @@ fn AppRouter() -> impl IntoView {
                         <Route path=StaticSegment("contact") view=ContactPage/>
                         <Route path=StaticSegment("referrals") view=ReferralsPage/>
                         <Route path=StaticSegment("preview") view=PreviewPage/>
-                        <Route path=StaticSegment("debug") view=DebugPage/>
+                        // Debug route only available when debug-routes feature is enabled
+                        // WARNING: Never enable in production
+                        {
+                            #[cfg(feature = "debug-routes")]
+                            {
+                                view! { <Route path=StaticSegment("debug") view=DebugPage/> }
+                            }
+                        }
                         <Route path=WildcardSegment("any") view=NotFound/>
                     </Routes>
                 </main>
