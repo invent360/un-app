@@ -17,6 +17,16 @@ mod schema_handler;
 mod session_handler;
 mod stats_handler;
 mod consent_handler;
+mod finance_handler;
+mod support_handler;
+mod cohort_handler;
+mod market_handler;
+mod exit_handler;
+mod dashboard_handler;
+mod operator_handler;
+mod forecast_handler;
+mod webhook_handler;
+mod communication_handler;
 
 use crate::server::middleware::{AdminAuth, RateLimitConfig, RateLimiter};
 use actix_web::web;
@@ -268,7 +278,129 @@ pub fn configure_api_routes(cfg: &mut web::ServiceConfig) {
             .route("/licenses/{id}/exposure", web::get().to(lifecycle_handler::get_exposure))
             .route("/licenses/{id}/lifecycle", web::get().to(lifecycle_handler::get_lifecycle_history))
             .route("/licenses/pending-expiry", web::get().to(lifecycle_handler::get_pending_expiry))
-            .route("/licenses/process-expired", web::post().to(lifecycle_handler::process_expired)),
+            .route("/licenses/process-expired", web::post().to(lifecycle_handler::process_expired))
+            // Finance routes (Phase 5)
+            .route("/finance/allocations", web::get().to(finance_handler::list_allocations))
+            .route("/finance/allocations", web::post().to(finance_handler::create_allocation))
+            .route("/finance/allocations/{id}", web::get().to(finance_handler::get_allocation))
+            .route("/finance/allocations/mark-payable", web::post().to(finance_handler::mark_payable))
+            .route("/finance/licenses/{id}/balance", web::get().to(finance_handler::get_pool_balance))
+            .route("/finance/payable", web::get().to(finance_handler::get_payable_balances))
+            .route("/finance/settlements", web::get().to(finance_handler::list_settlements))
+            .route("/finance/settlements", web::post().to(finance_handler::prepare_settlement))
+            .route("/finance/settlements/{ref}", web::get().to(finance_handler::get_settlement))
+            .route("/finance/settlements/{ref}/approve", web::post().to(finance_handler::approve_settlement))
+            .route("/finance/settlements/{ref}/execute", web::post().to(finance_handler::execute_settlement))
+            // Support admin routes (Phase 7)
+            .route("/support/tickets", web::post().to(support_handler::search_tickets))
+            .route("/support/tickets/{id}", web::get().to(support_handler::get_ticket_by_number))
+            .route("/support/tickets/{id}/assign", web::post().to(support_handler::assign_ticket))
+            .route("/support/tickets/{id}/escalate", web::post().to(support_handler::escalate_ticket))
+            .route("/support/tickets/{id}/resolve", web::post().to(support_handler::resolve_ticket))
+            .route("/support/queue", web::get().to(support_handler::get_agent_queue))
+            .route("/support/queue/unassigned", web::get().to(support_handler::get_unassigned_tickets))
+            // Cohort admin routes (Phase 7)
+            .route("/cohorts/date-range", web::get().to(cohort_handler::get_cohorts_by_date_range))
+            .route("/cohorts/stats", web::get().to(cohort_handler::get_cohort_stats))
+            .route("/cohorts/analytics", web::post().to(cohort_handler::calculate_analytics))
+            .route("/cohorts/analytics", web::get().to(cohort_handler::get_analytics))
+            .route("/cohorts/pending/d1", web::get().to(cohort_handler::get_cohorts_pending_d1))
+            .route("/cohorts/pending/d7", web::get().to(cohort_handler::get_cohorts_pending_d7))
+            .route("/cohorts/pending/d30", web::get().to(cohort_handler::get_cohorts_pending_d30))
+            .route("/cohorts/{id}/notifications", web::post().to(cohort_handler::schedule_notification))
+            .route("/cohorts/{id}/notifications", web::get().to(cohort_handler::get_cohort_notifications))
+            .route("/notifications/pending", web::get().to(cohort_handler::get_pending_notifications))
+            .route("/notifications/{id}/sent", web::post().to(cohort_handler::mark_notification_sent))
+            .route("/notifications/{id}/skip", web::post().to(cohort_handler::skip_notification))
+            // Market admin routes (Phase 7)
+            .route("/markets", web::get().to(market_handler::get_all_markets))
+            .route("/markets/{code}", web::get().to(market_handler::get_market_status))
+            .route("/markets/{code}", web::post().to(market_handler::upsert_market))
+            .route("/markets/{code}/pause", web::post().to(market_handler::pause_market))
+            .route("/markets/{code}/resume", web::post().to(market_handler::resume_market))
+            .route("/markets/{code}/content-review", web::post().to(market_handler::update_content_review))
+            .route("/markets/{code}/support-readiness", web::post().to(market_handler::update_support_readiness))
+            .route("/quotas/{code}", web::get().to(market_handler::get_country_quotas))
+            .route("/quotas", web::post().to(market_handler::create_quota))
+            .route("/quotas/reset", web::post().to(market_handler::reset_daily_quotas))
+            .route("/campaigns", web::get().to(market_handler::get_active_campaigns))
+            .route("/campaigns", web::post().to(market_handler::create_campaign))
+            .route("/campaigns/{id}", web::get().to(market_handler::get_campaign))
+            .route("/campaigns/{id}/deactivate", web::post().to(market_handler::deactivate_campaign))
+            .route("/attributions/{user_id}", web::get().to(market_handler::get_user_attributions))
+            // Exit admin routes (Phase 7)
+            .route("/exits", web::get().to(exit_handler::get_exits_by_status))
+            .route("/exits/{id}", web::get().to(exit_handler::get_exit))
+            .route("/exits/{id}/approve", web::post().to(exit_handler::approve_exit))
+            .route("/exits/{id}/reject", web::post().to(exit_handler::reject_exit))
+            .route("/exits/{id}/payout/start", web::post().to(exit_handler::initiate_payout))
+            .route("/exits/{id}/payout/complete", web::post().to(exit_handler::complete_payout))
+            .route("/exits/{id}/payout/fail", web::post().to(exit_handler::fail_payout))
+            .route("/exits/{id}/audit", web::get().to(exit_handler::get_audit_log))
+            .route("/waitlist/{code}", web::get().to(exit_handler::get_country_waitlist))
+            .route("/waitlist/notify", web::post().to(exit_handler::get_waitlist_to_notify))
+            // Operator dashboard routes (Phase 8)
+            .route("/operator/dashboard", web::get().to(operator_handler::get_dashboard))
+            .route("/operator/inventory", web::get().to(operator_handler::get_inventory))
+            .route("/operator/cohorts", web::get().to(operator_handler::get_cohorts))
+            .route("/operator/finance", web::get().to(operator_handler::get_finance))
+            .route("/operator/sync", web::get().to(operator_handler::get_sync))
+            .route("/operator/exceptions", web::get().to(operator_handler::get_exceptions))
+            .route("/operator/exceptions", web::post().to(operator_handler::record_exception))
+            .route("/operator/exceptions/{id}/resolve", web::post().to(operator_handler::resolve_exception))
+            .route("/operator/metrics", web::get().to(operator_handler::get_metrics))
+            .route("/operator/metrics/range", web::get().to(operator_handler::get_metrics_range))
+            .route("/operator/metrics/aggregate", web::post().to(operator_handler::aggregate_metrics))
+            .route("/operator/metrics/export", web::get().to(operator_handler::export_metrics))
+            // Forecast routes (Phase 8)
+            .route("/forecasts", web::get().to(forecast_handler::list_scenarios))
+            .route("/forecasts", web::post().to(forecast_handler::create_scenario))
+            .route("/forecasts/import", web::post().to(forecast_handler::import_scenario))
+            .route("/forecasts/golden", web::get().to(forecast_handler::list_golden_fixtures))
+            // NOTE: get_golden_fixture not yet implemented
+            .route("/forecasts/{id}", web::get().to(forecast_handler::get_scenario))
+            .route("/forecasts/{id}", web::put().to(forecast_handler::update_scenario))
+            .route("/forecasts/{id}", web::delete().to(forecast_handler::archive_scenario))
+            .route("/forecasts/{id}/approve", web::post().to(forecast_handler::approve_scenario))
+            .route("/forecasts/{id}/tasks", web::post().to(forecast_handler::add_task))
+            .route("/forecasts/{scenario_id}/tasks/{task_id}", web::put().to(forecast_handler::update_task))
+            .route("/forecasts/{scenario_id}/tasks/{task_id}", web::delete().to(forecast_handler::remove_task))
+            .route("/forecasts/{id}/run", web::post().to(forecast_handler::run_forecast))
+            .route("/forecasts/{id}/results", web::get().to(forecast_handler::get_results))
+            .route("/forecasts/{id}/export", web::get().to(forecast_handler::export_scenario))
+            .route("/forecasts/{id}/validate", web::post().to(forecast_handler::validate_scenario))
+            .route("/forecasts/{id}/golden", web::post().to(forecast_handler::create_golden_fixture))
+            // Webhook admin routes (Phase 8)
+            .route("/webhooks/endpoints", web::get().to(webhook_handler::list_endpoints))
+            .route("/webhooks/endpoints", web::post().to(webhook_handler::create_endpoint))
+            .route("/webhooks/endpoints/{id}", web::get().to(webhook_handler::get_endpoint))
+            .route("/webhooks/endpoints/{id}", web::put().to(webhook_handler::update_endpoint))
+            .route("/webhooks/endpoints/{id}", web::delete().to(webhook_handler::delete_endpoint))
+            .route("/webhooks/endpoints/{id}/verify", web::post().to(webhook_handler::verify_endpoint))
+            .route("/webhooks/endpoints/{id}/toggle", web::post().to(webhook_handler::toggle_endpoint))
+            // NOTE: reset_circuit_breaker not yet implemented
+            .route("/webhooks/endpoints/{id}/deliveries", web::get().to(webhook_handler::get_deliveries))
+            .route("/webhooks/process", web::post().to(webhook_handler::process_deliveries))
+            .route("/webhooks/retry", web::post().to(webhook_handler::retry_deliveries))
+            // NOTE: list_inbound_webhooks not yet implemented
+            .route("/webhooks/inbound/process", web::post().to(webhook_handler::process_inbound))
+            .route("/webhooks/sources", web::get().to(webhook_handler::list_sources))
+            .route("/webhooks/sources", web::post().to(webhook_handler::create_source))
+            // Communication admin routes (Phase 8)
+            .route("/communication/templates", web::get().to(communication_handler::list_templates))
+            .route("/communication/templates", web::post().to(communication_handler::create_template))
+            .route("/communication/templates/{id}", web::put().to(communication_handler::update_template))
+            .route("/communication/templates/{id}/approve", web::post().to(communication_handler::approve_template))
+            .route("/communication/suppressions", web::get().to(communication_handler::list_suppressions))
+            .route("/communication/suppressions", web::post().to(communication_handler::add_suppression))
+            .route("/communication/suppressions", web::delete().to(communication_handler::remove_suppression))
+            .route("/communication/suppressions/check", web::get().to(communication_handler::check_suppression))
+            .route("/communication/send", web::post().to(communication_handler::send_immediate))
+            .route("/communication/scheduled", web::get().to(communication_handler::list_scheduled))
+            .route("/communication/scheduled", web::post().to(communication_handler::schedule_message))
+            .route("/communication/scheduled/{id}", web::delete().to(communication_handler::cancel_scheduled))
+            .route("/communication/process", web::post().to(communication_handler::process_scheduled))
+            .route("/communication/can-receive", web::get().to(communication_handler::can_receive)),
     );
 
     // Public preview endpoint (no HMAC required)
@@ -314,6 +446,80 @@ pub fn configure_api_routes(cfg: &mut web::ServiceConfig) {
             .route("/request", web::post().to(consent_handler::create_data_request))
             .route("/requests", web::get().to(consent_handler::get_data_requests))
             .route("/retention-policies", web::get().to(consent_handler::get_retention_policies)),
+    );
+
+    // Support ticket endpoints (Phase 7)
+    cfg.service(
+        web::scope("/api/v1/support")
+            .wrap(RateLimiter::new(RateLimitConfig::default()))
+            .route("/tickets", web::post().to(support_handler::create_ticket))
+            .route("/tickets/{id}", web::get().to(support_handler::get_ticket))
+            .route("/tickets/{id}/messages", web::get().to(support_handler::get_messages))
+            .route("/tickets/{id}/messages", web::post().to(support_handler::add_message))
+            .route("/my-tickets", web::get().to(support_handler::get_user_tickets)),
+    );
+
+    // Cohort tracking endpoints (Phase 7)
+    cfg.service(
+        web::scope("/api/v1/cohort")
+            .wrap(RateLimiter::new(RateLimitConfig::default()))
+            .route("", web::post().to(cohort_handler::create_cohort))
+            .route("/{id}", web::get().to(cohort_handler::get_cohort))
+            .route("/user/{user_id}", web::get().to(cohort_handler::get_user_cohorts))
+            .route("/user/{user_id}/license/{license_id}", web::get().to(cohort_handler::get_cohort_by_user_license))
+            .route("/{id}/progress", web::get().to(cohort_handler::get_cohort_progress))
+            .route("/{id}/activity", web::post().to(cohort_handler::record_activity))
+            .route("/{id}/activities", web::get().to(cohort_handler::get_cohort_activities))
+            .route("/{id}/d1", web::post().to(cohort_handler::complete_d1))
+            .route("/{id}/d3", web::post().to(cohort_handler::complete_d3)),
+    );
+
+    // Market status endpoints (Phase 7)
+    cfg.service(
+        web::scope("/api/v1/market")
+            .wrap(RateLimiter::new(RateLimitConfig::default()))
+            .route("/{code}/status", web::get().to(market_handler::get_market_status))
+            .route("/{code}/readiness", web::get().to(market_handler::check_market_readiness))
+            .route("/{code}/quota", web::get().to(market_handler::check_quota))
+            .route("/attribution", web::post().to(market_handler::record_attribution)),
+    );
+
+    // Exit endpoints (Phase 7)
+    cfg.service(
+        web::scope("/api/v1/exit")
+            .wrap(RateLimiter::new(RateLimitConfig::strict()))
+            .route("", web::post().to(exit_handler::initiate_exit))
+            .route("/license/{id}", web::get().to(exit_handler::get_exit_by_license))
+            .route("/balance", web::get().to(exit_handler::calculate_balance))
+            .route("/payout", web::post().to(exit_handler::request_payout))
+            .route("/feedback", web::post().to(exit_handler::submit_feedback))
+            .route("/waitlist", web::post().to(exit_handler::add_to_waitlist)),
+    );
+
+    // Participant dashboard endpoints (Phase 7)
+    cfg.service(
+        web::scope("/api/v1/dashboard")
+            .wrap(RateLimiter::new(RateLimitConfig::default()))
+            .route("", web::get().to(dashboard_handler::get_dashboard))
+            .route("/progress/{user_id}/{license_id}", web::get().to(dashboard_handler::get_progress))
+            .route("/activities/{user_id}/{license_id}", web::get().to(dashboard_handler::get_activities)),
+    );
+
+    // Communication preferences endpoints (Phase 8)
+    cfg.service(
+        web::scope("/api/v1/communication")
+            .wrap(RateLimiter::new(RateLimitConfig::default()))
+            .route("/preferences", web::get().to(communication_handler::get_preferences))
+            .route("/preferences", web::put().to(communication_handler::update_preferences))
+            .route("/opt-out", web::post().to(communication_handler::opt_out))
+            .route("/devices", web::post().to(communication_handler::register_device)),
+    );
+
+    // Inbound webhook endpoint (Phase 8) - public with signature validation
+    cfg.service(
+        web::scope("/api/v1/webhooks")
+            .wrap(RateLimiter::new(RateLimitConfig::default()))
+            .route("/inbound/{source}", web::post().to(webhook_handler::receive_webhook)),
     );
 
     // Then configure public API routes with standard rate limiting (100 req/min)

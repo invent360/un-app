@@ -146,6 +146,18 @@ pub fn get_locale_format(locale: &str) -> LocaleFormat {
             time_24h: true,
         },
 
+        // Bengali (Bangladesh)
+        "bn" => LocaleFormat {
+            decimal_sep: '.',
+            group_sep: ',',
+            group_size: 2, // Indian/Bangladeshi numbering: 1,00,000
+            currency_prefix: true,
+            currency_space: false,
+            date_order: DateOrder::DMY,
+            date_sep: '/',
+            time_24h: true,
+        },
+
         // Swahili
         "sw" => LocaleFormat {
             decimal_sep: '.',
@@ -384,6 +396,12 @@ pub fn get_currency_info(code: &str) -> CurrencyInfo {
             name: "Nigerian Naira",
             decimals: 2,
         },
+        "BDT" => CurrencyInfo {
+            code: "BDT",
+            symbol: "৳",
+            name: "Bangladeshi Taka",
+            decimals: 2,
+        },
         _ => CurrencyInfo {
             code: "USD",
             symbol: "$",
@@ -519,6 +537,13 @@ pub fn get_month_name(month: u32, locale: &str, abbreviated: bool) -> &'static s
          "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
     };
 
+    let months_bn = if abbreviated {
+        ["জানু", "ফেব", "মার্চ", "এপ্রি", "মে", "জুন", "জুলা", "আগ", "সেপ্টে", "অক্টো", "নভে", "ডিসে"]
+    } else {
+        ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+         "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"]
+    };
+
     let idx = (month.saturating_sub(1) as usize).min(11);
 
     match locale.to_lowercase().as_str() {
@@ -527,6 +552,7 @@ pub fn get_month_name(month: u32, locale: &str, abbreviated: bool) -> &'static s
         "ar" => months_ar[idx],
         "pt" | "pt-br" => months_pt[idx],
         "id" => months_id[idx],
+        "bn" => months_bn[idx],
         _ => months_en[idx],
     }
 }
@@ -642,6 +668,13 @@ pub fn format_relative_time(seconds_diff: i64, locale: &str) -> String {
                 format!("em {} {}", value, unit)
             }
         }
+        "bn" => {
+            if seconds_diff < 0 {
+                format!("{} {} আগে", value, unit)
+            } else {
+                format!("{} {} পরে", value, unit)
+            }
+        }
         _ => {
             if seconds_diff < 0 {
                 format!("{} {} ago", value, unit)
@@ -715,6 +748,15 @@ pub fn get_plural_category(count: i64, locale: &str) -> PluralCategory {
 
         // Hindi: one for 0 and 1
         "hi" => {
+            if abs_count == 0 || abs_count == 1 {
+                PluralCategory::One
+            } else {
+                PluralCategory::Other
+            }
+        }
+
+        // Bengali: one for 0 and 1 (same as Hindi)
+        "bn" => {
             if abs_count == 0 || abs_count == 1 {
                 PluralCategory::One
             } else {
@@ -917,5 +959,33 @@ mod tests {
     fn test_format_date() {
         assert_eq!(format_date(2024, 3, 15, "en"), "3/15/2024");
         assert_eq!(format_date(2024, 3, 15, "fr"), "15/03/2024");
+    }
+
+    #[test]
+    fn test_format_number_bengali() {
+        // Bengali/Bangladeshi grouping: 12,34,567 (groups of 2 after first 3)
+        assert_eq!(format_number(1234567.0, "bn"), "12,34,567");
+    }
+
+    #[test]
+    fn test_format_currency_bdt() {
+        // Indian numbering: rightmost group is 3 digits, then groups of 2
+        // 1234 -> 1,234 (not 12,34)
+        // 123456 -> 1,23,456
+        assert_eq!(format_currency(1234.56, "BDT", "bn"), "৳1,234.56");
+        assert_eq!(format_currency(123456.78, "BDT", "bn"), "৳1,23,456.78");
+    }
+
+    #[test]
+    fn test_get_month_name_bengali() {
+        assert_eq!(get_month_name(1, "bn", false), "জানুয়ারি");
+        assert_eq!(get_month_name(6, "bn", true), "জুন");
+    }
+
+    #[test]
+    fn test_plural_category_bengali() {
+        assert_eq!(get_plural_category(0, "bn"), PluralCategory::One);
+        assert_eq!(get_plural_category(1, "bn"), PluralCategory::One);
+        assert_eq!(get_plural_category(2, "bn"), PluralCategory::Other);
     }
 }

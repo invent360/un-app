@@ -32,6 +32,14 @@ mod agent_service;
 mod lifecycle_service;
 mod outbox_publisher;
 mod inbox_processor;
+mod settlement_service;
+mod media_asset_service;
+mod media_backup_service;
+mod locale_review_service;
+mod cohort_notification_service;
+mod forecast_service;
+mod webhook_service;
+mod communication_service;
 
 // Re-export service implementations
 pub use chatbot_service::ChatbotService;
@@ -88,6 +96,48 @@ pub use outbox_publisher::{
 pub use inbox_processor::{
     InboxProcessor, InboxOutcome, InboxContext,
     InboxHandler, DynInboxHandler, LoggingHandler,
+};
+pub use settlement_service::{
+    SettlementService, SettlementServiceTrait, DynSettlementService, SettlementError,
+    RecordAllocationInput, PrepareSettlementInput, ExecuteSettlementInput, SettlementPreparation,
+};
+pub use media_asset_service::{
+    MediaAssetService, MediaAssetServiceImpl, DynMediaAssetService,
+    TrackedUploadResult, UploadRequest, DiskThresholdStatus, ThresholdLevel,
+    ReconcileResult, AssetVerification,
+};
+pub use media_backup_service::{
+    MediaBackupService, MediaBackupServiceImpl, DynMediaBackupService,
+    BackupResult, RestoreResult, BackupRequest, RestoreRequest, BackupVerification,
+};
+pub use locale_review_service::{
+    LocaleReviewService, LocaleReviewServiceImpl, DynLocaleReviewService,
+    LocaleReview, LocaleReviewStatus,
+    SubmitLocaleReviewInput, ApproveLocaleInput, RequestChangesInput,
+};
+pub use cohort_notification_service::{
+    CohortNotificationService, CohortNotificationConfig,
+    CohortNotificationType, NotificationChannel,
+    CohortNotificationPayload, MilestoneCheckPayload, ScheduleNotificationsPayload,
+    ProcessingStats, MilestoneCheckStats,
+    JOB_TYPE_COHORT_NOTIFICATION, JOB_TYPE_COHORT_MILESTONE_CHECK, JOB_TYPE_COHORT_SCHEDULE_NOTIFICATIONS,
+    process_pending_notifications, check_pending_milestones, create_cohort_job_handler,
+};
+
+// Phase 8: Operator Tools, Forecasting and Optional Adapters
+pub use forecast_service::{
+    ForecastService, ForecastServiceImpl, DynForecastService,
+    ForecastEngine, ForecastEngineConfig, AgreementShares, WeeklyProjection,
+};
+pub use webhook_service::{
+    WebhookService, WebhookServiceImpl, DynWebhookService,
+    WebhookHttpClient, DefaultHttpClient, HttpResponse, HttpError,
+    VerificationResult as WebhookVerificationResult,
+};
+pub use communication_service::{
+    CommunicationService, CommunicationServiceImpl, DynCommunicationService,
+    EmailProvider, PushProvider, NullEmailProvider, NullPushProvider,
+    EmailSendResult, PushSendResult, SendMessageResult, RenderedMessage,
 };
 
 // Re-export service traits and types

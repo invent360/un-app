@@ -16,7 +16,7 @@ use crate::components::chatbot::ChatWidget;
 use crate::components::common::LocalePopup;
 use crate::components::layout::{Footer, Header};
 use crate::components::wizard::{provide_wizard_context, ClaimWizard};
-use crate::hooks::{provide_locale_context, provide_theme_context, t};
+use crate::hooks::{provide_locale_context, provide_theme_context, t, use_locale};
 #[cfg(feature = "debug-routes")]
 use crate::routes::DebugPage;
 
@@ -71,6 +71,9 @@ fn AppRouter() -> impl IntoView {
     // Provide wizard context at app level so it's available everywhere
     let wizard_state = provide_wizard_context();
 
+    // Get locale context for RTL support
+    let locale_ctx = use_locale();
+
     // Load variants at app level for the wizard
     let variants = Resource::new(|| (), |_| get_variants());
 
@@ -82,9 +85,21 @@ fn AppRouter() -> impl IntoView {
         }
     });
 
+    // Reactive dir attribute for RTL support (Arabic, etc.)
+    let dir = move || {
+        if locale_ctx.locale.get().is_rtl() {
+            "rtl"
+        } else {
+            "ltr"
+        }
+    };
+
+    // Reactive lang attribute
+    let lang = move || locale_ctx.locale.get().code();
+
     view! {
         <Router>
-            <div class="app-wrapper">
+            <div class="app-wrapper" dir=dir lang=lang>
                 <Header />
                 <main class="app-container">
                     <ApplicationRoutes/>

@@ -118,10 +118,34 @@ async fn main() -> std::io::Result<()> {
                 move || {
                     view! {
                         <!DOCTYPE html>
-                        <html lang="en">
+                        <html lang="en" dir="ltr">
                             <head>
                                 <meta charset="utf-8"/>
                                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                                // Locale detection script - runs before hydration for SSR agreement
+                                <script>
+                                    r#"
+                                    (function() {
+                                        // RTL locales
+                                        var rtlLocales = ['ar'];
+
+                                        // Detect locale from cookie, then browser preference
+                                        var locale = (document.cookie.match(/uno_locale=([^;]+)/) || [])[1] ||
+                                                     (navigator.language || navigator.userLanguage || 'en').split('-')[0];
+
+                                        // Store for hydration agreement
+                                        window.__UNO_LOCALE__ = locale;
+
+                                        // Set dir attribute for RTL support
+                                        if (rtlLocales.indexOf(locale) !== -1) {
+                                            document.documentElement.setAttribute('dir', 'rtl');
+                                        }
+
+                                        // Set lang attribute
+                                        document.documentElement.setAttribute('lang', locale);
+                                    })();
+                                    "#
+                                </script>
                                 <AutoReload options=leptos_options.clone() />
                                 <HydrationScripts options=leptos_options.clone()/>
                                 <MetaTags/>

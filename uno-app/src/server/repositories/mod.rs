@@ -22,6 +22,18 @@ mod import_repository;
 mod publication_repository;
 mod eligibility_repository;
 mod nonce_repository;
+mod allocation_repository;
+mod credit_order_repository;
+mod media_asset_repository;
+mod media_backup_repository;
+mod support_repository;
+mod cohort_repository;
+mod market_repository;
+mod exit_repository;
+mod operator_metrics_repository;
+mod forecast_repository;
+mod webhook_repository;
+mod communication_repository;
 
 // Re-export implementations
 pub use license_repository::PostgresLicenseRepository;
@@ -131,3 +143,79 @@ pub use eligibility_repository::{
     DeviceType, CheckType, CreateRulesetInput,
 };
 pub use nonce_repository::NonceRepository;
+pub use allocation_repository::{
+    AllocationRepository, AllocationRepositoryImpl, DynAllocationRepository,
+    AllocationEntry, AllocationState, CreateAllocationInput,
+    PoolBalanceSummary, PayableBalances,
+};
+pub use credit_order_repository::{
+    CreditOrderRepository, CreditOrderRepositoryImpl, DynCreditOrderRepository,
+    CreditOrder, CreditOrderState, PayerType,
+    CreateCreditOrderInput, ApproveCreditOrderInput, ConfirmCreditOrderInput,
+    Settlement, CreateSettlementInput,
+};
+pub use media_asset_repository::{
+    MediaAssetRepository, MediaAssetRepositoryImpl, DynMediaAssetRepository,
+    MediaAsset, MediaAssetGrant, MediaQuota, MediaAssetVersion,
+    AssetState, QuotaCheckResult,
+    CreateAssetInput, UpdateStateInput, CreateGrantInput, SetQuotaInput,
+};
+pub use media_backup_repository::{
+    MediaBackupRepository, MediaBackupRepositoryImpl, DynMediaBackupRepository,
+    MediaBackup, MediaBackupEntry, MediaRestore, StorageHealthMetric,
+    BackupStatus, BackupType, RestoreStatus,
+    CreateBackupInput, CreateBackupEntryInput, CreateRestoreInput, RecordStorageMetricsInput,
+};
+pub use support_repository::{
+    SupportRepository, SupportRepositoryImpl, DynSupportRepository,
+    SupportTicket, TicketMessage, TicketHistory, QueueAssignment, CannedResponse,
+    TicketStatus, TicketPriority, TicketCategory,
+    CreateTicketInput, AddMessageInput, TicketFilters, QueueStats,
+};
+pub use cohort_repository::{
+    CohortRepository, CohortRepositoryImpl, DynCohortRepository,
+    ParticipantCohort, CohortDailyActivity, CohortNotification, CohortAnalytics,
+    CreateCohortInput, RecordActivityInput, ScheduleNotificationInput,
+    D7Progress, D30Progress, CohortStats,
+};
+pub use market_repository::{
+    MarketRepository, MarketRepositoryImpl, DynMarketRepository,
+    MarketStatus, MarketQuota, QuotaConsumption, CampaignSource, CampaignAttribution,
+    UpsertMarketStatusInput, CreateQuotaInput, CreateCampaignInput, RecordAttributionInput,
+    MarketReadiness, QuotaStatus,
+};
+pub use exit_repository::{
+    ExitRepository, ExitRepositoryImpl, DynExitRepository,
+    ParticipantExit, ExitFeedback, ExitAuditLog, WaitlistEntry,
+    ExitType, ExitStatus, PayoutStatus,
+    InitiateExitInput, SubmitFeedbackInput, AddToWaitlistInput,
+    ExitBalance, PayoutResult,
+};
+
+// Phase 8: Operator Tools, Forecasting and Optional Adapters
+pub use operator_metrics_repository::{
+    OperatorMetricsRepository, OperatorMetricsRepositoryImpl, DynOperatorMetricsRepository,
+    OperatorMetrics, OperatorException, OperatorMargin, ExceptionSeverity,
+    RecordMetricsInput, RecordExceptionInput, RecordMarginInput,
+    InventorySummary, CohortSummary, FinancialSummary, SupportSummary, SyncStatus,
+};
+pub use forecast_repository::{
+    ForecastRepository, ForecastRepositoryImpl, DynForecastRepository,
+    ForecastScenario, ForecastTask, ForecastResult, ForecastGoldenFixture, ForecastScenarioSnapshot,
+    ForecastStatus, CreateScenarioInput, UpdateScenarioInput, AddTaskInput, UpdateTaskInput,
+    CreateGoldenFixtureInput, ScenarioExport, ValidationResult, ValidationDifference,
+};
+pub use webhook_repository::{
+    WebhookRepository, WebhookRepositoryImpl, DynWebhookRepository,
+    WebhookEndpoint, WebhookDelivery, InboundWebhook, WebhookSourceConfig,
+    WebhookAuthType, WebhookDeliveryStatus, InboundWebhookStatus,
+    CreateEndpointInput, UpdateEndpointInput, CreateSourceConfigInput, DeliveryResultInput,
+    DeliveryStats, ProcessingStats,
+};
+pub use communication_repository::{
+    CommunicationRepository, CommunicationRepositoryImpl, DynCommunicationRepository,
+    CommunicationPreferences, CommunicationSuppression, MessageTemplate, ScheduledMessage, DeviceToken,
+    CommChannel, MessageCategory, SuppressionType, TemplateStatus, ScheduledMessageStatus,
+    UpdatePreferencesInput, AddSuppressionInput, CreateTemplateInput, UpdateTemplateInput,
+    ScheduleMessageInput, RegisterDeviceInput, CanReceiveResult, SendStats,
+};

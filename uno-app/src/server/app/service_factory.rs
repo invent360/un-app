@@ -9,12 +9,13 @@ use crate::server::repositories::{
     DynTestimonialRepository, DynSessionRepository, DynLaunchGateRepository, DynImmutableAuditRepository,
     DynConsentRepository, DynOutboxRepository, DynServiceIdentityRepository,
     DynImportRepository, DynPublicationRepository, DynEligibilityRepository,
+    DynAllocationRepository, DynCreditOrderRepository,
     FaqRepositoryImpl, PostgresLicenseRepository, RbacRepositoryImpl,
     ReferralRepositoryImpl, ReviewRepositoryImpl, SchemaRepositoryImpl, StatsRepositoryImpl,
     TestimonialRepositoryImpl, SessionRepositoryImpl, LaunchGateRepositoryImpl,
     ImmutableAuditRepositoryImpl, ConsentRepositoryImpl, OutboxRepositoryImpl,
     ServiceIdentityRepositoryImpl, ImportRepositoryImpl, PublicationRepositoryImpl,
-    EligibilityRepositoryImpl,
+    EligibilityRepositoryImpl, AllocationRepositoryImpl, CreditOrderRepositoryImpl,
 };
 use crate::server::services::{
     AuditServiceImpl, ContentItemServiceImpl, ContentServiceImpl, FaqServiceImpl, LicenseService,
@@ -25,6 +26,8 @@ use crate::server::services::{
     OwnershipServiceImpl, DynOwnershipService,
     AgentServiceImpl, DynAgentService,
     LifecycleServiceImpl, DynLifecycleService,
+    // Phase 5 services
+    SettlementService, DynSettlementService,
 };
 use std::sync::Arc;
 use uno_api::auth::ClientRegistry;
@@ -103,6 +106,13 @@ pub struct ServiceFactory {
     pub agent_service: DynAgentService,
     /// Lifecycle service for cancel/expiry/release tracking (P4-07)
     pub lifecycle_service: DynLifecycleService,
+    // Phase 5 repositories and services
+    /// Allocation repository for finance ledger (P5-02)
+    pub allocation_repository: Option<DynAllocationRepository>,
+    /// Credit order repository for funding lifecycle (P5-03)
+    pub credit_order_repository: Option<DynCreditOrderRepository>,
+    /// Settlement service for finance operations (P5-04)
+    pub settlement_service: Option<DynSettlementService>,
 }
 
 impl ServiceFactory {
@@ -230,6 +240,18 @@ impl ServiceFactory {
         let lifecycle_service: DynLifecycleService =
             Arc::new(LifecycleServiceImpl::new(pool.clone()));
 
+        // Create Phase 5 repositories and services
+        let allocation_repository: DynAllocationRepository =
+            Arc::new(AllocationRepositoryImpl::new(pool.clone()));
+        let credit_order_repository: DynCreditOrderRepository =
+            Arc::new(CreditOrderRepositoryImpl::new(pool.clone()));
+        let settlement_service: DynSettlementService = Arc::new(SettlementService::new(
+            allocation_repository.clone(),
+            credit_order_repository.clone(),
+            immutable_audit_repository.clone(),
+            outbox_repository.clone(),
+        ));
+
         // Create client registry with admin credentials from environment
         let client_registry = Arc::new(Self::create_client_registry());
 
@@ -272,6 +294,10 @@ impl ServiceFactory {
             ownership_service,
             agent_service,
             lifecycle_service,
+            // Phase 5
+            allocation_repository: Some(allocation_repository),
+            credit_order_repository: Some(credit_order_repository),
+            settlement_service: Some(settlement_service),
         }
     }
 

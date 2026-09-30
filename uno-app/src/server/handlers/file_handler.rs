@@ -5,8 +5,11 @@
 //! For cloud storage, files are redirected to signed URLs.
 
 use crate::server::middleware::AdminAuth;
+use crate::server::services::{
+    DynMediaAssetService, UploadRequest as MediaUploadRequest,
+};
 use actix_web::{http::header, web, HttpResponse};
-use file_storage::{create_client_from_env, FileStorageClient};
+use file_storage::create_client_from_env;
 use uuid::Uuid;
 
 /// MIME type mapping for file extensions
@@ -410,6 +413,237 @@ pub async fn delete_files(path: web::Path<String>) -> HttpResponse {
     }
 }
 
+// ============================================
+// TRACKED ASSET ENDPOINTS (P6-01/P6-02)
+// ============================================
+
+/// Request for tracked upload
+#[derive(Debug, serde::Deserialize)]
+pub struct TrackedUploadQuery {
+    pub resource_id: Option<String>,
+    pub owner_id: Option<String>,
+    pub owner_type: Option<String>,
+    pub category: Option<String>,
+    pub alt_text: Option<String>,
+}
+
+/// Response for tracked upload
+#[derive(Debug, serde::Serialize)]
+pub struct TrackedUploadResponse {
+    pub asset_id: String,
+    pub storage_url: String,
+    pub display_url: String,
+    pub file_size: i64,
+    pub sha256_hash: String,
+}
+
+/// POST /api/admin/files/tracked-upload
+/// Upload with DB tracking, quota enforcement, and hash verification
+pub async fn tracked_upload(
+    mut payload: actix_multipart::Multipart,
+    query: web::Query<TrackedUploadQuery>,
+    media_service: web::Data<DynMediaAssetService>,
+) -> HttpResponse {
+    use futures_util::StreamExt;
+
+    // Extract file from multipart
+    let mut file_data: Option<(Vec<u8>, String, String)> = None;
+    let mut total_bytes = 0usize;
+
+    while let Some(item) = payload.next().await {
+        let mut field = match item {
+            Ok(f) => f,
+            Err(e) => {
+                tracing::error!("Failed to read multipart field: {}", e);
+                return HttpResponse::BadRequest().json(serde_json::json!({
+                    "error": "Invalid multipart data",
+                    "code": "INVALID_REQUEST"
+                }));
+            }
+        };
+
+        let field_name = field.name().unwrap_or("").to_string();
+        if field_name == "file" {
+            let filename = field
+                .content_disposition()
+                .and_then(|cd| cd.get_filename().map(|s| s.to_string()))
+                .unwrap_or_else(|| "unknown".to_string());
+
+            let content_type = field
+                .content_type()
+                .map(|m| m.to_string())
+                .unwrap_or_else(|| "application/octet-stream".to_string());
+
+            let mut data = Vec::new();
+            while let Some(chunk) = field.next().await {
+                let bytes = match chunk {
+                    Ok(bytes) => bytes,
+                    Err(_) => return HttpResponse::BadRequest().finish(),
+                };
+                // 50MB limit for tracked uploads
+                if bytes.len() > 50 * 1024 * 1024 - data.len() {
+                    return HttpResponse::PayloadTooLarge().json(serde_json::json!({
+                        "error": "File too large",
+                        "code": "FILE_TOO_LARGE"
+                    }));
+                }
+                total_bytes += bytes.len();
+                data.extend_from_slice(&bytes);
+            }
+
+            if !data.is_empty() {
+                file_data = Some((data, filename, content_type));
+            }
+        }
+    }
+
+    let (data, filename, content_type) = match file_data {
+        Some(f) => f,
+        None => {
+            return HttpResponse::BadRequest().json(serde_json::json!({
+                "error": "No file provided",
+                "code": "MISSING_FILE"
+            }));
+        }
+    };
+
+    let resource_id = query.resource_id.clone().unwrap_or_else(|| Uuid::new_v4().to_string());
+
+    let request = MediaUploadRequest {
+        resource_id,
+        original_filename: filename,
+        content_type,
+        data,
+        owner_id: query.owner_id.clone(),
+        owner_type: query.owner_type.clone(),
+        category: query.category.clone(),
+        alt_text: query.alt_text.clone(),
+        created_by: None, // Could be extracted from auth
+    };
+
+    match media_service.upload_with_tracking(request).await {
+        Ok(result) => {
+            HttpResponse::Created().json(TrackedUploadResponse {
+                asset_id: result.asset_id.to_string(),
+                storage_url: result.storage_url,
+                display_url: result.display_url,
+                file_size: result.file_size,
+                sha256_hash: result.sha256_hash,
+            })
+        }
+        Err(e) => {
+            tracing::error!("Tracked upload failed: {:?}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": format!("Upload failed: {}", e),
+                "code": "UPLOAD_FAILED"
+            }))
+        }
+    }
+}
+
+/// Query parameters for quota lookup
+#[derive(Debug, serde::Deserialize)]
+pub struct QuotaQuery {
+    pub owner_type: Option<String>,
+}
+
+/// GET /api/admin/files/quota/{owner_id}
+/// Get quota status for an owner
+pub async fn get_quota(
+    path: web::Path<String>,
+    query: web::Query<QuotaQuery>,
+    media_service: web::Data<DynMediaAssetService>,
+) -> HttpResponse {
+    let owner_id = path.into_inner();
+    let owner_type = query.owner_type.as_deref().unwrap_or("user");
+
+    match media_service.get_quota(&owner_id, owner_type).await {
+        Ok(Some(quota)) => {
+            HttpResponse::Ok().json(serde_json::json!({
+                "owner_id": quota.owner_id,
+                "max_total_bytes": quota.max_total_bytes,
+                "max_file_size": quota.max_file_size,
+                "max_file_count": quota.max_file_count,
+                "current_bytes": quota.current_bytes,
+                "current_count": quota.current_count,
+                "usage_percent": if quota.max_total_bytes > 0 {
+                    (quota.current_bytes as f64 / quota.max_total_bytes as f64 * 100.0).round() as i32
+                } else {
+                    0
+                }
+            }))
+        }
+        Ok(None) => {
+            HttpResponse::Ok().json(serde_json::json!({
+                "owner_id": owner_id,
+                "max_total_bytes": 104857600, // 100MB default
+                "max_file_size": 10485760,    // 10MB default
+                "max_file_count": 50,
+                "current_bytes": 0,
+                "current_count": 0,
+                "usage_percent": 0
+            }))
+        }
+        Err(e) => {
+            tracing::error!("Failed to get quota: {:?}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": format!("Failed to get quota: {}", e),
+                "code": "INTERNAL_ERROR"
+            }))
+        }
+    }
+}
+
+/// GET /api/admin/files/disk-status
+/// Get disk threshold status (P6-08)
+pub async fn get_disk_status(
+    media_service: web::Data<DynMediaAssetService>,
+) -> HttpResponse {
+    match media_service.check_disk_thresholds().await {
+        Ok(status) => {
+            HttpResponse::Ok().json(serde_json::json!({
+                "mount_path": status.mount_path,
+                "total_bytes": status.total_bytes,
+                "available_bytes": status.available_bytes,
+                "used_percent": status.used_percent,
+                "status": format!("{:?}", status.status),
+                "is_healthy": status.status == crate::server::services::ThresholdLevel::Ok
+            }))
+        }
+        Err(e) => {
+            tracing::error!("Failed to check disk status: {:?}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": format!("Failed to check disk status: {}", e),
+                "code": "INTERNAL_ERROR"
+            }))
+        }
+    }
+}
+
+/// POST /api/admin/files/reconcile
+/// Reconcile DB with filesystem (find missing/orphaned files)
+pub async fn reconcile_assets(
+    media_service: web::Data<DynMediaAssetService>,
+) -> HttpResponse {
+    match media_service.reconcile_assets().await {
+        Ok(result) => {
+            HttpResponse::Ok().json(serde_json::json!({
+                "assets_checked": result.assets_checked,
+                "marked_missing": result.marked_missing,
+                "marked_ready": result.marked_ready,
+                "orphaned_files": result.orphaned_files,
+            }))
+        }
+        Err(e) => {
+            tracing::error!("Reconciliation failed: {:?}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": format!("Reconciliation failed: {}", e),
+                "code": "INTERNAL_ERROR"
+            }))
+        }
+    }
+}
+
 /// Configure file storage routes
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     // Public file serving for local storage
@@ -432,6 +666,10 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         web::scope("/api/admin/files")
             .wrap(AdminAuth::from_env().expect("ADMIN_API_KEY validated at startup"))
             .route("/upload", web::post().to(upload_files))
+            .route("/tracked-upload", web::post().to(tracked_upload))
+            .route("/quota/{owner_id}", web::get().to(get_quota))
+            .route("/disk-status", web::get().to(get_disk_status))
+            .route("/reconcile", web::post().to(reconcile_assets))
             .route("/{resource_id}", web::delete().to(delete_files)),
     );
 }
