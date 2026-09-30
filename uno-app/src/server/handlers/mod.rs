@@ -1,6 +1,7 @@
 //! HTTP request handlers
 
 mod admin_handler;
+mod agent_handler;
 mod audit_handler;
 mod content_admin_handler;
 mod content_handler;
@@ -9,6 +10,7 @@ mod faq_handler;
 mod file_handler;
 mod health_handler;
 mod licenses_handler;
+mod lifecycle_handler;
 mod rbac_handler;
 mod review_admin_handler;
 mod schema_handler;
@@ -247,7 +249,26 @@ pub fn configure_api_routes(cfg: &mut web::ServiceConfig) {
             .route(
                 "/items/{id}/translations",
                 web::put().to(content_item_handler::update_item_translation),
-            ),
+            )
+            // Agent workflow routes (Phase 4)
+            .route("/agents", web::get().to(agent_handler::list_agents))
+            .route("/agents/pending", web::get().to(agent_handler::get_pending_approvals))
+            .route("/agents/summary", web::get().to(agent_handler::get_summary))
+            .route("/agents/{id}", web::get().to(agent_handler::get_agent))
+            .route("/agents/{id}/approve", web::post().to(agent_handler::approve_agent))
+            .route("/agents/{id}/reject", web::post().to(agent_handler::reject_agent))
+            .route("/agents/{id}/suspend", web::post().to(agent_handler::suspend_agent))
+            .route("/agents/{id}/lift-suspension", web::post().to(agent_handler::lift_suspension))
+            .route("/agents/{id}/terminate", web::post().to(agent_handler::terminate_agent))
+            .route("/agents/{id}/history", web::get().to(agent_handler::get_status_history))
+            // License lifecycle routes (Phase 4)
+            .route("/licenses/{id}/cancel", web::post().to(lifecycle_handler::cancel_license))
+            .route("/licenses/{id}/release", web::post().to(lifecycle_handler::release_license))
+            .route("/licenses/{id}/reactivate", web::post().to(lifecycle_handler::reactivate_license))
+            .route("/licenses/{id}/exposure", web::get().to(lifecycle_handler::get_exposure))
+            .route("/licenses/{id}/lifecycle", web::get().to(lifecycle_handler::get_lifecycle_history))
+            .route("/licenses/pending-expiry", web::get().to(lifecycle_handler::get_pending_expiry))
+            .route("/licenses/process-expired", web::post().to(lifecycle_handler::process_expired)),
     );
 
     // Public preview endpoint (no HMAC required)

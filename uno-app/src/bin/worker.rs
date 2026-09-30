@@ -70,7 +70,7 @@ impl std::str::FromStr for WorkerType {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Load .env file if present
     let _ = dotenvy::dotenv();
 
@@ -176,7 +176,7 @@ async fn run_all_workers(
     nonce_repo: Arc<uno_app::server::repositories::NonceRepositoryImpl>,
     args: Args,
     shutdown: Arc<AtomicBool>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let shutdown_jobs = shutdown.clone();
     let shutdown_publisher = shutdown.clone();
     let shutdown_cleanup = shutdown.clone();
@@ -232,7 +232,7 @@ async fn run_job_processor(
     audit_repo: Arc<uno_app::server::repositories::ImmutableAuditRepositoryImpl>,
     args: Args,
     shutdown: Arc<AtomicBool>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     run_job_processor_loop(
         pool,
         outbox_repo,
@@ -250,7 +250,7 @@ async fn run_job_processor_loop(
     poll_interval: u64,
     max_jobs: u64,
     shutdown: Arc<AtomicBool>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     use uno_app::server::services::{WorkerRunner, WorkerConfig, JobResult};
 
     let config = WorkerConfig {
@@ -283,7 +283,7 @@ async fn run_job_processor_loop(
     // Define job handler
     let handler = |job: &uno_app::server::services::Job| {
         let job_type = job.job_type.clone();
-        let job_id = job.id;
+        let job_id = job.id.clone();
 
         Box::pin(async move {
             tracing::info!(job_id = %job_id, job_type = %job_type, "Processing job");
@@ -294,17 +294,17 @@ async fn run_job_processor_loop(
                 "sync_licenses" => {
                     // Handle license sync
                     tracing::info!("Syncing licenses...");
-                    JobResult::success_with_data(serde_json::json!({"synced": true}))
+                    JobResult::success(serde_json::json!({"synced": true}))
                 }
                 "send_notification" => {
                     // Handle notification sending
                     tracing::info!("Sending notification...");
-                    JobResult::success_with_data(serde_json::json!({"sent": true}))
+                    JobResult::success(serde_json::json!({"sent": true}))
                 }
                 "cleanup_expired" => {
                     // Handle cleanup
                     tracing::info!("Cleaning up expired items...");
-                    JobResult::success_with_data(serde_json::json!({"cleaned": true}))
+                    JobResult::success(serde_json::json!({"cleaned": true}))
                 }
                 _ => {
                     tracing::warn!(job_type = %job_type, "Unknown job type");
@@ -330,7 +330,7 @@ async fn run_outbox_publisher(
     outbox_repo: Arc<uno_app::server::repositories::OutboxRepositoryImpl>,
     args: Args,
     shutdown: Arc<AtomicBool>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     run_publisher_loop(
         outbox_repo,
         args.batch_size,
@@ -344,7 +344,7 @@ async fn run_publisher_loop(
     batch_size: i32,
     poll_interval: u64,
     shutdown: Arc<AtomicBool>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     use uno_app::server::services::{OutboxPublisher, OutboxPublisherConfig};
 
     let config = OutboxPublisherConfig {
@@ -391,7 +391,7 @@ async fn run_cleanup_tasks(
     nonce_repo: Arc<uno_app::server::repositories::NonceRepositoryImpl>,
     _args: Args,
     shutdown: Arc<AtomicBool>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     run_cleanup_loop(outbox_repo, nonce_repo, shutdown).await
 }
 
@@ -399,8 +399,8 @@ async fn run_cleanup_loop(
     outbox_repo: Arc<uno_app::server::repositories::OutboxRepositoryImpl>,
     nonce_repo: Arc<uno_app::server::repositories::NonceRepositoryImpl>,
     shutdown: Arc<AtomicBool>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    use uno_app::server::repositories::NonceRepository;
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    use uno_app::server::repositories::{NonceRepository, OutboxRepository};
 
     // Run cleanup every 5 minutes
     let mut timer = interval(Duration::from_secs(300));
