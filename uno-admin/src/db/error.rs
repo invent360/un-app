@@ -41,18 +41,6 @@ pub enum DbError {
 /// Result type for database operations.
 pub type DbResult<T> = Result<T, DbError>;
 
-impl From<scylla::transport::errors::NewSessionError> for DbError {
-    fn from(err: scylla::transport::errors::NewSessionError) -> Self {
-        DbError::Connection(err.to_string())
-    }
-}
-
-impl From<scylla::transport::errors::QueryError> for DbError {
-    fn from(err: scylla::transport::errors::QueryError) -> Self {
-        DbError::Query(err.to_string())
-    }
-}
-
 impl From<serde_json::Error> for DbError {
     fn from(err: serde_json::Error) -> Self {
         DbError::Serialization(err.to_string())

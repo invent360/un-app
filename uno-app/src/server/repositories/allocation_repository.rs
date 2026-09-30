@@ -46,6 +46,9 @@ pub struct AllocationEntry {
     pub ulo_micros: i64,
     pub uno_micros: i64,
     pub referral_micros: i64,
+    /// R3-07: Reserve allocation for no-referral cases
+    #[sqlx(default)]
+    pub reserve_micros: i64,
     pub ulo_bps: i32,
     pub uno_bps: i32,
     pub referral_bps: i32,
@@ -54,6 +57,15 @@ pub struct AllocationEntry {
     pub period_end: DateTime<Utc>,
     pub source: String,
     pub external_ref: Option<String>,
+    /// R3-08: Provider identifier for deduplication
+    #[sqlx(default)]
+    pub provider_id: Option<String>,
+    /// R3-08: Unique event ID from provider
+    #[sqlx(default)]
+    pub reward_event_id: Option<String>,
+    /// R4-04: Referral agent receiving referral share
+    #[sqlx(default)]
+    pub referral_agent_id: Option<Uuid>,
     pub allocated_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
     // State columns (added in migration 00034)
@@ -77,6 +89,8 @@ pub struct CreateAllocationInput {
     pub ulo_micros: i64,
     pub uno_micros: i64,
     pub referral_micros: i64,
+    /// R3-07: Reserve allocation for no-referral cases
+    pub reserve_micros: i64,
     pub ulo_bps: u32,
     pub uno_bps: u32,
     pub referral_bps: u32,
@@ -85,6 +99,12 @@ pub struct CreateAllocationInput {
     pub period_end: DateTime<Utc>,
     pub source: String,
     pub external_ref: Option<String>,
+    /// R3-08: Provider identifier for deduplication (e.g., "unetwork", "marketplace")
+    pub provider_id: Option<String>,
+    /// R3-08: Unique event ID from provider for duplicate prevention
+    pub reward_event_id: Option<String>,
+    /// R3-07: Agent receiving referral share (if any)
+    pub referral_agent_id: Option<Uuid>,
 }
 
 /// Pool balance summary for a license
@@ -161,6 +181,14 @@ pub trait AllocationRepository: Send + Sync {
         license_id: &str,
         external_ref: &str,
     ) -> Result<bool, AppError>;
+
+    /// R3-08: Check for duplicate allocation by provider and event ID
+    /// This is the authoritative deduplication check for reward events
+    async fn exists_by_provider_event(
+        &self,
+        provider_id: &str,
+        reward_event_id: &str,
+    ) -> Result<bool, AppError>;
 }
 
 /// PostgreSQL implementation of AllocationRepository
@@ -185,21 +213,23 @@ impl AllocationRepository for AllocationRepositoryImpl {
             INSERT INTO allocation_ledger (
                 id, license_id, agreement_version,
                 pool_micros, pool_currency,
-                ulo_micros, uno_micros, referral_micros,
+                ulo_micros, uno_micros, referral_micros, reserve_micros,
                 ulo_bps, uno_bps, referral_bps,
                 remainder_micros,
                 period_start, period_end,
                 source, external_ref,
+                provider_id, reward_event_id, referral_agent_id,
                 allocated_at, created_at
             ) VALUES (
                 $1, $2, $3,
                 $4, $5,
-                $6, $7, $8,
-                $9, $10, $11,
-                $12,
-                $13, $14,
-                $15, $16,
-                $17, $18
+                $6, $7, $8, $9,
+                $10, $11, $12,
+                $13,
+                $14, $15,
+                $16, $17,
+                $18, $19, $20,
+                $21, $22
             )
             "#,
         )
@@ -211,6 +241,7 @@ impl AllocationRepository for AllocationRepositoryImpl {
         .bind(input.ulo_micros)
         .bind(input.uno_micros)
         .bind(input.referral_micros)
+        .bind(input.reserve_micros)
         .bind(input.ulo_bps as i32)
         .bind(input.uno_bps as i32)
         .bind(input.referral_bps as i32)
@@ -219,6 +250,9 @@ impl AllocationRepository for AllocationRepositoryImpl {
         .bind(input.period_end)
         .bind(&input.source)
         .bind(&input.external_ref)
+        .bind(&input.provider_id)
+        .bind(&input.reward_event_id)
+        .bind(input.referral_agent_id)
         .bind(now)
         .bind(now)
         .execute(&self.pool)
@@ -235,10 +269,12 @@ impl AllocationRepository for AllocationRepositoryImpl {
                 id, license_id, agreement_version,
                 pool_micros, pool_currency,
                 ulo_micros, uno_micros, referral_micros,
+                COALESCE(reserve_micros, 0) as reserve_micros,
                 ulo_bps, uno_bps, referral_bps,
                 remainder_micros,
                 period_start, period_end,
                 source, external_ref,
+                provider_id, reward_event_id, referral_agent_id,
                 allocated_at, created_at,
                 state::text as state, state_changed_at, state_changed_by, settlement_ref
             FROM allocation_ledger
@@ -263,10 +299,12 @@ impl AllocationRepository for AllocationRepositoryImpl {
                 id, license_id, agreement_version,
                 pool_micros, pool_currency,
                 ulo_micros, uno_micros, referral_micros,
+                COALESCE(reserve_micros, 0) as reserve_micros,
                 ulo_bps, uno_bps, referral_bps,
                 remainder_micros,
                 period_start, period_end,
                 source, external_ref,
+                provider_id, reward_event_id, referral_agent_id,
                 allocated_at, created_at,
                 state::text as state, state_changed_at, state_changed_by, settlement_ref
             FROM allocation_ledger
@@ -301,10 +339,12 @@ impl AllocationRepository for AllocationRepositoryImpl {
                 id, license_id, agreement_version,
                 pool_micros, pool_currency,
                 ulo_micros, uno_micros, referral_micros,
+                COALESCE(reserve_micros, 0) as reserve_micros,
                 ulo_bps, uno_bps, referral_bps,
                 remainder_micros,
                 period_start, period_end,
                 source, external_ref,
+                provider_id, reward_event_id, referral_agent_id,
                 allocated_at, created_at,
                 state::text as state, state_changed_at, state_changed_by, settlement_ref
             FROM allocation_ledger
@@ -488,6 +528,31 @@ impl AllocationRepository for AllocationRepositoryImpl {
         )
         .bind(license_id)
         .bind(external_ref)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| AppError::Database(e.to_string()))?;
+
+        Ok(row.get("exists"))
+    }
+
+    /// R3-08: Check for duplicate allocation by provider and event ID
+    /// This provides provider-scoped deduplication, preventing the same
+    /// reward event from being processed twice regardless of license
+    async fn exists_by_provider_event(
+        &self,
+        provider_id: &str,
+        reward_event_id: &str,
+    ) -> Result<bool, AppError> {
+        let row = sqlx::query(
+            r#"
+            SELECT EXISTS(
+                SELECT 1 FROM allocation_ledger
+                WHERE provider_id = $1 AND reward_event_id = $2
+            ) as exists
+            "#,
+        )
+        .bind(provider_id)
+        .bind(reward_event_id)
         .fetch_one(&self.pool)
         .await
         .map_err(|e| AppError::Database(e.to_string()))?;

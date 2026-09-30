@@ -184,6 +184,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
     ) -> Result<Vec<ClaimedLicense>, AppError> {
         let query = match since {
             Some(ts) => {
+                // R3-06: Compound key ordering for consistent cursor-based pagination
                 sqlx::query_as::<_, ClaimedLicense>(r#"
                     SELECT
                         l.id::text as license_id,
@@ -194,7 +195,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
                     LEFT JOIN referrals r ON l.referral_id = r.id
                     WHERE l.claimed = true
                       AND l.claimed_at > $1
-                    ORDER BY l.claimed_at ASC
+                    ORDER BY l.claimed_at ASC, l.id ASC
                     LIMIT $2
                 "#)
                 .bind(ts)
@@ -203,6 +204,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
                 .await?
             }
             None => {
+                // R3-06: Compound key ordering for consistent cursor-based pagination
                 sqlx::query_as::<_, ClaimedLicense>(r#"
                     SELECT
                         l.id::text as license_id,
@@ -212,7 +214,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
                     FROM licenses l
                     LEFT JOIN referrals r ON l.referral_id = r.id
                     WHERE l.claimed = true
-                    ORDER BY l.claimed_at ASC
+                    ORDER BY l.claimed_at ASC, l.id ASC
                     LIMIT $1
                 "#)
                 .bind(limit)
@@ -296,15 +298,24 @@ impl ClaimRepository for ClaimRepositoryImpl {
             AppError::NotFound("No licenses available for reservation".into())
         })?;
 
-        // Validate referral code if provided (but don't attribute yet)
+        // R3-07: Validate referral code if provided (but don't attribute yet)
+        // Check that both the referral is active AND the agent is approved
         let referral_validated = if let Some(code) = referral_code {
-            let exists: (bool,) = sqlx::query_as(
-                "SELECT EXISTS(SELECT 1 FROM referrals WHERE referral_code = $1 AND status = 'active')"
+            let valid: (bool,) = sqlx::query_as(
+                r#"
+                SELECT EXISTS(
+                    SELECT 1 FROM referrals r
+                    JOIN agents a ON r.agent_id = a.id
+                    WHERE r.referral_code = $1
+                      AND r.status = 'active'
+                      AND a.status = 'approved'
+                )
+                "#
             )
             .bind(code.to_uppercase())
             .fetch_one(&mut *tx)
             .await?;
-            exists.0
+            valid.0
         } else {
             false
         };
@@ -445,6 +456,40 @@ impl ClaimRepository for ClaimRepositoryImpl {
         } else {
             None
         };
+
+        // R3-07: Verify agent is approved before allowing attribution
+        // Suspended/rejected/terminated agents cannot receive new attributions
+        if let Some(ref_id) = referral_id {
+            // Only check if this is a NEW attribution (license doesn't already have referral)
+            if license.referral_id.is_none() {
+                let agent_check: Option<(String,)> = sqlx::query_as(
+                    r#"
+                    SELECT a.status::text
+                    FROM referrals r
+                    JOIN agents a ON r.agent_id = a.id
+                    WHERE r.id = $1
+                    "#
+                )
+                .bind(ref_id)
+                .fetch_optional(&mut *tx)
+                .await?;
+
+                if let Some((status,)) = agent_check {
+                    if status != "approved" {
+                        tracing::warn!(
+                            referral_id = %ref_id,
+                            agent_status = %status,
+                            license_id = %license_id,
+                            "Attribution rejected: agent not approved"
+                        );
+                        return Err(AppError::ValidationError(format!(
+                            "Cannot attribute to referral: agent status is '{}'",
+                            status
+                        )));
+                    }
+                }
+            }
+        }
 
         // SECURITY: Referral is immutable - only set if not already set
         let (final_referral_id, referral_attributed_at) = if license.referral_id.is_some() {

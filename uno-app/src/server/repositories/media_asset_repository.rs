@@ -31,6 +31,43 @@ pub enum AssetState {
     Deleted,
 }
 
+/// R4-05: Asset visibility enum for access control
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum AssetVisibility {
+    /// Anyone can access
+    Public,
+    /// Only owner and granted users can access
+    Private,
+    /// Only owner can access (default for new uploads)
+    #[default]
+    Draft,
+}
+
+impl AssetVisibility {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Public => "public",
+            Self::Private => "private",
+            Self::Draft => "draft",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "public" => Some(Self::Public),
+            "private" => Some(Self::Private),
+            "draft" => Some(Self::Draft),
+            _ => None,
+        }
+    }
+
+    /// R4-05: Check if anonymous access is allowed
+    pub fn allows_anonymous(&self) -> bool {
+        matches!(self, Self::Public)
+    }
+}
+
 impl AssetState {
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -65,12 +102,19 @@ pub struct MediaAsset {
     pub display_url: String,
     pub mime_type: String,
     pub file_size: i64,
+    /// R4-05: SHA256 of stored bytes (post-transformation)
     pub sha256_hash: Option<String>,
+    /// R4-05: SHA256 of original uploaded bytes (pre-transformation)
+    #[sqlx(default)]
+    pub original_hash: Option<String>,
     pub width: Option<i32>,
     pub height: Option<i32>,
     pub state: String,
     pub state_reason: Option<String>,
     pub state_changed_at: DateTime<Utc>,
+    /// R4-05: Visibility for access control
+    #[sqlx(default)]
+    pub visibility: Option<String>,
     pub owner_id: Option<String>,
     pub owner_type: Option<String>,
     pub category: Option<String>,
@@ -85,6 +129,32 @@ pub struct MediaAsset {
 impl MediaAsset {
     pub fn state_enum(&self) -> Option<AssetState> {
         AssetState::from_str(&self.state)
+    }
+
+    /// R4-05: Get visibility as enum
+    pub fn visibility_enum(&self) -> AssetVisibility {
+        self.visibility
+            .as_deref()
+            .and_then(AssetVisibility::from_str)
+            .unwrap_or(AssetVisibility::Draft)
+    }
+
+    /// R4-05: Check if accessor can view this asset
+    pub fn is_accessible_by(&self, accessor_id: Option<&str>, is_owner: bool) -> bool {
+        let visibility = self.visibility_enum();
+
+        // Public assets are always accessible
+        if visibility == AssetVisibility::Public {
+            return true;
+        }
+
+        // Draft assets only accessible by owner
+        if visibility == AssetVisibility::Draft {
+            return is_owner || self.owner_id.as_deref() == accessor_id;
+        }
+
+        // Private assets: owner gets access, others need grants (checked separately)
+        is_owner || self.owner_id.as_deref() == accessor_id
     }
 }
 
@@ -159,6 +229,35 @@ impl QuotaCheckResult {
     }
 }
 
+/// R4-05: Integrity check result
+#[derive(Debug, Clone)]
+pub struct IntegrityCheckResult {
+    pub verified: bool,
+    pub expected_hash: Option<String>,
+    pub actual_hash: String,
+    pub mismatch_type: Option<String>,
+}
+
+impl IntegrityCheckResult {
+    pub fn ok(expected_hash: String, actual_hash: String) -> Self {
+        Self {
+            verified: true,
+            expected_hash: Some(expected_hash),
+            actual_hash,
+            mismatch_type: None,
+        }
+    }
+
+    pub fn mismatch(expected_hash: Option<String>, actual_hash: String, mismatch_type: &str) -> Self {
+        Self {
+            verified: false,
+            expected_hash,
+            actual_hash,
+            mismatch_type: Some(mismatch_type.to_string()),
+        }
+    }
+}
+
 /// Asset version entity
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct MediaAssetVersion {
@@ -188,9 +287,14 @@ pub struct CreateAssetInput {
     pub display_url: String,
     pub mime_type: String,
     pub file_size: i64,
+    /// R4-05: SHA256 of stored bytes (post-transformation)
     pub sha256_hash: Option<String>,
+    /// R4-05: SHA256 of original uploaded bytes (pre-transformation)
+    pub original_hash: Option<String>,
     pub width: Option<i32>,
     pub height: Option<i32>,
+    /// R4-05: Visibility for access control (defaults to draft)
+    pub visibility: Option<AssetVisibility>,
     pub owner_id: Option<String>,
     pub owner_type: Option<String>,
     pub category: Option<String>,
@@ -270,6 +374,16 @@ pub trait MediaAssetRepository: Send + Sync {
     // Statistics
     async fn count_by_state(&self) -> Result<Vec<(String, i64)>, AppError>;
     async fn total_storage_used(&self) -> Result<i64, AppError>;
+
+    // R4-05: Visibility and integrity
+    /// Check if accessor can view the asset based on visibility policy
+    async fn check_visibility(&self, asset_id: Uuid, accessor_id: Option<&str>, is_owner: bool) -> Result<bool, AppError>;
+    /// Update asset visibility (only owner can do this)
+    async fn update_visibility(&self, asset_id: Uuid, visibility: AssetVisibility, actor_id: &str) -> Result<bool, AppError>;
+    /// Verify stored bytes match expected hash
+    async fn verify_integrity(&self, asset_id: Uuid, computed_hash: &str) -> Result<IntegrityCheckResult, AppError>;
+    /// Get asset for visibility-checked read
+    async fn get_asset_with_visibility_check(&self, id: Uuid, accessor_id: Option<&str>, is_owner: bool) -> Result<Option<MediaAsset>, AppError>;
 }
 
 // ============================================
@@ -289,17 +403,20 @@ impl MediaAssetRepositoryImpl {
 #[async_trait]
 impl MediaAssetRepository for MediaAssetRepositoryImpl {
     async fn create_asset(&self, input: CreateAssetInput) -> Result<MediaAsset, AppError> {
+        // R4-05: Default to draft visibility for new uploads
+        let visibility = input.visibility.unwrap_or(AssetVisibility::Draft);
+
         let asset = sqlx::query_as::<_, MediaAsset>(
             r#"
             INSERT INTO media_assets (
                 resource_id, filename, original_filename, storage_url, display_url,
-                mime_type, file_size, sha256_hash, width, height,
-                owner_id, owner_type, category, alt_text, created_by
+                mime_type, file_size, sha256_hash, original_hash, width, height,
+                visibility, owner_id, owner_type, category, alt_text, created_by
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::asset_visibility, $13, $14, $15, $16, $17)
             RETURNING id, resource_id, filename, original_filename, storage_url, display_url,
-                      mime_type, file_size, sha256_hash, width, height,
-                      state, state_reason, state_changed_at,
+                      mime_type, file_size, sha256_hash, original_hash, width, height,
+                      state, state_reason, state_changed_at, visibility::TEXT,
                       owner_id, owner_type, category, alt_text,
                       created_at, created_by, updated_at, deleted_at, deleted_by
             "#,
@@ -312,8 +429,10 @@ impl MediaAssetRepository for MediaAssetRepositoryImpl {
         .bind(&input.mime_type)
         .bind(input.file_size)
         .bind(&input.sha256_hash)
+        .bind(&input.original_hash)
         .bind(input.width)
         .bind(input.height)
+        .bind(visibility.as_str())
         .bind(&input.owner_id)
         .bind(&input.owner_type)
         .bind(&input.category)
@@ -328,6 +447,7 @@ impl MediaAssetRepository for MediaAssetRepositoryImpl {
             resource_id = %asset.resource_id,
             mime_type = %asset.mime_type,
             file_size = asset.file_size,
+            visibility = %visibility.as_str(),
             "Media asset created"
         );
 
@@ -338,8 +458,8 @@ impl MediaAssetRepository for MediaAssetRepositoryImpl {
         let result = sqlx::query_as::<_, MediaAsset>(
             r#"
             SELECT id, resource_id, filename, original_filename, storage_url, display_url,
-                   mime_type, file_size, sha256_hash, width, height,
-                   state, state_reason, state_changed_at,
+                   mime_type, file_size, sha256_hash, original_hash, width, height,
+                   state, state_reason, state_changed_at, visibility::TEXT,
                    owner_id, owner_type, category, alt_text,
                    created_at, created_by, updated_at, deleted_at, deleted_by
             FROM media_assets
@@ -358,8 +478,8 @@ impl MediaAssetRepository for MediaAssetRepositoryImpl {
         let result = sqlx::query_as::<_, MediaAsset>(
             r#"
             SELECT id, resource_id, filename, original_filename, storage_url, display_url,
-                   mime_type, file_size, sha256_hash, width, height,
-                   state, state_reason, state_changed_at,
+                   mime_type, file_size, sha256_hash, original_hash, width, height,
+                   state, state_reason, state_changed_at, visibility::TEXT,
                    owner_id, owner_type, category, alt_text,
                    created_at, created_by, updated_at, deleted_at, deleted_by
             FROM media_assets
@@ -421,8 +541,8 @@ impl MediaAssetRepository for MediaAssetRepositoryImpl {
         let results = sqlx::query_as::<_, MediaAsset>(
             r#"
             SELECT id, resource_id, filename, original_filename, storage_url, display_url,
-                   mime_type, file_size, sha256_hash, width, height,
-                   state, state_reason, state_changed_at,
+                   mime_type, file_size, sha256_hash, original_hash, width, height,
+                   state, state_reason, state_changed_at, visibility::TEXT,
                    owner_id, owner_type, category, alt_text,
                    created_at, created_by, updated_at, deleted_at, deleted_by
             FROM media_assets
@@ -443,8 +563,8 @@ impl MediaAssetRepository for MediaAssetRepositoryImpl {
         let results = sqlx::query_as::<_, MediaAsset>(
             r#"
             SELECT id, resource_id, filename, original_filename, storage_url, display_url,
-                   mime_type, file_size, sha256_hash, width, height,
-                   state, state_reason, state_changed_at,
+                   mime_type, file_size, sha256_hash, original_hash, width, height,
+                   state, state_reason, state_changed_at, visibility::TEXT,
                    owner_id, owner_type, category, alt_text,
                    created_at, created_by, updated_at, deleted_at, deleted_by
             FROM media_assets
@@ -464,8 +584,8 @@ impl MediaAssetRepository for MediaAssetRepositoryImpl {
         let results = sqlx::query_as::<_, MediaAsset>(
             r#"
             SELECT id, resource_id, filename, original_filename, storage_url, display_url,
-                   mime_type, file_size, sha256_hash, width, height,
-                   state, state_reason, state_changed_at,
+                   mime_type, file_size, sha256_hash, original_hash, width, height,
+                   state, state_reason, state_changed_at, visibility::TEXT,
                    owner_id, owner_type, category, alt_text,
                    created_at, created_by, updated_at, deleted_at, deleted_by
             FROM media_assets
@@ -741,6 +861,104 @@ impl MediaAssetRepository for MediaAssetRepositoryImpl {
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         Ok(result.0.unwrap_or(0))
+    }
+
+    /// R4-05: Check if accessor can view the asset based on visibility policy
+    async fn check_visibility(&self, asset_id: Uuid, accessor_id: Option<&str>, is_owner: bool) -> Result<bool, AppError> {
+        // Use the PostgreSQL function for consistent visibility checks
+        let result: (bool,) = sqlx::query_as(
+            "SELECT check_media_visibility($1, $2, $3)"
+        )
+        .bind(asset_id)
+        .bind(accessor_id)
+        .bind(is_owner)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        Ok(result.0)
+    }
+
+    /// R4-05: Update asset visibility (only owner can do this)
+    async fn update_visibility(&self, asset_id: Uuid, visibility: AssetVisibility, actor_id: &str) -> Result<bool, AppError> {
+        // Use the PostgreSQL function which enforces ownership check
+        let result: (bool,) = sqlx::query_as(
+            "SELECT update_media_visibility($1, $2::asset_visibility, $3)"
+        )
+        .bind(asset_id)
+        .bind(visibility.as_str())
+        .bind(actor_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        if result.0 {
+            tracing::info!(
+                asset_id = %asset_id,
+                visibility = %visibility.as_str(),
+                actor_id = %actor_id,
+                "Media asset visibility updated"
+            );
+        }
+
+        Ok(result.0)
+    }
+
+    /// R4-05: Verify stored bytes match expected hash
+    async fn verify_integrity(&self, asset_id: Uuid, computed_hash: &str) -> Result<IntegrityCheckResult, AppError> {
+        // Use the PostgreSQL function which also quarantines on mismatch
+        let result: (bool, Option<String>, String, Option<String>) = sqlx::query_as(
+            "SELECT verified, expected_hash, actual_hash, mismatch_type FROM verify_media_integrity($1, $2)"
+        )
+        .bind(asset_id)
+        .bind(computed_hash)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        if !result.0 {
+            tracing::warn!(
+                asset_id = %asset_id,
+                expected_hash = ?result.1,
+                actual_hash = %result.2,
+                mismatch_type = ?result.3,
+                "Media asset integrity verification failed"
+            );
+        }
+
+        Ok(IntegrityCheckResult {
+            verified: result.0,
+            expected_hash: result.1,
+            actual_hash: result.2,
+            mismatch_type: result.3,
+        })
+    }
+
+    /// R4-05: Get asset for visibility-checked read
+    async fn get_asset_with_visibility_check(&self, id: Uuid, accessor_id: Option<&str>, is_owner: bool) -> Result<Option<MediaAsset>, AppError> {
+        // First get the asset
+        let asset = self.get_asset(id).await?;
+
+        let Some(asset) = asset else {
+            return Ok(None);
+        };
+
+        // Check visibility
+        let is_accessible = self.check_visibility(id, accessor_id, is_owner).await?;
+
+        if is_accessible {
+            Ok(Some(asset))
+        } else {
+            // Asset exists but not accessible - return None to avoid leaking existence
+            tracing::debug!(
+                asset_id = %id,
+                accessor_id = ?accessor_id,
+                is_owner = is_owner,
+                visibility = ?asset.visibility,
+                "Asset access denied due to visibility policy"
+            );
+            Ok(None)
+        }
     }
 }
 

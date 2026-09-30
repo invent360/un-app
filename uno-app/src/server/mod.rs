@@ -6,6 +6,7 @@ pub mod data_governance;
 pub mod db;
 pub mod geoip;
 pub mod handlers;
+pub mod metrics;
 pub mod services;
 pub mod repositories;
 pub mod middleware;

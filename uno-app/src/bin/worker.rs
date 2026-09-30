@@ -280,35 +280,65 @@ async fn run_job_processor_loop(
         runner_shutdown.store(true, Ordering::SeqCst);
     });
 
-    // Define job handler
+    // R3-09: Define job handler with proper error handling
+    // All job types must either perform actual work or return failure
+    // No placeholder success returns - this ensures jobs are properly tracked
     let handler = |job: &uno_app::server::services::Job| {
         let job_type = job.job_type.clone();
         let job_id = job.id.clone();
+        let _payload = job.payload.clone(); // Reserved for future job-specific data
 
         Box::pin(async move {
             tracing::info!(job_id = %job_id, job_type = %job_type, "Processing job");
 
-            // Dispatch based on job type
-            // In a real implementation, you'd have specific handlers per job type
+            // R3-09: Dispatch to real job handlers only
+            // Jobs without implementations return failure, not false success
             match job_type.as_str() {
                 "sync_licenses" => {
-                    // Handle license sync
-                    tracing::info!("Syncing licenses...");
-                    JobResult::success(serde_json::json!({"synced": true}))
+                    // TODO: Connect to LicenseSyncService when available
+                    // For now, return not_implemented so job goes to dead-letter
+                    tracing::warn!(
+                        job_id = %job_id,
+                        job_type = %job_type,
+                        "Job type not implemented in this worker"
+                    );
+                    JobResult::failure("sync_licenses handler not implemented - job will retry or dead-letter")
                 }
                 "send_notification" => {
-                    // Handle notification sending
-                    tracing::info!("Sending notification...");
-                    JobResult::success(serde_json::json!({"sent": true}))
+                    // TODO: Connect to NotificationService when available
+                    tracing::warn!(
+                        job_id = %job_id,
+                        job_type = %job_type,
+                        "Job type not implemented in this worker"
+                    );
+                    JobResult::failure("send_notification handler not implemented - job will retry or dead-letter")
                 }
                 "cleanup_expired" => {
-                    // Handle cleanup
-                    tracing::info!("Cleaning up expired items...");
-                    JobResult::success(serde_json::json!({"cleaned": true}))
+                    // TODO: Connect to CleanupService when available
+                    tracing::warn!(
+                        job_id = %job_id,
+                        job_type = %job_type,
+                        "Job type not implemented in this worker"
+                    );
+                    JobResult::failure("cleanup_expired handler not implemented - job will retry or dead-letter")
+                }
+                "outbox_publish" => {
+                    // Handled by the outbox publisher, not job processor
+                    tracing::info!(job_id = %job_id, "Outbox job - handled by publisher");
+                    JobResult::success(serde_json::json!({"note": "Handled by outbox publisher"}))
+                }
+                "webhook_delivery" => {
+                    // Handled by the webhook service, not job processor
+                    tracing::info!(job_id = %job_id, "Webhook job - handled by webhook service");
+                    JobResult::success(serde_json::json!({"note": "Handled by webhook service"}))
                 }
                 _ => {
-                    tracing::warn!(job_type = %job_type, "Unknown job type");
-                    JobResult::failure(&format!("Unknown job type: {}", job_type))
+                    tracing::error!(
+                        job_type = %job_type,
+                        job_id = %job_id,
+                        "Unknown job type received"
+                    );
+                    JobResult::failure(&format!("Unknown job type: {} - no handler registered", job_type))
                 }
             }
         }) as std::pin::Pin<Box<dyn std::future::Future<Output = JobResult> + Send>>

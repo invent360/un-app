@@ -30,6 +30,7 @@ mod reservation_service;
 mod ownership_service;
 mod agent_service;
 mod lifecycle_service;
+mod journey_service;
 mod outbox_publisher;
 mod inbox_processor;
 mod settlement_service;
@@ -40,6 +41,8 @@ mod cohort_notification_service;
 mod forecast_service;
 mod webhook_service;
 mod communication_service;
+mod pilot_service;
+mod retention_service;
 
 // Re-export service implementations
 pub use chatbot_service::ChatbotService;
@@ -60,7 +63,7 @@ pub use job_service::{
 };
 pub use worker_runner::{
     WorkerRunner, WorkerConfig, WorkerStats,
-    run_lease_reclaimer, run_event_cleanup,
+    run_lease_reclaimer, run_event_cleanup, run_stale_event_recovery, run_retention_cleanup,
 };
 pub use service_identity_service::{ServiceIdentityService, AuthenticatedService};
 pub use evidence_service::{
@@ -88,6 +91,10 @@ pub use lifecycle_service::{
     LifecycleEvent, ActorType as LifecycleActorType, LifecycleLogEntry, ExposureMetrics,
     CancelLicenseInput, ReleaseLicenseInput, ReactivateLicenseInput,
     ExpiryNotificationType, LicensePendingExpiry,
+};
+pub use journey_service::{
+    JourneyService, JourneyServiceImpl, DynJourneyService,
+    JourneyEntry, StageMetrics,
 };
 pub use outbox_publisher::{
     OutboxPublisher, OutboxPublisherConfig, PublishStats, WebhookPayload,
@@ -138,6 +145,17 @@ pub use communication_service::{
     CommunicationService, CommunicationServiceImpl, DynCommunicationService,
     EmailProvider, PushProvider, NullEmailProvider, NullPushProvider,
     EmailSendResult, PushSendResult, SendMessageResult, RenderedMessage,
+};
+
+// Phase 9: Pilot management
+pub use pilot_service::{
+    PilotService, PilotServiceImpl, DynPilotService,
+};
+
+// R3-17: Data retention policy enforcement
+pub use retention_service::{
+    RetentionService, RetentionServiceImpl, DynRetentionService,
+    CleanupSummary,
 };
 
 // Re-export service traits and types

@@ -34,6 +34,10 @@ mod operator_metrics_repository;
 mod forecast_repository;
 mod webhook_repository;
 mod communication_repository;
+mod evidence_repository;
+mod pilot_repository;
+mod settlement_item_repository;
+mod retention_repository;
 
 // Re-export implementations
 pub use license_repository::PostgresLicenseRepository;
@@ -157,7 +161,7 @@ pub use credit_order_repository::{
 pub use media_asset_repository::{
     MediaAssetRepository, MediaAssetRepositoryImpl, DynMediaAssetRepository,
     MediaAsset, MediaAssetGrant, MediaQuota, MediaAssetVersion,
-    AssetState, QuotaCheckResult,
+    AssetState, AssetVisibility, QuotaCheckResult, IntegrityCheckResult,
     CreateAssetInput, UpdateStateInput, CreateGrantInput, SetQuotaInput,
 };
 pub use media_backup_repository::{
@@ -218,4 +222,30 @@ pub use communication_repository::{
     CommChannel, MessageCategory, SuppressionType, TemplateStatus, ScheduledMessageStatus,
     UpdatePreferencesInput, AddSuppressionInput, CreateTemplateInput, UpdateTemplateInput,
     ScheduleMessageInput, RegisterDeviceInput, CanReceiveResult, SendStats,
+};
+
+// Phase 9: Evidence and Pilot repositories
+pub use evidence_repository::{
+    EvidenceRepository, EvidenceRepositoryImpl, DynEvidenceRepository,
+    GateEvidenceRequirement, GateEnablementLog, EmergencyPause, GateEvidenceSummary,
+    RecordEvidenceInput, CreateEmergencyPauseInput,
+};
+pub use pilot_repository::{
+    PilotRepository, PilotRepositoryImpl, DynPilotRepository,
+    PilotCohort, PilotParticipant, PilotStateTransition, PilotActivity, PilotMetricsSnapshot,
+    PilotParticipantState, CohortReport,
+    AddParticipantInput, TransitionStateInput, RecordPilotActivityInput,
+};
+
+// R4-04: Settlement items for per-recipient/per-party settlement
+pub use settlement_item_repository::{
+    SettlementItemRepository, SettlementItemRepositoryImpl, DynSettlementItemRepository,
+    SettlementItem, SettlementItemState, UnsettledLiability,
+    CreateSettlementItemInput,
+};
+
+// R3-17: Data retention policy enforcement
+pub use retention_repository::{
+    RetentionRepository, RetentionRepositoryImpl, DynRetentionRepository,
+    RetentionPolicy, RetentionCleanupResult,
 };

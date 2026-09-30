@@ -6,7 +6,7 @@
 //! - Dead-letter queue for failed jobs
 //! - Exactly-once semantics via idempotency keys
 //!
-//! Note: The actual database implementation uses ScyllaDB via
+//! Note: The actual database implementation uses PostgreSQL via
 //! the existing SyncJobRepository infrastructure.
 
 use chrono::{DateTime, Duration, Utc};

@@ -145,9 +145,89 @@ jobs:
       - run: cargo install cargo-audit --version 0.22.2 --locked
       - run: python3 scripts/audit_release_dependencies.py
 
+  worker-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.92.0
+      - uses: Swatinem/rust-cache@v2
+      - name: Compile worker binary
+        run: cargo build --locked -p uno-app --features ssr --bin uno-app
+      - name: Record binary hash
+        run: |
+          sha256sum target/debug/uno-app > worker-hash.txt
+          echo "Worker binary hash:"
+          cat worker-hash.txt
+      - name: Upload worker hash
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-binary-hash
+          path: worker-hash.txt
+          retention-days: 90
+
+  container-scan:
+    runs-on: ubuntu-latest
+    needs: containers
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [uno-app, uno-admin]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Rebuild container for scanning
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.package }}/Dockerfile
+          push: false
+          load: true
+          tags: local/${{ matrix.package }}:scan
+          platforms: linux/amd64
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: local/${{ matrix.package }}:scan
+          format: 'sarif'
+          output: trivy-${{ matrix.package }}.sarif
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-scan-${{ matrix.package }}
+          path: trivy-${{ matrix.package }}.sarif
+          retention-days: 90
+      - name: Fail on critical vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: local/${{ matrix.package }}:scan
+          format: 'table'
+          severity: 'CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+
+  artifact-manifest:
+    runs-on: ubuntu-latest
+    needs: [compile, worker-compile, containers, tests, audit]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download all digests
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Generate release manifest
+        run: python3 scripts/generate_release_manifest.py
+      - name: Upload release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-manifest
+          path: release-manifest.json
+          retention-days: 365
+
   ci-success:
     runs-on: ubuntu-latest
-    needs: [format, source-contracts, compile, clippy, tests, containers, audit]
+    needs: [format, source-contracts, compile, clippy, tests, containers, audit, worker-compile, container-scan, artifact-manifest]
     if: always()
     steps:
       - name: Require every job to succeed
@@ -159,7 +239,10 @@ jobs:
             '${{ needs.clippy.result }}' \
             '${{ needs.tests.result }}' \
             '${{ needs.containers.result }}' \
-            '${{ needs.audit.result }}'; do
+            '${{ needs.audit.result }}' \
+            '${{ needs.worker-compile.result }}' \
+            '${{ needs.container-scan.result }}' \
+            '${{ needs.artifact-manifest.result }}'; do
             if [ "$result" != success ]; then
               echo "Required CI job ended as $result"
               exit 1

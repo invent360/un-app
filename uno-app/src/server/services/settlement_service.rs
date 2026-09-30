@@ -18,7 +18,10 @@ use crate::server::repositories::{
     CreditOrderRepository, CreateSettlementInput, Settlement,
     ImmutableAuditRepository, AuditEventBuilder, AuditCategory, AuditEventType, ActorType, AuditOutcome,
     DynOutboxRepository, CreateOutboxEvent,
+    // R4-04: Settlement items for per-party settlement
+    SettlementItemRepository, CreateSettlementItemInput,
 };
+use std::collections::HashSet;
 use crate::types::AppError;
 use uno_api::services::{AllocationService, AllocationRequest};
 
@@ -71,6 +74,10 @@ pub struct RecordAllocationInput {
     pub period_end: DateTime<Utc>,
     pub source: String,
     pub external_ref: Option<String>,
+    /// R3-08: Provider identifier for deduplication (e.g., "unetwork", "marketplace")
+    pub provider_id: Option<String>,
+    /// R3-08: Unique event ID from provider for duplicate prevention
+    pub reward_event_id: Option<String>,
 }
 
 /// Input for preparing a settlement
@@ -147,6 +154,7 @@ pub struct SettlementService {
     credit_order_repo: Arc<dyn CreditOrderRepository + Send + Sync>,
     audit_repo: Arc<dyn ImmutableAuditRepository + Send + Sync>,
     outbox_repo: DynOutboxRepository,
+    settlement_item_repo: Option<Arc<dyn crate::server::repositories::SettlementItemRepository + Send + Sync>>,
     allocation_service: AllocationService,
 }
 
@@ -162,6 +170,25 @@ impl SettlementService {
             credit_order_repo,
             audit_repo,
             outbox_repo,
+            settlement_item_repo: None,
+            allocation_service: AllocationService::new(),
+        }
+    }
+
+    /// R4-04: Create with settlement item repository for per-party settlement
+    pub fn with_settlement_items(
+        allocation_repo: Arc<dyn AllocationRepository + Send + Sync>,
+        credit_order_repo: Arc<dyn CreditOrderRepository + Send + Sync>,
+        audit_repo: Arc<dyn ImmutableAuditRepository + Send + Sync>,
+        outbox_repo: DynOutboxRepository,
+        settlement_item_repo: Arc<dyn crate::server::repositories::SettlementItemRepository + Send + Sync>,
+    ) -> Self {
+        Self {
+            allocation_repo,
+            credit_order_repo,
+            audit_repo,
+            outbox_repo,
+            settlement_item_repo: Some(settlement_item_repo),
             allocation_service: AllocationService::new(),
         }
     }
@@ -216,7 +243,22 @@ impl SettlementService {
 #[async_trait]
 impl SettlementServiceTrait for SettlementService {
     async fn record_allocation(&self, input: RecordAllocationInput) -> Result<AllocationEntry, SettlementError> {
-        // Check for duplicate if external_ref provided
+        // R3-08: Check for duplicate by provider + event_id first (authoritative deduplication)
+        if let (Some(ref provider_id), Some(ref reward_event_id)) = (&input.provider_id, &input.reward_event_id) {
+            let exists = self.allocation_repo
+                .exists_by_provider_event(provider_id, reward_event_id)
+                .await
+                .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+            if exists {
+                return Err(SettlementError::DuplicateAllocation(
+                    format!("Allocation with provider_id {} and reward_event_id {} already exists",
+                        provider_id, reward_event_id)
+                ));
+            }
+        }
+
+        // Legacy check: duplicate by external_ref + license_id
         if let Some(ref external_ref) = input.external_ref {
             let exists = self.allocation_repo
                 .exists_by_external_ref(&input.license_id, external_ref)
@@ -240,18 +282,21 @@ impl SettlementServiceTrait for SettlementService {
             period_end: input.period_end,
             source: input.source.clone(),
             external_ref: input.external_ref.clone(),
+            provider_id: input.provider_id.clone(),
+            reward_event_id: input.reward_event_id.clone(),
         };
 
         let entry = self.allocation_service
             .create_entry(&request)
             .map_err(|e| SettlementError::ReconciliationFailed(e.to_string()))?;
 
-        // Verify reconciliation
-        let sum = entry.ulo_micros + entry.uno_micros + entry.referral_micros;
+        // Verify reconciliation (R3-08: includes reserve_micros)
+        let sum = entry.ulo_micros + entry.uno_micros + entry.referral_micros + entry.reserve_micros;
         if sum != entry.pool_micros {
             return Err(SettlementError::ReconciliationFailed(
-                format!("Allocation does not reconcile: {} + {} + {} != {}",
-                    entry.ulo_micros, entry.uno_micros, entry.referral_micros, entry.pool_micros)
+                format!("Allocation does not reconcile: {} + {} + {} + {} != {}",
+                    entry.ulo_micros, entry.uno_micros, entry.referral_micros,
+                    entry.reserve_micros, entry.pool_micros)
             ));
         }
 
@@ -264,6 +309,7 @@ impl SettlementServiceTrait for SettlementService {
             ulo_micros: entry.ulo_micros,
             uno_micros: entry.uno_micros,
             referral_micros: entry.referral_micros,
+            reserve_micros: entry.reserve_micros,
             ulo_bps: entry.ulo_bps,
             uno_bps: entry.uno_bps,
             referral_bps: entry.referral_bps,
@@ -272,6 +318,9 @@ impl SettlementServiceTrait for SettlementService {
             period_end: entry.period_end,
             source: entry.source.clone(),
             external_ref: entry.external_ref.clone(),
+            provider_id: entry.provider_id.clone(),
+            reward_event_id: entry.reward_event_id.clone(),
+            referral_agent_id: entry.referral_agent_id,
         };
 
         let id = self.allocation_repo
@@ -359,8 +408,39 @@ impl SettlementServiceTrait for SettlementService {
     }
 
     async fn prepare_settlement(&self, input: PrepareSettlementInput) -> Result<SettlementPreparation, SettlementError> {
-        // Calculate total from allocations
+        // R4-04: Validate nonempty distinct IDs
+        if input.allocation_ids.is_empty() {
+            return Err(SettlementError::ReconciliationFailed(
+                "Settlement requires at least one allocation".to_string()
+            ));
+        }
+
+        let unique_ids: HashSet<_> = input.allocation_ids.iter().collect();
+        if unique_ids.len() != input.allocation_ids.len() {
+            return Err(SettlementError::DuplicateAllocation(
+                "Settlement contains duplicate allocation IDs".to_string()
+            ));
+        }
+
+        // R4-04: Validate party type
+        let valid_parties = ["ulo", "uno", "referral", "reserve"];
+        if !valid_parties.contains(&input.party_type.as_str()) {
+            return Err(SettlementError::InvalidStateTransition(
+                format!("Invalid party type: {}", input.party_type)
+            ));
+        }
+
+        // R4-04: Validate fee is non-negative
+        if input.fee_micros < 0 {
+            return Err(SettlementError::ReconciliationFailed(
+                format!("Fee must be non-negative, got: {}", input.fee_micros)
+            ));
+        }
+
+        // Calculate total from allocations with validation
         let mut total_micros: i64 = 0;
+        let mut expected_currency: Option<String> = None;
+        let mut allocation_items: Vec<(Uuid, i64, String)> = Vec::new(); // (id, amount, recipient_id)
 
         for id in &input.allocation_ids {
             let alloc = self.allocation_repo
@@ -369,20 +449,74 @@ impl SettlementServiceTrait for SettlementService {
                 .map_err(|e| SettlementError::Database(e.to_string()))?
                 .ok_or_else(|| SettlementError::AllocationNotFound(*id))?;
 
+            // R4-04: Validate payable state
+            if alloc.state.as_deref() != Some("payable") {
+                return Err(SettlementError::InvalidStateTransition(
+                    format!("Allocation {} is not in payable state", id)
+                ));
+            }
+
+            // R4-04: Validate currency consistency
+            if let Some(ref currency) = expected_currency {
+                if &alloc.pool_currency != currency {
+                    return Err(SettlementError::ReconciliationFailed(
+                        format!("Currency mismatch: expected {}, found {} in allocation {}",
+                            currency, alloc.pool_currency, id)
+                    ));
+                }
+            } else {
+                expected_currency = Some(alloc.pool_currency.clone());
+            }
+
+            // R4-04: Check if this allocation+party is already in a pending settlement
+            if let Some(ref item_repo) = self.settlement_item_repo {
+                let is_pending = item_repo
+                    .is_pending(*id, &input.party_type)
+                    .await
+                    .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+                if is_pending {
+                    return Err(SettlementError::DuplicateAllocation(
+                        format!("Allocation {} party {} is already in a pending settlement", id, input.party_type)
+                    ));
+                }
+            }
+
             // Sum the appropriate party's share
-            let party_amount = match input.party_type.as_str() {
-                "ulo" => alloc.ulo_micros,
-                "uno" => alloc.uno_micros,
-                "referral" => alloc.referral_micros,
+            let (party_amount, recipient_id) = match input.party_type.as_str() {
+                "ulo" => (alloc.ulo_micros, alloc.license_id.clone()),
+                "uno" => (alloc.uno_micros, "uno_treasury".to_string()),
+                "referral" => (alloc.referral_micros, alloc.referral_agent_id.map(|id| id.to_string()).unwrap_or_default()),
+                "reserve" => (alloc.reserve_micros, "reserve_fund".to_string()),
                 _ => return Err(SettlementError::InvalidStateTransition(
                     format!("Invalid party type: {}", input.party_type)
                 )),
             };
 
-            total_micros += party_amount;
+            // R4-04: Checked integer arithmetic
+            total_micros = total_micros.checked_add(party_amount)
+                .ok_or_else(|| SettlementError::ReconciliationFailed(
+                    "Settlement total overflow".to_string()
+                ))?;
+
+            allocation_items.push((*id, party_amount, recipient_id));
         }
 
-        let net_micros = total_micros - input.fee_micros;
+        // R4-04: Validate currency matches input
+        if let Some(ref actual_currency) = expected_currency {
+            if actual_currency != &input.currency {
+                return Err(SettlementError::ReconciliationFailed(
+                    format!("Settlement currency {} doesn't match allocation currency {}",
+                        input.currency, actual_currency)
+                ));
+            }
+        }
+
+        let net_micros = total_micros.checked_sub(input.fee_micros)
+            .ok_or_else(|| SettlementError::ReconciliationFailed(
+                format!("Fee {} exceeds total {}", input.fee_micros, total_micros)
+            ))?;
+
         let settlement_ref = Self::generate_settlement_ref();
 
         // Create settlement record
@@ -398,10 +532,42 @@ impl SettlementServiceTrait for SettlementService {
             prepared_by: input.preparer_id.clone(),
         };
 
-        self.credit_order_repo
+        let settlement_id = self.credit_order_repo
             .create_settlement(create_input)
             .await
             .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+        // R4-04: Create settlement items for each allocation
+        if let Some(ref item_repo) = self.settlement_item_repo {
+            let recipient_type = match input.party_type.as_str() {
+                "ulo" => "license_owner",
+                "uno" => "uno_treasury",
+                "referral" => "referral_agent",
+                "reserve" => "reserve_fund",
+                _ => "unknown",
+            };
+
+            for (alloc_id, amount, recipient_id) in &allocation_items {
+                let item_input = CreateSettlementItemInput {
+                    settlement_id,
+                    allocation_id: *alloc_id,
+                    party_type: input.party_type.clone(),
+                    recipient_id: if recipient_id.is_empty() { None } else { Some(recipient_id.clone()) },
+                    recipient_type: Some(recipient_type.to_string()),
+                    amount_micros: *amount,
+                    currency: input.currency.clone(),
+                };
+
+                item_repo.create(item_input)
+                    .await
+                    .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+                // Update per-party settlement state
+                item_repo.update_allocation_settlement_state(*alloc_id, &input.party_type, "submitted")
+                    .await
+                    .map_err(|e| SettlementError::Database(e.to_string()))?;
+            }
+        }
 
         // Log audit
         self.log_audit_event(

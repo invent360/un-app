@@ -7,9 +7,8 @@ async fn main() -> std::io::Result<()> {
     use leptos::prelude::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
     use leptos_meta::MetaTags;
-    use tracing::{error, info, warn};
+    use tracing::info;
     use uno_admin::app::*;
-    use uno_admin::repository::traits::SyncJobRepositoryTrait;
 
     // Load environment variables from .env file
     dotenvy::dotenv().ok();
@@ -235,7 +234,7 @@ fn start_marketplace_sync_scheduler() {
 /// This scheduler:
 /// - Runs every 10 minutes
 /// - Fetches all licenses from Unetwork API
-/// - Syncs status to local ScyllaDB
+/// - Syncs status to local PostgreSQL
 /// - Only runs if previous job completed
 #[cfg(feature = "ssr")]
 fn start_license_sync_scheduler() {
@@ -359,11 +358,7 @@ fn start_job_watchdog() {
     use std::time::Duration;
     use uno_admin::repository::traits::SyncJobRepositoryTrait;
 
-    // Import the appropriate repository based on feature flag
-    #[cfg(feature = "postgres-db")]
     use uno_admin::repository::postgres::PgSyncJobRepository as SyncJobRepository;
-    #[cfg(not(feature = "postgres-db"))]
-    use uno_admin::repository::scylla::SyncJobRepository;
 
     tokio::spawn(async move {
         tracing::info!(

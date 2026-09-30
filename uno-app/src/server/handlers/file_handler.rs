@@ -169,6 +169,140 @@ pub async fn get_file(path: web::Path<String>) -> HttpResponse {
         .finish()
 }
 
+// ============================================
+// R4-05: VISIBILITY-CHECKED FILE ACCESS
+// ============================================
+
+use crate::server::repositories::{DynMediaAssetRepository, AssetVisibility};
+
+/// Query parameters for visibility-checked file access
+#[derive(Debug, serde::Deserialize)]
+pub struct VisibilityQuery {
+    /// Optional accessor ID (user ID) for visibility check
+    pub accessor_id: Option<String>,
+    /// Set to true if the accessor is the owner
+    #[serde(default)]
+    pub is_owner: bool,
+}
+
+/// GET /files/v/{resource_id}/{filename}
+/// R4-05: Serves files with visibility policy enforcement
+pub async fn serve_file_with_visibility(
+    path: web::Path<(String, String)>,
+    query: web::Query<VisibilityQuery>,
+    media_repo: web::Data<DynMediaAssetRepository>,
+) -> HttpResponse {
+    let (resource_id, filename) = path.into_inner();
+
+    // Basic path validation
+    if resource_id.contains("..")
+        || filename.contains("..")
+        || resource_id.contains('/')
+        || resource_id.contains('\\')
+    {
+        return HttpResponse::Forbidden().json(serde_json::json!({
+            "error": "Path traversal rejected",
+            "code": "FORBIDDEN"
+        }));
+    }
+
+    let storage_url = format!("local://{resource_id}/{filename}");
+
+    // R4-05: Look up asset and check visibility
+    let asset = match media_repo.get_asset_by_storage_url(&storage_url).await {
+        Ok(Some(asset)) => asset,
+        Ok(None) => {
+            // Asset not tracked - fall back to public access for backwards compatibility
+            tracing::debug!(storage_url = %storage_url, "Asset not tracked, serving as public");
+            return serve_untracked_file(&resource_id, &filename).await;
+        }
+        Err(e) => {
+            tracing::error!(error = %e, "Failed to look up asset");
+            return HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to check asset visibility",
+                "code": "INTERNAL_ERROR"
+            }));
+        }
+    };
+
+    // R4-05: Check visibility policy
+    let visibility = asset.visibility_enum();
+    let accessor_id = query.accessor_id.as_deref();
+    let is_owner = query.is_owner || accessor_id == asset.owner_id.as_deref();
+
+    if !asset.is_accessible_by(accessor_id, is_owner) {
+        // R4-05: Return 401 for anonymous access to non-public files
+        if accessor_id.is_none() && !visibility.allows_anonymous() {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+
+        // R4-05: Return 403 for authenticated but unauthorized access
+        return HttpResponse::Forbidden().json(serde_json::json!({
+            "error": "Access denied",
+            "code": "FORBIDDEN"
+        }));
+    }
+
+    // Asset is accessible, serve the file
+    serve_untracked_file(&resource_id, &filename).await
+}
+
+/// Internal helper to serve a file without visibility checks
+async fn serve_untracked_file(resource_id: &str, filename: &str) -> HttpResponse {
+    let client = match create_client_from_env() {
+        Ok(c) => c,
+        Err(e) => {
+            tracing::error!("Failed to create storage client: {}", e);
+            return HttpResponse::ServiceUnavailable().json(serde_json::json!({
+                "error": "Storage service unavailable",
+                "code": "SERVICE_UNAVAILABLE"
+            }));
+        }
+    };
+
+    let storage_url = format!("local://{resource_id}/{filename}");
+
+    match client.get_file(&storage_url).await {
+        Ok(data) => {
+            let mime_type = mime_from_extension(filename);
+
+            HttpResponse::Ok()
+                .insert_header((header::CONTENT_TYPE, mime_type))
+                .insert_header((header::CACHE_CONTROL, "public, max-age=31536000, immutable"))
+                .insert_header((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
+                .insert_header((
+                    header::CONTENT_SECURITY_POLICY,
+                    "default-src 'none'; style-src 'unsafe-inline'",
+                ))
+                .insert_header((header::X_FRAME_OPTIONS, "DENY"))
+                .body(data)
+        }
+        Err(e) => {
+            let status_code = e.status_code();
+            match status_code {
+                404 => HttpResponse::NotFound().json(serde_json::json!({
+                    "error": "File not found",
+                    "code": "NOT_FOUND"
+                })),
+                403 => HttpResponse::Forbidden().json(serde_json::json!({
+                    "error": "Access denied",
+                    "code": "FORBIDDEN"
+                })),
+                _ => {
+                    tracing::error!("Failed to serve file: {}", e);
+                    HttpResponse::InternalServerError().json(serde_json::json!({
+                        "error": "Failed to retrieve file",
+                        "code": "INTERNAL_ERROR"
+                    }))
+                }
+            }
+        }
+    }
+}
+
 /// Request to convert storage URL to display URL
 #[derive(Debug, serde::Deserialize)]
 pub struct DisplayUrlQuery {
@@ -425,6 +559,8 @@ pub struct TrackedUploadQuery {
     pub owner_type: Option<String>,
     pub category: Option<String>,
     pub alt_text: Option<String>,
+    /// R4-05: Visibility setting for new uploads (defaults to draft)
+    pub visibility: Option<String>,
 }
 
 /// Response for tracked upload
@@ -509,6 +645,10 @@ pub async fn tracked_upload(
 
     let resource_id = query.resource_id.clone().unwrap_or_else(|| Uuid::new_v4().to_string());
 
+    // R4-05: Parse visibility from query parameter
+    let visibility = query.visibility.as_deref()
+        .and_then(AssetVisibility::from_str);
+
     let request = MediaUploadRequest {
         resource_id,
         original_filename: filename,
@@ -519,6 +659,7 @@ pub async fn tracked_upload(
         category: query.category.clone(),
         alt_text: query.alt_text.clone(),
         created_by: None, // Could be extracted from auth
+        visibility,
     };
 
     match media_service.upload_with_tracking(request).await {
@@ -646,12 +787,14 @@ pub async fn reconcile_assets(
 
 /// Configure file storage routes
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
-    // Public file serving for local storage
+    // Public file serving for local storage (legacy, no visibility check)
     // GET /files/{resource_id}/{filename}
-    cfg.service(web::scope("/files").route(
-        "/{resource_id}/{filename:.*}",
-        web::get().to(serve_local_file),
-    ));
+    cfg.service(web::scope("/files")
+        // R4-05: Visibility-checked endpoint (preferred)
+        .route("/v/{resource_id}/{filename:.*}", web::get().to(serve_file_with_visibility))
+        // Legacy endpoint (backwards compatibility)
+        .route("/{resource_id}/{filename:.*}", web::get().to(serve_local_file)),
+    );
 
     // API routes for storage URL management
     cfg.service(

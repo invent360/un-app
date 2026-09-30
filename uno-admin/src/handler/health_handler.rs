@@ -17,11 +17,10 @@ use crate::logic::health::{HealthService, HealthStatus};
 /// This should be fast and not depend on external services.
 #[cfg(feature = "ssr")]
 pub async fn liveness() -> HttpResponse {
-    // get_db() already returns Option<Arc<Session>>
     let pool = crate::db::get_db();
-    let keyspace = std::env::var("SCYLLA_KEYSPACE").ok();
+    let database = std::env::var("POSTGRES_DB").ok();
 
-    let service = HealthService::new(pool, keyspace);
+    let service = HealthService::new(pool, database);
     let health = service.liveness().await;
 
     HttpResponse::Ok().json(health)
@@ -33,11 +32,10 @@ pub async fn liveness() -> HttpResponse {
 /// Includes database connectivity check.
 #[cfg(feature = "ssr")]
 pub async fn readiness() -> HttpResponse {
-    // get_db() already returns Option<Arc<Session>>
     let pool = crate::db::get_db();
-    let keyspace = std::env::var("SCYLLA_KEYSPACE").ok();
+    let database = std::env::var("POSTGRES_DB").ok();
 
-    let service = HealthService::new(pool, keyspace);
+    let service = HealthService::new(pool, database);
     let health = service.readiness().await;
 
     if health.is_ready() {
@@ -52,11 +50,10 @@ pub async fn readiness() -> HttpResponse {
 /// Returns 200 OK if healthy, 503 if unhealthy, 200 with degraded status if partially healthy.
 #[cfg(feature = "ssr")]
 pub async fn full_health() -> HttpResponse {
-    // get_db() already returns Option<Arc<Session>>
     let pool = crate::db::get_db();
-    let keyspace = std::env::var("SCYLLA_KEYSPACE").ok();
+    let database = std::env::var("POSTGRES_DB").ok();
 
-    let service = HealthService::new(pool, keyspace);
+    let service = HealthService::new(pool, database);
     let health = service.full().await;
 
     match health.status {

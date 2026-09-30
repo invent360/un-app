@@ -1,8 +1,6 @@
 //! Rewards synchronization service
 //!
 //! Fetches rewards from Unity API and stores them in the local database.
-//!
-//! Supports both ScyllaDB (legacy) and PostgreSQL backends via feature flags.
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -17,15 +15,11 @@ use crate::db::DbPool;
 use crate::models::entity::{LicenseRewardContext, NewReward, NewSyncJob, SyncJobContext, SyncJobEntity};
 use crate::repository::traits::{LicenseRepositoryTrait, RewardRepositoryTrait, SyncJobRepositoryTrait};
 
-// Import the appropriate repositories based on feature flag
-#[cfg(feature = "postgres-db")]
 use crate::repository::postgres::{
     PgLicenseRepository as LicenseRepository,
     PgRewardRepository as RewardRepository,
     PgSyncJobRepository as SyncJobRepository,
 };
-#[cfg(not(feature = "postgres-db"))]
-use crate::repository::scylla::{LicenseRepository, RewardRepository, SyncJobRepository};
 
 #[cfg(feature = "ssr")]
 use crate::ws::{broadcast_job_update, broadcast_job_deleted};

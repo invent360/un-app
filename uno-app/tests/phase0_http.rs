@@ -60,13 +60,15 @@ async fn privileged_routes_deny_unauthenticated_requests_without_writes() {
             "{method} {path}"
         );
     }
+    // Claim without authentication should return 401 UNAUTHORIZED
+    // (authentication check happens before license availability check)
     let claim_request = test::TestRequest::post()
         .uri("/api/v1/licenses/claim")
         .insert_header(("Content-Type", "application/json"))
         .set_payload(r#"{"lease_code":"unowned-code","device_id":null}"#)
         .to_request();
     let claim_response = test::call_service(&service, claim_request).await;
-    assert_eq!(claim_response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(claim_response.status(), StatusCode::UNAUTHORIZED);
     let count_after: i64 = sqlx::query_scalar("SELECT count(*) FROM licenses")
         .fetch_one(&pool)
         .await

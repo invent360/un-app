@@ -50,6 +50,15 @@ async fn main() -> std::io::Result<()> {
 
     info!("Starting UNO Web Application...");
 
+    // R3-11: Verify media volume at startup (optional - warn if failed)
+    if let Err(e) = ServiceFactory::verify_volume() {
+        if is_production {
+            return Err(std::io::Error::other(format!("Media volume verification failed: {}", e)));
+        } else {
+            warn!("Media volume verification failed (non-production): {}", e);
+        }
+    }
+
     // Try to initialize database pool (optional for UI development)
     let service_factory = match ConnectionManager::from_env(true).await {
         Ok(pool) => {
@@ -90,7 +99,24 @@ async fn main() -> std::io::Result<()> {
 
         // Add ServiceFactory if available
         if let Some(ref factory) = service_factory {
-            app = app.app_data(web::Data::new(factory.clone()));
+            app = app
+                .app_data(web::Data::new(factory.clone()))
+                // Register individual repositories and services for handler extraction
+                // Phase 7-8 repositories
+                .app_data(web::Data::from(factory.support_repository.clone()))
+                .app_data(web::Data::from(factory.cohort_repository.clone()))
+                .app_data(web::Data::from(factory.exit_repository.clone()))
+                .app_data(web::Data::from(factory.market_repository.clone()))
+                .app_data(web::Data::from(factory.operator_metrics_repository.clone()))
+                .app_data(web::Data::from(factory.forecast_repository.clone()))
+                .app_data(web::Data::from(factory.webhook_repository.clone()))
+                .app_data(web::Data::from(factory.communication_repository.clone()))
+                .app_data(web::Data::from(factory.media_asset_repository.clone()))
+                // Phase 7-8 services
+                .app_data(web::Data::from(factory.forecast_service.clone()))
+                .app_data(web::Data::from(factory.webhook_service.clone()))
+                .app_data(web::Data::from(factory.communication_service.clone()))
+                .app_data(web::Data::from(factory.media_asset_service.clone()));
         }
 
         // Increase JSON payload limit to 50MB for content with embedded images

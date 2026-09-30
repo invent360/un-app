@@ -68,6 +68,9 @@ pub trait PushProvider: Send + Sync {
 }
 
 /// Null email provider (for testing/disabled state)
+///
+/// R4-08: Returns failure to indicate provider is not configured.
+/// Do NOT pretend to succeed when no real provider is available.
 pub struct NullEmailProvider;
 
 #[async_trait]
@@ -79,15 +82,20 @@ impl EmailProvider for NullEmailProvider {
         _body: &str,
         _html: Option<&str>,
     ) -> Result<EmailSendResult, AppError> {
+        // R4-08: Don't pretend to succeed when provider is not configured
+        tracing::warn!("Email provider not configured - message not sent");
         Ok(EmailSendResult {
-            success: true,
-            message_id: Some(format!("null-{}", Uuid::new_v4())),
-            error: None,
+            success: false,
+            message_id: None,
+            error: Some("Email provider not configured".to_string()),
         })
     }
 }
 
 /// Null push provider (for testing/disabled state)
+///
+/// R4-08: Returns failure to indicate provider is not configured.
+/// Do NOT pretend to succeed when no real provider is available.
 pub struct NullPushProvider;
 
 #[async_trait]
@@ -100,10 +108,12 @@ impl PushProvider for NullPushProvider {
         _body: &str,
         _data: Option<serde_json::Value>,
     ) -> Result<PushSendResult, AppError> {
+        // R4-08: Don't pretend to succeed when provider is not configured
+        tracing::warn!("Push provider not configured - notification not sent");
         Ok(PushSendResult {
-            success: true,
-            message_id: Some(format!("null-{}", Uuid::new_v4())),
-            error: None,
+            success: false,
+            message_id: None,
+            error: Some("Push provider not configured".to_string()),
         })
     }
 }

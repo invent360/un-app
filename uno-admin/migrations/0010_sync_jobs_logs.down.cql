@@ -1,2 +1,0 @@
--- ScyllaDB does not support DROP COLUMN in all cases
--- Column will remain but be unused if rolling back

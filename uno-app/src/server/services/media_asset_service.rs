@@ -47,6 +47,8 @@ pub struct UploadRequest {
     pub category: Option<String>,
     pub alt_text: Option<String>,
     pub created_by: Option<String>,
+    /// R4-05: Visibility for the uploaded asset (defaults to draft)
+    pub visibility: Option<crate::server::repositories::AssetVisibility>,
 }
 
 /// Disk threshold status
@@ -239,6 +241,10 @@ impl MediaAssetService for MediaAssetServiceImpl {
             .unwrap_or(&request.original_filename)
             .to_string();
 
+        // R4-05: Compute original hash (pre-transformation) vs stored hash (post-transformation)
+        // For now they're the same since we don't transform, but the schema supports both
+        let original_hash = sha256_hash.clone();
+
         // Create asset record in database (starts in 'uploading' state)
         let asset = self.repo.create_asset(CreateAssetInput {
             resource_id: request.resource_id,
@@ -249,8 +255,10 @@ impl MediaAssetService for MediaAssetServiceImpl {
             mime_type: request.content_type,
             file_size,
             sha256_hash: Some(sha256_hash.clone()),
+            original_hash: Some(original_hash),
             width,
             height,
+            visibility: request.visibility,
             owner_id: request.owner_id,
             owner_type: request.owner_type,
             category: request.category,

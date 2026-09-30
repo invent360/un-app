@@ -1,8 +1,6 @@
 //! Marketplace service for license distribution to uno-app.
 //!
 //! Handles publishing licenses to marketplace and polling for claimed licenses.
-//!
-//! Supports both ScyllaDB (legacy) and PostgreSQL backends via feature flags.
 
 use chrono::{Utc, Duration};
 use tracing::{debug, error, info, warn};
@@ -12,11 +10,7 @@ use crate::api::uno_client::{UnoLicenseClient, ClaimedLicenseDto};
 use crate::db::DbPool;
 use crate::repository::traits::LicenseRepositoryTrait;
 
-// Import the appropriate repositories based on feature flag
-#[cfg(feature = "postgres-db")]
 use crate::repository::postgres::PgLicenseRepository as LicenseRepository;
-#[cfg(not(feature = "postgres-db"))]
-use crate::repository::scylla::LicenseRepository;
 
 /// Service for marketplace operations.
 pub struct MarketplaceService {
@@ -61,12 +55,14 @@ impl MarketplaceService {
         for license_id in &license_ids {
             match self.license_repo.get_license_by_license_id(license_id).await {
                 Ok(Some(license)) => {
-                    // Get lease_code - required for publishing
+                    // R3-06: Lease codes are required - no fabrication
                     let lease_code = match &license.lease_code {
                         Some(code) if !code.is_empty() => code.clone(),
                         _ => {
-                            // Generate a UUID as lease code if not set
-                            uuid::Uuid::new_v4().to_string()
+                            // Missing lease code is an error, not auto-generated
+                            warn!("License {} missing required lease_code", license_id);
+                            errors.push(format!("License {} missing required lease_code", license_id));
+                            continue;
                         }
                     };
 

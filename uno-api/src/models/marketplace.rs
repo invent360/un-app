@@ -43,6 +43,12 @@ pub struct ClaimedLicensesResponse {
     pub licenses: Vec<ClaimedLicenseDto>,
     /// Total count of claimed licenses matching criteria.
     pub total: i64,
+    /// R3-06: Cursor for next page (timestamp:id format for compound key pagination).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_cursor: Option<String>,
+    /// R3-06: Whether there are more results after this batch.
+    #[serde(default)]
+    pub has_more: bool,
 }
 
 /// Request to sync referrals to uno-app.

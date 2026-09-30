@@ -225,10 +225,10 @@ WebSocket implementation in `uno-admin/src/ws/handler.rs`.
 
 | Trait | Methods | Implementations |
 |-------|---------|-----------------|
-| `AgentRepositoryTrait` | `save_agent`, `update_agent`, `get_agent_by_id`, `get_agent_by_email`, `list_agents`, `delete_agent` | `PgAgentRepository`, `ScyllaAgentRepository` |
-| `LicenseRepositoryTrait` | `create_license`, `update_license`, `get_license_by_id`, `get_license_by_license_id`, `list_licenses`, `get_licenses_by_agent_id`, `delete_license`, `upsert_license_from_api`, `set_is_published`, `update_marketplace_status`, `get_marketplace_licenses`, `unpublish_from_marketplace` | `PgLicenseRepository`, `ScyllaLicenseRepository` |
-| `RewardRepositoryTrait` | `upsert_rewards`, `list_rewards`, `list_rewards_by_license_id`, `list_rewards_by_license_id_and_date`, `get_total_earnings_by_license_id`, `count_rewards_by_license_id`, `get_daily_totals` | `PgRewardRepository`, `ScyllaRewardRepository` |
-| `SyncJobRepositoryTrait` | `create_job`, `get_job_by_id`, `get_job_by_date`, `list_jobs`, `list_jobs_by_status`, `list_pending_retries`, `mark_running`, `mark_completed_with_context`, `mark_failed`, `reset_job`, `update_job_context`, `delete_job` | `PgSyncJobRepository`, `ScyllaSyncJobRepository` |
+| `AgentRepositoryTrait` | `save_agent`, `update_agent`, `get_agent_by_id`, `get_agent_by_email`, `list_agents`, `delete_agent` | `PgAgentRepository` |
+| `LicenseRepositoryTrait` | `create_license`, `update_license`, `get_license_by_id`, `get_license_by_license_id`, `list_licenses`, `get_licenses_by_agent_id`, `delete_license`, `upsert_license_from_api`, `set_is_published`, `update_marketplace_status`, `get_marketplace_licenses`, `unpublish_from_marketplace` | `PgLicenseRepository` |
+| `RewardRepositoryTrait` | `upsert_rewards`, `list_rewards`, `list_rewards_by_license_id`, `list_rewards_by_license_id_and_date`, `get_total_earnings_by_license_id`, `count_rewards_by_license_id`, `get_daily_totals` | `PgRewardRepository` |
+| `SyncJobRepositoryTrait` | `create_job`, `get_job_by_id`, `get_job_by_date`, `list_jobs`, `list_jobs_by_status`, `list_pending_retries`, `mark_running`, `mark_completed_with_context`, `mark_failed`, `reset_job`, `update_job_context`, `delete_job` | `PgSyncJobRepository` |
 
 #### PostgreSQL Implementations (`repository/postgres/`)
 

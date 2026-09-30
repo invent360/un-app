@@ -2,6 +2,9 @@
 //!
 //! Provides atomic nonce consumption to prevent HMAC request replay attacks.
 //! Nonces are stored in PostgreSQL and shared across all worker processes.
+//!
+//! R3-04: This repository implements both the local NonceRepository trait and
+//! uno-api's AsyncNonceChecker trait for cross-replica nonce sharing.
 
 use async_trait::async_trait;
 use sqlx::PgPool;
@@ -128,6 +131,35 @@ impl NonceRepository for NonceRepositoryImpl {
     }
 }
 
+/// R3-04: Implement AsyncNonceChecker for cross-replica nonce sharing.
+///
+/// This allows uno-api's HMAC verification to use our PostgreSQL-backed
+/// nonce repository for replay protection in multi-replica deployments.
+#[async_trait]
+impl uno_api::auth::AsyncNonceChecker for NonceRepositoryImpl {
+    async fn consume_nonce(
+        &self,
+        client_id: &str,
+        nonce: &str,
+        timestamp: i64,
+    ) -> Result<bool, uno_api::error::AuthError> {
+        // Use the local NonceRepository trait implementation
+        NonceRepository::consume_nonce(self, client_id, nonce, timestamp)
+            .await
+            .map_err(|e| {
+                // R3-04: Fail-closed - convert database errors to ServiceUnavailable
+                tracing::error!(
+                    error = %e,
+                    client_id = %client_id,
+                    "Nonce consumption failed - failing closed"
+                );
+                uno_api::error::AuthError::ServiceUnavailable(
+                    "Nonce verification unavailable".to_string(),
+                )
+            })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -136,5 +168,11 @@ mod tests {
     fn test_nonce_repository_impl_is_send_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
         assert_send_sync::<NonceRepositoryImpl>();
+    }
+
+    #[test]
+    fn test_nonce_repository_impl_implements_async_checker() {
+        fn assert_async_checker<T: uno_api::auth::AsyncNonceChecker>() {}
+        assert_async_checker::<NonceRepositoryImpl>();
     }
 }

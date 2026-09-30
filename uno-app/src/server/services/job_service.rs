@@ -120,6 +120,9 @@ pub struct Job {
     pub correlation_id: Option<String>,
     pub causation_id: Option<String>,
     pub outcome: Option<String>,
+    /// R3-10: Fencing token - incremented on each claim
+    #[serde(default)]
+    pub claim_generation: i32,
     pub created_at: DateTime<Utc>,
     pub started_at: Option<DateTime<Utc>>,
     pub completed_at: Option<DateTime<Utc>>,
@@ -247,6 +250,7 @@ impl JobService {
             format!("job_type = ANY($3)")
         };
 
+        // R3-10: Include claim_generation for fencing, increment on claim
         let query = format!(
             r#"
             UPDATE job_queue
@@ -254,7 +258,8 @@ impl JobService {
                 worker_id = $1,
                 lease_expires_at = $2,
                 started_at = COALESCE(started_at, NOW()),
-                attempts = attempts + 1
+                attempts = attempts + 1,
+                claim_generation = COALESCE(claim_generation, 0) + 1
             WHERE id = (
                 SELECT id FROM job_queue
                 WHERE (status = 'pending' OR (status = 'failed' AND retry_at IS NOT NULL AND retry_at <= NOW()))
@@ -266,6 +271,7 @@ impl JobService {
             RETURNING id, job_type, payload, status, priority, attempts, max_attempts,
                       worker_id, lease_expires_at, error_message, retry_at,
                       idempotency_key, correlation_id, causation_id, outcome,
+                      COALESCE(claim_generation, 0) as claim_generation,
                       created_at, started_at, completed_at
             "#,
             type_filter
@@ -312,7 +318,8 @@ impl JobService {
         Ok(result.rows_affected() > 0)
     }
 
-    /// Complete a job successfully
+    /// Complete a job successfully (legacy - no fencing)
+    #[deprecated(note = "Use complete_job_fenced for R3-10 compliance")]
     pub async fn complete_job(&self, job_id: &str, result: JobResult) -> Result<(), AppError> {
         let outcome = if result.success { "success" } else { "failure" };
         let result_json = result.result.map(|v| v.to_string());
@@ -342,7 +349,187 @@ impl JobService {
         Ok(())
     }
 
+    /// R3-10: Complete a job with fencing verification
+    /// Only succeeds if the worker still holds a valid lease with matching generation
+    pub async fn complete_job_fenced(
+        &self,
+        job: &Job,
+        result: JobResult,
+    ) -> Result<bool, AppError> {
+        let outcome = if result.success { "success" } else { "failure" };
+        let result_json = result.result.map(|v| v.to_string());
+
+        let worker_id = job.worker_id.as_deref().ok_or_else(|| {
+            AppError::ValidationError("Cannot complete job without worker_id".to_string())
+        })?;
+
+        // R3-10: Only update if worker still holds the lease with correct generation
+        let rows = sqlx::query(
+            r#"
+            UPDATE job_queue
+            SET status = 'completed',
+                completed_at = NOW(),
+                result = $2,
+                outcome = $3,
+                outcome_verified_at = NOW(),
+                worker_id = NULL,
+                lease_expires_at = NULL
+            WHERE id = $1
+              AND worker_id = $4
+              AND claim_generation = $5
+              AND lease_expires_at > NOW()
+              AND outcome IS NULL
+            "#,
+        )
+        .bind(&job.id)
+        .bind(result_json)
+        .bind(outcome)
+        .bind(worker_id)
+        .bind(job.claim_generation)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        if rows.rows_affected() > 0 {
+            tracing::info!(
+                job_id = %job.id,
+                worker_id = %worker_id,
+                claim_generation = job.claim_generation,
+                outcome = %outcome,
+                "Job completed with fencing"
+            );
+            Ok(true)
+        } else {
+            tracing::warn!(
+                job_id = %job.id,
+                worker_id = %worker_id,
+                claim_generation = job.claim_generation,
+                "Job completion rejected - stale lease or already completed"
+            );
+            Ok(false)
+        }
+    }
+
+    /// R3-10: Fail a job with fencing verification
+    /// Only succeeds if the worker still holds a valid lease with matching generation
+    pub async fn fail_job_fenced(
+        &self,
+        job: &Job,
+        error: &str,
+    ) -> Result<bool, AppError> {
+        let worker_id = job.worker_id.as_deref().ok_or_else(|| {
+            AppError::ValidationError("Cannot fail job without worker_id".to_string())
+        })?;
+
+        if job.attempts >= job.max_attempts {
+            // R3-10: Move to dead letter with fencing check
+            let rows = sqlx::query(
+                r#"
+                UPDATE job_queue
+                SET status = 'dead_letter',
+                    completed_at = NOW(),
+                    error_message = $2,
+                    outcome = 'failure',
+                    worker_id = NULL,
+                    lease_expires_at = NULL
+                WHERE id = $1
+                  AND worker_id = $3
+                  AND claim_generation = $4
+                  AND lease_expires_at > NOW()
+                "#,
+            )
+            .bind(&job.id)
+            .bind(error)
+            .bind(worker_id)
+            .bind(job.claim_generation)
+            .execute(&self.pool)
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+            if rows.rows_affected() > 0 {
+                tracing::warn!(
+                    job_id = %job.id,
+                    worker_id = %worker_id,
+                    error = %error,
+                    "Job moved to dead letter queue with fencing"
+                );
+
+                // Audit dead letter
+                let builder = AuditEventBuilder::new(
+                    AuditEventType::Custom("job.dead_letter".to_string()),
+                    AuditCategory::System,
+                )
+                .resource("job", &job.id)
+                .action("dead_letter")
+                .outcome(AuditOutcome::Failure)
+                .event_data(serde_json::json!({
+                    "error": error,
+                    "attempts": job.attempts,
+                }));
+
+                let _ = self.audit_repo.log_event(builder.build()).await;
+                return Ok(false); // Will not retry
+            } else {
+                tracing::warn!(
+                    job_id = %job.id,
+                    worker_id = %worker_id,
+                    claim_generation = job.claim_generation,
+                    "Job failure rejected - stale lease"
+                );
+                return Ok(false);
+            }
+        }
+
+        // R3-10: Schedule retry with fencing check
+        let retry_delay = self.calculate_retry_delay(job.attempts);
+        let retry_at = Utc::now() + retry_delay;
+
+        let rows = sqlx::query(
+            r#"
+            UPDATE job_queue
+            SET status = 'failed',
+                error_message = $2,
+                retry_at = $3,
+                worker_id = NULL,
+                lease_expires_at = NULL
+            WHERE id = $1
+              AND worker_id = $4
+              AND claim_generation = $5
+              AND lease_expires_at > NOW()
+            "#,
+        )
+        .bind(&job.id)
+        .bind(error)
+        .bind(retry_at)
+        .bind(worker_id)
+        .bind(job.claim_generation)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        if rows.rows_affected() > 0 {
+            tracing::info!(
+                job_id = %job.id,
+                worker_id = %worker_id,
+                error = %error,
+                retry_at = %retry_at,
+                attempt = job.attempts,
+                "Job failed with fencing, scheduled for retry"
+            );
+            Ok(true) // Will retry
+        } else {
+            tracing::warn!(
+                job_id = %job.id,
+                worker_id = %worker_id,
+                claim_generation = job.claim_generation,
+                "Job failure rejected - stale lease"
+            );
+            Ok(false)
+        }
+    }
+
     /// Fail a job (will retry if attempts < max_attempts)
+    #[deprecated(note = "Use fail_job_fenced for R3-10 compliance")]
     pub async fn fail_job(&self, job_id: &str, error: &str) -> Result<bool, AppError> {
         // Get current attempt count
         let job: Option<(i32, i32)> = sqlx::query_as(
@@ -543,6 +730,38 @@ impl JobService {
         }).await
     }
 
+    /// R3-10: Recover stale events stuck in publishing state
+    /// Returns the number of events recovered
+    pub async fn recover_stale_publishing_events(
+        &self,
+        stale_threshold_secs: i32,
+    ) -> Result<i64, AppError> {
+        let row: (i64,) = sqlx::query_as(
+            r#"
+            SELECT COALESCE(
+                (SELECT recover_stale_publishing_events($1))::BIGINT,
+                0
+            )
+            "#,
+        )
+        .bind(stale_threshold_secs)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        let count = row.0;
+
+        if count > 0 {
+            tracing::info!(
+                count = count,
+                threshold_secs = stale_threshold_secs,
+                "Recovered stale publishing events"
+            );
+        }
+
+        Ok(count)
+    }
+
     fn calculate_retry_delay(&self, attempts: i32) -> Duration {
         let base = self.config.initial_retry_delay_secs as f64;
         let multiplier = self.config.backoff_multiplier.powi(attempts);
@@ -569,6 +788,9 @@ struct JobRow {
     correlation_id: Option<String>,
     causation_id: Option<String>,
     outcome: Option<String>,
+    /// R3-10: Fencing token
+    #[sqlx(default)]
+    claim_generation: i32,
     created_at: DateTime<Utc>,
     started_at: Option<DateTime<Utc>>,
     completed_at: Option<DateTime<Utc>>,
@@ -592,6 +814,7 @@ impl JobRow {
             correlation_id: self.correlation_id,
             causation_id: self.causation_id,
             outcome: self.outcome,
+            claim_generation: self.claim_generation,
             created_at: self.created_at,
             started_at: self.started_at,
             completed_at: self.completed_at,

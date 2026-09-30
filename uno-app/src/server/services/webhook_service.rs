@@ -525,31 +525,58 @@ impl<H: WebhookHttpClient + 'static> WebhookService for WebhookServiceImpl<H> {
         signature: Option<&str>,
         source_ip: Option<&str>,
     ) -> Result<Uuid, AppError> {
-        // Get source config for validation
-        let config = self.repo.get_source_config(source).await?;
+        // R4-08: Require known inbound source - reject unknown sources entirely
+        let config = self.repo.get_source_config(source).await?
+            .ok_or_else(|| {
+                tracing::warn!(source = %source, "Webhook rejected: unknown source");
+                AppError::Unauthorized(format!("Unknown webhook source: {}", source))
+            })?;
 
-        if let Some(ref cfg) = config {
-            if !cfg.enabled {
-                return Err(AppError::ValidationError(format!("Source '{}' is disabled", source)));
-            }
+        if !config.enabled {
+            tracing::warn!(source = %source, "Webhook rejected: source disabled");
+            return Err(AppError::ValidationError(format!("Source '{}' is disabled", source)));
+        }
 
-            // Verify signature if required
-            if cfg.require_signature {
-                let sig = signature.ok_or_else(|| {
-                    AppError::ValidationError("Signature required but not provided".to_string())
-                })?;
-
-                if !self.verify_signature(source, body, sig).await? {
-                    return Err(AppError::ValidationError("Invalid signature".to_string()));
+        // R4-08: Verify timestamp freshness (300 second window)
+        if let Some(ts_str) = headers.get("x-timestamp").and_then(|v| v.as_str()) {
+            if let Ok(timestamp) = ts_str.parse::<i64>() {
+                let now = Utc::now().timestamp();
+                let age = (now - timestamp).abs();
+                if age > 300 {
+                    tracing::warn!(
+                        source = %source,
+                        timestamp = %timestamp,
+                        age_seconds = %age,
+                        "Webhook rejected: timestamp expired"
+                    );
+                    return Err(AppError::Unauthorized("Request timestamp expired".to_string()));
                 }
             }
+        }
 
-            // Verify IP whitelist if configured
-            if let Some(ref allowed_ips) = cfg.allowed_ips {
-                if let Some(ip) = source_ip {
-                    if !allowed_ips.contains(&ip.to_string()) {
-                        return Err(AppError::ValidationError(format!("IP {} not in whitelist", ip)));
-                    }
+        // Verify signature if required
+        if config.require_signature {
+            let sig = signature.ok_or_else(|| {
+                tracing::warn!(source = %source, "Webhook rejected: signature required but missing");
+                AppError::Unauthorized("Signature required but not provided".to_string())
+            })?;
+
+            if !self.verify_signature(source, body, sig).await? {
+                tracing::warn!(source = %source, "Webhook rejected: invalid signature");
+                return Err(AppError::Unauthorized("Invalid signature".to_string()));
+            }
+        }
+
+        // Verify IP whitelist if configured
+        if let Some(ref allowed_ips) = config.allowed_ips {
+            if let Some(ip) = source_ip {
+                if !allowed_ips.contains(&ip.to_string()) {
+                    tracing::warn!(
+                        source = %source,
+                        ip = %ip,
+                        "Webhook rejected: IP not in whitelist"
+                    );
+                    return Err(AppError::Unauthorized(format!("IP {} not in whitelist", ip)));
                 }
             }
         }

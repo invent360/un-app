@@ -4,7 +4,7 @@ Status: Phase 0 source inventory. Source adapters are evidence of intended inter
 
 | Contract | Local decision/evidence | Confirmation owner | Enablement condition / safe fallback |
 |---|---|---|---|
-| Operational authority | One PostgreSQL writer; admin Scylla migration and canonical ID mapping in Phase 1 | Backend/data | No cutover until authorised deployed-schema/export reconciliation; source schemas alone are insufficient |
+| Operational authority | One PostgreSQL writer; canonical ID mapping in Phase 1 | Backend/data | No cutover until authorised deployed-schema/export reconciliation; source schemas alone are insufficient |
 | Participant/operator identity | Existing shared verifier consumes issuer/audience/trusted RSA keys; it does not issue sessions | Security/product | Confirm provider/contact verification, role/MFA claims, callback/logout/revocation and account linking in Phase 2; access fails closed without configuration |
 | Upstream inventory | `uno-api` has PostgREST RPC/Edge Function adapters; URL defaults to `api.unityedge.io`; token is explicit | Integration | Confirm supported contract and authorised fixture; incomplete credentials/dates/IDs are quarantined, never generated |
 | Activation/activity/rewards | Local sync types and intended RPCs are not authoritative provider evidence | Integration/finance | Confirm event IDs, pagination, freshness, reward basis and country/device eligibility; show pending/unknown with audited manual evidence where needed |

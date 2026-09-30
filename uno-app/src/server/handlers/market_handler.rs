@@ -5,11 +5,12 @@
 //! - Quota management
 //! - Campaign tracking
 
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::server::extractors::auth::get_actor_id;
 use crate::server::repositories::{
     DynMarketRepository, UpsertMarketStatusInput, CreateQuotaInput,
     CreateCampaignInput, RecordAttributionInput,
@@ -59,6 +60,8 @@ pub struct CreateQuotaRequest {
     pub period_end: Option<NaiveDate>,
 }
 
+// R4-02: Admin-only endpoint - user_id in body is for tracking consumption,
+// not for access control. Endpoint is protected by admin auth middleware.
 #[derive(Debug, Deserialize)]
 pub struct ConsumeQuotaRequest {
     pub country_code: String,
@@ -99,10 +102,10 @@ pub struct CreateCampaignRequest {
     pub created_by: Option<String>,
 }
 
+// R4-02: user_id removed - derived from authenticated token if available
 #[derive(Debug, Deserialize)]
 pub struct RecordAttributionRequest {
     pub campaign_code: String,
-    pub user_id: Option<String>,
     pub license_id: Option<String>,
     pub attribution_type: String,
     pub referrer_url: Option<String>,
@@ -161,16 +164,20 @@ pub async fn get_open_markets(
 /// POST /api/v1/markets/attribution
 /// Record campaign attribution (public - called on click/registration)
 pub async fn record_attribution(
+    req: HttpRequest,
     repo: web::Data<DynMarketRepository>,
     body: web::Json<RecordAttributionRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: User ID derived from authenticated token if available (optional for anonymous clicks)
+    let user_id = get_actor_id(&req).ok();
+
     // Get campaign by code
     let campaign = repo.get_campaign_by_code(&body.campaign_code).await?
         .ok_or_else(|| AppError::NotFound(format!("Campaign {} not found", body.campaign_code)))?;
 
     let input = RecordAttributionInput {
         campaign_id: campaign.id,
-        user_id: body.user_id.clone(),
+        user_id,
         license_id: body.license_id.clone(),
         attribution_type: body.attribution_type.clone(),
         referrer_url: body.referrer_url.clone(),

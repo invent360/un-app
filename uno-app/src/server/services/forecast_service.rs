@@ -5,6 +5,22 @@
 //! - Forecast calculation algorithm
 //! - Import/export with reproducibility
 //! - Golden fixture validation
+//!
+//! # R4-07: Engine Unification
+//!
+//! This service implements scenario management and database persistence. The calculation
+//! engine here is a simplified version suitable for multi-country, multi-task scenarios.
+//!
+//! For detailed portfolio modeling with cohort tracking, credit renewal, and settlement
+//! lag, see `uno_api::services::forecast` which provides:
+//! - 22+ validation rules (FC-01 through FC-22)
+//! - Cohort-based credit renewal tracking
+//! - Peak funding requirement analysis
+//! - Settlement lag modeling
+//! - Revenue identity guarantee: `pool = ulo + uno + referral`
+//!
+//! The canonical calculation engine is in uno-api; this service provides the
+//! enterprise workflow (scenarios, approval gates, golden fixtures) on top of it.
 
 use async_trait::async_trait;
 use chrono::{NaiveDate, Utc};
@@ -100,7 +116,15 @@ pub struct WeeklyProjection {
     pub cumulative_funding_micros: i64,
 }
 
-/// Forecast engine for calculating projections
+/// Forecast engine for calculating weekly projections
+///
+/// This is a simplified calculation engine for multi-country, multi-task scenarios.
+/// For sophisticated portfolio modeling (cohort tracking, credit renewal, settlement lag),
+/// see `uno_api::services::forecast::simulate()` which implements the full algorithm
+/// ported from the JavaScript HTML calculator.
+///
+/// When higher fidelity is needed, convert scenarios to `uno_api::models::ForecastConfig`
+/// and use `uno_api::services::simulate()` for the calculation.
 pub struct ForecastEngine {
     config: ForecastEngineConfig,
 }

@@ -76,6 +76,10 @@ hmac = "0.12"
 rust_decimal = { version = "1.36", features = ["serde", "db-postgres"], optional = true }
 hostname = { version = "0.4", optional = true }
 clap = { version = "4", features = ["derive"], optional = true }
+
+# Metrics (Phase 9)
+prometheus = { version = "0.13", optional = true }
+once_cell = { version = "1.19", optional = true }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
 ctrlc = { version = "3.4", features = ["termination"], optional = true }
 
@@ -132,6 +136,8 @@ ssr = [
     "dep:reqwest",
     "dep:ctrlc",
     "dep:rust_decimal",
+    "dep:prometheus",
+    "dep:once_cell",
     "ember-fx-components/ssr",
     "ember-fx-core/ssr",
     "leptos/ssr",
@@ -166,12 +172,13 @@ lib-profile-release = "wasm-release"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 
 [dev-dependencies]
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.12", features = ["json", "cookies"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 proptest = "1.4"
 test-case = "3.3"
 pretty_assertions = "1.4"
 mockall = "0.12"
+tempfile = "3.10"
 
 [[bin]]
 name = "migrate-images"

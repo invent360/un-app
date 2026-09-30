@@ -46,7 +46,7 @@ pub struct LicenseDto {
     // Marketplace fields
     pub is_on_marketplace: bool,
     pub is_on_uno_marketplace: bool,
-    // Split percentage fields (from ScyllaDB LicenseEntity)
+    // Split percentage fields
     pub uno_share: Option<f64>,
     pub ulo_share: Option<f64>,
     pub agent_share: Option<f64>,
@@ -403,7 +403,7 @@ pub async fn get_paginated_licenses(
         })
         .collect();
 
-    // Enrich with marketplace data from ScyllaDB
+    // Enrich with marketplace data from database
     if let Some(pool) = get_db() {
         let repo = LicenseRepository::new(pool);
         let license_ids: Vec<String> = licenses.iter().map(|l| l.license_id.clone()).collect();
@@ -426,12 +426,12 @@ pub async fn get_paginated_licenses(
             }
             Err(e) => {
                 eprintln!(
-                    "Warning: Failed to fetch marketplace data from ScyllaDB: {}",
+                    "Warning: Failed to fetch marketplace data from database: {}",
                     e
                 );
             }
         }
-        // Also enrich with split data from ScyllaDB
+        // Also enrich with split data from database
         match repo.get_split_data_batch(&license_ids).await {
             Ok(split_data) => {
                 for license in &mut licenses {
@@ -443,7 +443,7 @@ pub async fn get_paginated_licenses(
                 }
             }
             Err(e) => {
-                eprintln!("Warning: Failed to fetch split data from ScyllaDB: {}", e);
+                eprintln!("Warning: Failed to fetch split data from database: {}", e);
             }
         }
     } else {
@@ -660,7 +660,7 @@ pub async fn get_all_licenses_for_filtering() -> Result<Vec<LicenseDto>, ServerF
         current_page += 1;
     }
 
-    // Enrich with marketplace data from ScyllaDB
+    // Enrich with marketplace data from database
     if let Some(pool) = get_db() {
         let repo = LicenseRepository::new(pool);
         let license_ids: Vec<String> = all_licenses.iter().map(|l| l.license_id.clone()).collect();
@@ -679,7 +679,7 @@ pub async fn get_all_licenses_for_filtering() -> Result<Vec<LicenseDto>, ServerF
             }
         }
 
-        // Also enrich with split data from ScyllaDB
+        // Also enrich with split data from database
         match repo.get_split_data_batch(&license_ids).await {
             Ok(split_data) => {
                 for license in &mut all_licenses {
@@ -1333,7 +1333,7 @@ pub async fn get_wallet_settings() -> Result<WalletSettingsResponse, ServerFnErr
     Ok(settings.into_iter().next().unwrap_or_default())
 }
 
-/// Get paginated rewards for a license from local ScyllaDB
+/// Get paginated rewards for a license from local database
 #[server(GetLicensePaginatedRewards, "/api")]
 pub async fn get_license_paginated_rewards(
     license_id: String,
@@ -1497,11 +1497,11 @@ pub struct BulkSaveSettingsResponse {
     pub errors: Vec<(String, String)>,
 }
 
-/// Bulk save license settings to Unetwork API and local ScyllaDB
+/// Bulk save license settings to Unetwork API and local database
 ///
 /// Calls:
 /// - Unetwork API: POST /rest/v1/rpc/licenses_bulk_save_license_settings
-/// - Local ScyllaDB: update_marketplace_status_extended for each license
+/// - Local database: update_marketplace_status_extended for each license
 #[server(BulkSaveLicenseSettings, "/api")]
 pub async fn bulk_save_license_settings(
     request: BulkSaveSettingsRequest,
@@ -1562,7 +1562,7 @@ pub async fn bulk_save_license_settings(
         )));
     }
 
-    // Now persist to local ScyllaDB (optional - licenses may not exist locally yet)
+    // Now persist to local database (optional - licenses may not exist locally yet)
     let total = request.license_ids.len();
     let mut local_updated = 0;
     let mut local_skipped = 0;

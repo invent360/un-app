@@ -9,6 +9,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::server::extractors::auth::get_actor_id;
 use crate::server::repositories::{
     DynSupportRepository, TicketCategory, TicketPriority, TicketStatus,
     CreateTicketInput, AddMessageInput, TicketFilters,
@@ -19,9 +20,9 @@ use crate::types::AppError;
 // REQUEST/RESPONSE TYPES
 // ============================================
 
+// R4-02: user_id now comes from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct CreateTicketRequest {
-    pub user_id: String,
     pub license_id: Option<String>,
     pub category: String,
     pub priority: Option<String>,
@@ -32,10 +33,9 @@ pub struct CreateTicketRequest {
     pub tags: Option<Vec<String>>,
 }
 
+// R4-02: sender_id now comes from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct AddMessageRequest {
-    pub sender_type: String,
-    pub sender_id: String,
     pub message: String,
     pub is_internal: Option<bool>,
 }
@@ -53,29 +53,28 @@ pub struct SearchTicketsRequest {
     pub page_size: Option<i32>,
 }
 
+// R4-02: assigned_by now comes from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct AssignTicketRequest {
     pub agent_id: Uuid,
-    pub assigned_by: String,
 }
 
+// R4-02: escalated_by now comes from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct EscalateTicketRequest {
     pub reason: String,
-    pub escalated_by: String,
 }
 
+// R4-02: resolved_by now comes from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct ResolveTicketRequest {
     pub resolution_notes: String,
-    pub resolved_by: String,
 }
 
+// R4-02: changed_by now comes from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct UpdateStatusRequest {
     pub status: String,
-    pub changed_by: String,
-    pub changed_by_type: String,
     pub notes: Option<String>,
 }
 
@@ -100,9 +99,13 @@ pub struct TicketListResponse<T> {
 /// POST /api/v1/support/tickets
 /// Create a new support ticket
 pub async fn create_ticket(
+    req: HttpRequest,
     repo: web::Data<DynSupportRepository>,
     body: web::Json<CreateTicketRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get user_id from authenticated token, not request body
+    let user_id = get_actor_id(&req)?;
+
     let category = TicketCategory::from_str(&body.category)
         .ok_or_else(|| AppError::BadRequest(format!("Invalid category: {}", body.category)))?;
 
@@ -113,7 +116,7 @@ pub async fn create_ticket(
         .unwrap_or(TicketPriority::Normal);
 
     let input = CreateTicketInput {
-        user_id: body.user_id.clone(),
+        user_id,
         license_id: body.license_id.clone(),
         category,
         priority,
@@ -184,10 +187,13 @@ pub async fn get_user_tickets(
 /// POST /api/v1/support/tickets/{id}/messages
 /// Add a message to a ticket
 pub async fn add_message(
+    req: HttpRequest,
     repo: web::Data<DynSupportRepository>,
     path: web::Path<Uuid>,
     body: web::Json<AddMessageRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get sender_id from authenticated token, not request body
+    let sender_id = get_actor_id(&req)?;
     let ticket_id = path.into_inner();
 
     // Verify ticket exists
@@ -196,8 +202,9 @@ pub async fn add_message(
 
     let input = AddMessageInput {
         ticket_id,
-        sender_type: body.sender_type.clone(),
-        sender_id: body.sender_id.clone(),
+        // R4-02: sender_type is "user" for public endpoint (agents use admin endpoints)
+        sender_type: "user".to_string(),
+        sender_id,
         message: body.message.clone(),
         is_internal: body.is_internal.unwrap_or(false),
         attachments: None,
@@ -314,12 +321,15 @@ pub async fn get_unassigned_tickets(
 /// POST /api/v1/admin/support/tickets/{id}/assign
 /// Assign ticket to agent
 pub async fn assign_ticket(
+    req: HttpRequest,
     repo: web::Data<DynSupportRepository>,
     path: web::Path<Uuid>,
     body: web::Json<AssignTicketRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get assigned_by from authenticated token, not request body
+    let actor_id = get_actor_id(&req)?;
     let ticket_id = path.into_inner();
-    let ticket = repo.assign_ticket(ticket_id, body.agent_id, &body.assigned_by).await?;
+    let ticket = repo.assign_ticket(ticket_id, body.agent_id, &actor_id).await?;
     Ok(HttpResponse::Ok().json(ticket))
 }
 
@@ -347,34 +357,43 @@ pub async fn auto_assign_ticket(
 /// POST /api/v1/admin/support/tickets/{id}/escalate
 /// Escalate ticket
 pub async fn escalate_ticket(
+    req: HttpRequest,
     repo: web::Data<DynSupportRepository>,
     path: web::Path<Uuid>,
     body: web::Json<EscalateTicketRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get escalated_by from authenticated token, not request body
+    let actor_id = get_actor_id(&req)?;
     let ticket_id = path.into_inner();
-    let ticket = repo.escalate_ticket(ticket_id, &body.reason, &body.escalated_by).await?;
+    let ticket = repo.escalate_ticket(ticket_id, &body.reason, &actor_id).await?;
     Ok(HttpResponse::Ok().json(ticket))
 }
 
 /// POST /api/v1/admin/support/tickets/{id}/resolve
 /// Resolve ticket
 pub async fn resolve_ticket(
+    req: HttpRequest,
     repo: web::Data<DynSupportRepository>,
     path: web::Path<Uuid>,
     body: web::Json<ResolveTicketRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get resolved_by from authenticated token, not request body
+    let actor_id = get_actor_id(&req)?;
     let ticket_id = path.into_inner();
-    let ticket = repo.resolve_ticket(ticket_id, &body.resolution_notes, &body.resolved_by).await?;
+    let ticket = repo.resolve_ticket(ticket_id, &body.resolution_notes, &actor_id).await?;
     Ok(HttpResponse::Ok().json(ticket))
 }
 
 /// POST /api/v1/admin/support/tickets/{id}/status
 /// Update ticket status
 pub async fn update_status(
+    req: HttpRequest,
     repo: web::Data<DynSupportRepository>,
     path: web::Path<Uuid>,
     body: web::Json<UpdateStatusRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get changed_by from authenticated token, not request body
+    let actor_id = get_actor_id(&req)?;
     let ticket_id = path.into_inner();
     let status = TicketStatus::from_str(&body.status)
         .ok_or_else(|| AppError::BadRequest(format!("Invalid status: {}", body.status)))?;
@@ -382,8 +401,8 @@ pub async fn update_status(
     let ticket = repo.update_status(
         ticket_id,
         status,
-        &body.changed_by,
-        &body.changed_by_type,
+        &actor_id,
+        "admin",
     ).await?;
 
     Ok(HttpResponse::Ok().json(ticket))

@@ -1,5 +1,5 @@
 -- Migration 00019: Admin Tables for uno-admin
--- Phase 1 (P1-05): Create PostgreSQL tables for uno-admin (migrated from Scylla)
+-- Phase 1 (P1-05): Create PostgreSQL tables for uno-admin
 
 -- ============================================
 -- AGENTS TABLE

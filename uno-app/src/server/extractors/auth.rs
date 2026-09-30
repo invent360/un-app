@@ -103,6 +103,7 @@ pub async fn get_verified_user(
         .map_err(|e| crate::types::AppError::Unauthorized(e.to_string()))?;
 
     // Check session blacklist for revoked tokens
+    // R3-03: Fail closed on database errors for security
     if let Some(token) = user.token() {
         match session_service.is_session_valid(token).await {
             Ok(false) => {
@@ -111,14 +112,35 @@ pub async fn get_verified_user(
                 ));
             }
             Err(e) => {
-                // Log but don't fail - fail open for availability
-                tracing::warn!(error = %e, "Failed to check session validity");
+                // R3-03: Fail closed - service unavailable is safer than fail open
+                tracing::error!(error = %e, "Session validation unavailable - failing closed");
+                return Err(crate::types::AppError::ServiceUnavailable(
+                    "Auth service unavailable".to_string(),
+                ));
             }
             Ok(true) => {}
         }
     }
 
     Ok(user)
+}
+
+/// Get the authenticated actor ID for audit trails.
+///
+/// R4-02: This replaces the insecure X-Admin-Id header pattern.
+/// Actor ID is always derived from the verified JWT token, never from headers.
+pub fn get_actor_id(req: &actix_web::HttpRequest) -> Result<String, crate::types::AppError> {
+    let user = get_authenticated_user(req)
+        .map_err(|e| crate::types::AppError::Unauthorized(e.to_string()))?;
+    Ok(user.id)
+}
+
+/// Get the authenticated actor ID, falling back to "system" for internal operations.
+///
+/// R4-02: Use this only for internal/scheduled operations where no user context exists.
+/// For user-initiated operations, always use `get_actor_id()` which requires authentication.
+pub fn get_actor_id_or_system(req: &actix_web::HttpRequest) -> String {
+    get_actor_id(req).unwrap_or_else(|_| "system".to_string())
 }
 
 #[macro_export]

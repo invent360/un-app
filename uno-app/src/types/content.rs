@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Supported locales for content
-pub const SUPPORTED_LOCALES: &[&str] = &["en", "es", "fr", "ar", "hi", "tl", "sw", "pt", "id"];
+pub const SUPPORTED_LOCALES: &[&str] = &["en", "es", "fr", "ar", "hi", "tl", "sw", "pt", "id", "bn"];
 
 /// Content status enum
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

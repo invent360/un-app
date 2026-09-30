@@ -1,16 +1,10 @@
 //! Business logic for node operations
-//!
-//! Supports both ScyllaDB (legacy) and PostgreSQL backends via feature flags.
 
 use crate::db::DbPool;
 use crate::models::entity::{LicenseEntity, NewNode, NodeEntity};
 use crate::repository::traits::{LicenseRepositoryTrait, NodeRepositoryTrait};
 
-// Import the appropriate repositories based on feature flag
-#[cfg(feature = "postgres-db")]
 use crate::repository::postgres::{PgLicenseRepository as LicenseRepository, PgNodeRepository as NodeRepository};
-#[cfg(not(feature = "postgres-db"))]
-use crate::repository::scylla::{LicenseRepository, NodeRepository};
 
 /// Node service for business operations
 pub struct NodeService {

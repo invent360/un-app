@@ -1,7 +1,6 @@
 //! PostgreSQL repository implementations
 //!
-//! Provides PostgreSQL-backed implementations for dashboard entities,
-//! replacing the Scylla implementations for better ACID guarantees.
+//! Provides PostgreSQL-backed implementations for dashboard entities.
 
 mod agent_repository;
 mod license_analytics_repository;

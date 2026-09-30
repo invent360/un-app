@@ -1,7 +1,7 @@
 //! Audit log API handlers with HMAC authentication
 
 use actix_web::{HttpResponse, web};
-use uno_api::auth::{verify_request, SignedRequest};
+use uno_api::auth::{verify_request_with_replay_protection_async, SignedRequest};
 use crate::server::app::ServiceFactory;
 use crate::types::AuditLogFilter;
 
@@ -24,8 +24,13 @@ pub async fn list_audit_logs(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"
@@ -61,8 +66,13 @@ pub async fn get_content_audit_history(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"

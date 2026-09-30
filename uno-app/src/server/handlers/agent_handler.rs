@@ -1,10 +1,14 @@
 //! Agent workflow HTTP handlers
 //!
 //! Provides REST endpoints for agent approval, rejection, suspension, and lifecycle management.
+//!
+//! # Authentication
+//! All mutating endpoints require JWT authentication. Actor identity for audit trails
+//! is derived from the verified JWT token (R4-02 security fix).
 
 use actix_web::{web, HttpRequest, HttpResponse};
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use crate::server::extractors::auth::get_actor_id;
+use serde::Deserialize;
 
 use crate::server::app::ServiceFactory;
 use crate::server::services::{
@@ -63,7 +67,7 @@ pub struct TerminateRequest {
 pub async fn list_agents(
     factory: Option<web::Data<ServiceFactory>>,
     query: web::Query<ListAgentsQuery>,
-    req: HttpRequest,
+    _req: HttpRequest,
 ) -> HttpResponse {
     let factory = match factory {
         Some(f) => f,
@@ -149,8 +153,13 @@ pub async fn approve_agent(
         None => return service_unavailable(),
     };
 
+    // R4-02: Actor ID derived from verified JWT, not insecure header
+    let approver_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
+
     let agent_id = path.into_inner();
-    let approver_id = get_admin_id(&req);
 
     let input = ApproveAgentInput {
         agent_id,
@@ -177,8 +186,13 @@ pub async fn reject_agent(
         None => return service_unavailable(),
     };
 
+    // R4-02: Actor ID derived from verified JWT, not insecure header
+    let rejector_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
+
     let agent_id = path.into_inner();
-    let rejector_id = get_admin_id(&req);
 
     let input = RejectAgentInput {
         agent_id,
@@ -205,8 +219,13 @@ pub async fn suspend_agent(
         None => return service_unavailable(),
     };
 
+    // R4-02: Actor ID derived from verified JWT, not insecure header
+    let suspender_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
+
     let agent_id = path.into_inner();
-    let suspender_id = get_admin_id(&req);
 
     let input = SuspendAgentInput {
         agent_id,
@@ -234,8 +253,13 @@ pub async fn lift_suspension(
         None => return service_unavailable(),
     };
 
+    // R4-02: Actor ID derived from verified JWT, not insecure header
+    let lifter_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
+
     let agent_id = path.into_inner();
-    let lifter_id = get_admin_id(&req);
 
     let input = LiftSuspensionInput {
         agent_id,
@@ -262,8 +286,13 @@ pub async fn terminate_agent(
         None => return service_unavailable(),
     };
 
+    // R4-02: Actor ID derived from verified JWT, not insecure header
+    let terminator_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
+
     let agent_id = path.into_inner();
-    let terminator_id = get_admin_id(&req);
 
     match factory.agent_service.terminate(&agent_id, &terminator_id, &body.reason).await {
         Ok(()) => HttpResponse::Ok().json(serde_json::json!({
@@ -310,6 +339,7 @@ fn error_response(e: crate::types::AppError) -> HttpResponse {
         crate::types::AppError::ValidationError(_) => actix_web::http::StatusCode::BAD_REQUEST,
         crate::types::AppError::Unauthorized(_) => actix_web::http::StatusCode::UNAUTHORIZED,
         crate::types::AppError::Forbidden(_) => actix_web::http::StatusCode::FORBIDDEN,
+        crate::types::AppError::ServiceUnavailable(_) => actix_web::http::StatusCode::SERVICE_UNAVAILABLE,
         _ => actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
     };
 
@@ -319,12 +349,5 @@ fn error_response(e: crate::types::AppError) -> HttpResponse {
     }))
 }
 
-fn get_admin_id(req: &HttpRequest) -> String {
-    // Extract admin ID from request extensions or headers
-    // In production, this would come from the authenticated admin context
-    req.headers()
-        .get("X-Admin-Id")
-        .and_then(|v| v.to_str().ok())
-        .map(|s| s.to_string())
-        .unwrap_or_else(|| "system".to_string())
-}
+// R4-02: Removed insecure get_admin_id function that read from X-Admin-Id header.
+// Actor identity is now derived from verified JWT via get_actor_id().

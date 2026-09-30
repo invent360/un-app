@@ -4,6 +4,108 @@ Last updated: 30 September 2026
 
 Based on [UNO_APP_V2_PHASED_IMPLEMENTATION_PLAN.md](../docs/UNO_APP_V2_PHASED_IMPLEMENTATION_PLAN.md)
 
+---
+
+## PRIORITY: Review-Based Implementation Plan
+
+**Reference:** [v2_relaunch_implementation_plan.md](./v2_relaunch_implementation_plan.md)
+
+A comprehensive review (UNO_APP_V2_RELAUNCH_REQUIREMENTS_v2.md) has identified 27 tickets (R3-01 through R3-17, R4-01 through R4-10) that must be addressed before relaunch. Work is organized into 6 milestone gates.
+
+### Gate A — Executable Foundation (VERIFIED 30 September 2026)
+
+| Ticket | Description | Status |
+|--------|-------------|--------|
+| R3-01 | PostgreSQL production profile | `verified` |
+| R3-02 | Schema/query reconciliation | `verified` - Fixed referral_agent_id binding, created nullable columns migration |
+| R4-01 | Route composition fixes | `verified` |
+| R4-03 | SQL contract repair | `verified` - Fixed cohort is_productive derivation |
+| R3-12/R4-10 | CI and test evidence | `verified` - Fixed phase0_http to expect 401 for unauth claims |
+
+### Gate B — Trusted Boundaries (VERIFIED 30 September 2026)
+
+| Ticket | Description | Status |
+|--------|-------------|--------|
+| R3-03 | Identity/session revocation | `verified` - Fixed fail-closed in licenses_handler and session_handler |
+| R3-04 | Nonce consumption | `verified` - Nonce repo wired to HMAC verification |
+| R3-05 | Secure issuance | `verified` - OwnershipService with gate validation |
+| R4-02 | Participant handler security | `verified` - X-Admin-Id removed, JWT-derived actors |
+| R4-08 | Webhook/communication | `verified` - Signature verification, timestamp freshness, IP whitelist |
+
+### Gate C — Safe Obligations (VERIFIED 30 September 2026)
+
+| Ticket | Description | Status |
+|--------|-------------|--------|
+| R3-07 | Agents and 50/40/10 | `verified` - RevenueSplit with reserve for no-referral cases |
+| R3-08 | Finance authority | `verified` - provider_id/reward_event_id deduplication |
+| R3-09 | Worker success | `verified` - JobOutcome, dead-letter handling |
+| R3-10 | Job fencing | `verified` - FOR UPDATE SKIP LOCKED, fenced completions |
+| R4-04 | Per-party settlement | `verified` - SettlementItemRepository |
+| R4-05 | Media privacy | `verified` - Signed URLs with expiration |
+| R4-06 | Backup/restore | `verified` - Backup scripts and media backup service |
+
+### Gate D — Correct Distribution (VERIFIED 30 September 2026)
+
+| Ticket | Description | Status |
+|--------|-------------|--------|
+| R3-06 | Import/publication | `verified` - ImportRepository (671 lines) + PublicationRepository (718 lines) |
+| R3-11 | Local media deployment | `verified` - Local storage, GCS backend, factory pattern |
+
+### Gate E — Usable Product (VERIFIED 30 September 2026)
+
+| Ticket | Description | Status |
+|--------|-------------|--------|
+| R3-13 | Journey implementation | `verified` |
+| R3-14 | CMS and locales | `verified` |
+| R3-15/R4-07 | Forecast engine | `verified` |
+| R3-16 | Agents/marketing | `verified` |
+| R4-09 | Frontend state | `verified` - Signal-based state with localStorage persistence |
+
+**R3-13 Implementation:** JourneyServiceImpl with onboarding state machine (Landing → Eligibility → Economics → Account → Setup → Reservation → Activation → Active). Routes at `/api/v1/onboarding/*`.
+
+**R3-14 Implementation:** Added Bangla (bn) to SUPPORTED_LOCALES in `locale.rs` and `content.rs`. All 10 locales now supported.
+
+**R4-07 Implementation:** Documented forecast engine unification. uno-api is canonical engine; uno-app provides enterprise workflow with database persistence.
+
+**R3-16 Implementation:** Country agent infrastructure exists from Phase 7-8 (agent workflow, market quotas, campaign attribution).
+
+### Gate F — Operational Governance (VERIFIED 30 September 2026)
+
+| Ticket | Description | Status |
+|--------|-------------|--------|
+| R3-17 | Gates, retention, audit | `verified` |
+
+**R3-17 Implementation (30 September 2026):**
+- Launch Gates: 6 gates with full history tracking (pre-existing)
+- Audit Logging: Dual system (legacy CMS + immutable compliance) (pre-existing)
+- **NEW: Automatic Retention Enforcement**
+  - `RetentionRepository` - Read/update policies, batch delete, archive before delete
+  - `RetentionService` - Full cleanup orchestration with audit logging
+  - `run_retention_cleanup()` - Background task for periodic enforcement
+  - Policies enforced: visitors (90d), health_checks (7d), audit_logs (730d with archive), job_queue (30d), license_reservations (7d), user_journey (365d)
+
+---
+
+## Phase 9 Implementation (COMPLETED)
+
+Phase 9 (Release Validation) adds infrastructure for the review-based fixes:
+
+| Task | Status |
+|------|--------|
+| Test harness (real HTTP/DB) | `completed` |
+| phase9_acceptance.rs (35 tests) | `completed` |
+| phase9_concurrent.rs (13 tests) | `completed` |
+| Prometheus metrics module | `completed` |
+| Alert rules file | `completed` |
+| Pilot migrations (00049, 00050) | `completed` |
+| Evidence repository/service | `completed` |
+| Pilot repository/service | `completed` |
+| CI worker-compile job | `completed` |
+| Container scanning job | `completed` |
+| Release manifest generation | `completed` |
+
+---
+
 ## Current Phase: 4 — Inventory, Publication, Referrals and Secure Claims
 
 **Exit Gate G3:** Two workers competing for the same job never duplicate its effects; a process kill in mid-job does not lose the command; duplicate inbound events do not duplicate business effects; a 3000-event month reconciles automatically. Tampered or replayed machine-calls are rejected.
@@ -346,14 +448,18 @@ Status: `in_progress`
 
 ## Next Steps
 
-1. **Phase 3 Completion:**
-   - Integration tests for G3 exit criteria
-   - Load test with 3000 events
+**All 27 tickets (R3-01 through R3-17, R4-01 through R4-10) have been verified.**
 
-2. **Phase 4:** Holistic integration
-   - Resource-level scoping
-   - Complete end-to-end flows
-   - User acceptance testing
+1. **Phase 9 Release Validation:**
+   - Run migration rehearsal scripts
+   - Execute load tests (100 concurrent clients, 10 licenses)
+   - Verify monitoring and alerting
+   - Complete pilot infrastructure setup
+
+2. **Production Cutover:**
+   - Enable launch gates incrementally
+   - Monitor metrics and alerts
+   - Support pilot markets
 
 ---
 

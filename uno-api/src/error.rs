@@ -60,6 +60,10 @@ pub enum AuthError {
     /// Malformed authentication data.
     #[error("Malformed authentication: {0}")]
     MalformedAuth(String),
+
+    /// Service unavailable (R3-04: fail-closed when nonce backend is down).
+    #[error("Auth service unavailable: {0}")]
+    ServiceUnavailable(String),
 }
 
 /// API operation errors.

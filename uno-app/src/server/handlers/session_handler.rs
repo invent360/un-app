@@ -185,12 +185,13 @@ pub async fn validate_session(
     };
 
     // Check if session is still valid (not blacklisted)
+    // R3-03: Fail closed on database errors - security over availability
     let is_valid = match factory.session_service.is_session_valid(&token).await {
         Ok(valid) => valid,
         Err(e) => {
-            tracing::error!(error = %e, "Failed to check session validity");
-            // Fail open for availability, but log the error
-            true
+            tracing::error!(error = %e, "Session validation unavailable - failing closed");
+            return HttpResponse::ServiceUnavailable()
+                .json(SessionResponse::error("Auth service unavailable"));
         }
     };
 

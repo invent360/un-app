@@ -7,8 +7,6 @@
 //! - **SYN-04**: Filters referrals by approval status (only syncs "active" referrals)
 //! - **SYN-05**: Preserves agent commission when updating (doesn't overwrite existing values)
 //! - **SYN-06**: Tombstone handling for suspended referrals (logs warnings for existing agents)
-//!
-//! Supports both ScyllaDB (legacy) and PostgreSQL backends via feature flags.
 
 use tracing::{debug, error, info, warn};
 
@@ -17,11 +15,7 @@ use crate::db::DbPool;
 use crate::models::entity::{AgentEntity, NewAgent};
 use crate::repository::traits::AgentRepositoryTrait;
 
-// Import the appropriate repositories based on feature flag
-#[cfg(feature = "postgres-db")]
 use crate::repository::postgres::PgAgentRepository as AgentRepository;
-#[cfg(not(feature = "postgres-db"))]
-use crate::repository::scylla::AgentRepository;
 
 /// Referral status constants
 const STATUS_ACTIVE: &str = "active";

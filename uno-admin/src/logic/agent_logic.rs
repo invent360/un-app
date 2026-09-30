@@ -1,16 +1,10 @@
 //! Business logic for agent operations
-//!
-//! Supports both ScyllaDB (legacy) and PostgreSQL backends via feature flags.
 
 use crate::db::DbPool;
 use crate::models::entity::{AgentEntity, LicenseEntity, NewAgent, NewLicense};
 use crate::repository::traits::{AgentRepositoryTrait, LicenseRepositoryTrait};
 
-// Import the appropriate repositories based on feature flag
-#[cfg(feature = "postgres-db")]
 use crate::repository::postgres::{PgAgentRepository as AgentRepository, PgLicenseRepository as LicenseRepository};
-#[cfg(not(feature = "postgres-db"))]
-use crate::repository::scylla::{AgentRepository, LicenseRepository};
 
 /// Agent service for business operations
 pub struct AgentService {

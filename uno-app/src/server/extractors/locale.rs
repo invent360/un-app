@@ -4,7 +4,7 @@ use actix_web::{FromRequest, HttpRequest, dev::Payload, cookie::Cookie};
 use std::future::{Ready, ready};
 
 /// Supported locale codes
-pub const SUPPORTED_LOCALES: &[&str] = &["en", "tl", "hi", "sw", "es", "pt", "fr", "ar", "id"];
+pub const SUPPORTED_LOCALES: &[&str] = &["en", "tl", "hi", "sw", "es", "pt", "fr", "ar", "id", "bn"];
 
 /// Default locale
 pub const DEFAULT_LOCALE: &str = "en";
@@ -57,6 +57,7 @@ impl RequestLocale {
             "fr" => "Français",
             "ar" => "العربية",
             "id" => "Bahasa Indonesia",
+            "bn" => "বাংলা",
             _ => "English",
         }
     }

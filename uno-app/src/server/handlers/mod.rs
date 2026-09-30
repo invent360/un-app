@@ -27,6 +27,10 @@ mod operator_handler;
 mod forecast_handler;
 mod webhook_handler;
 mod communication_handler;
+mod metrics_handler;
+mod pilot_handler;
+mod media_backup_handler;
+mod onboarding_handler;
 
 use crate::server::middleware::{AdminAuth, RateLimitConfig, RateLimiter};
 use actix_web::web;
@@ -400,7 +404,25 @@ pub fn configure_api_routes(cfg: &mut web::ServiceConfig) {
             .route("/communication/scheduled", web::post().to(communication_handler::schedule_message))
             .route("/communication/scheduled/{id}", web::delete().to(communication_handler::cancel_scheduled))
             .route("/communication/process", web::post().to(communication_handler::process_scheduled))
-            .route("/communication/can-receive", web::get().to(communication_handler::can_receive)),
+            .route("/communication/can-receive", web::get().to(communication_handler::can_receive))
+            // Phase 9: Pilot management
+            .route("/pilot/cohorts", web::get().to(pilot_handler::list_cohorts))
+            .route("/pilot/cohorts/{id}", web::get().to(pilot_handler::get_cohort))
+            .route("/pilot/cohorts/{id}/participants", web::get().to(pilot_handler::list_participants))
+            .route("/pilot/participants", web::post().to(pilot_handler::add_participant))
+            .route("/pilot/participants/{id}", web::get().to(pilot_handler::get_participant))
+            .route("/pilot/participants/{id}/transition", web::post().to(pilot_handler::transition_state))
+            .route("/pilot/participants/{id}/activity", web::post().to(pilot_handler::record_activity))
+            .route("/pilot/participants/{id}/history", web::get().to(pilot_handler::get_history))
+            .route("/pilot/participants/{id}/d7", web::post().to(pilot_handler::process_d7))
+            .route("/pilot/participants/{id}/d30", web::post().to(pilot_handler::process_d30))
+            .route("/pilot/pending/d7", web::get().to(pilot_handler::get_pending_d7))
+            .route("/pilot/pending/d30", web::get().to(pilot_handler::get_pending_d30))
+            // R3-13: Onboarding journey admin routes
+            .route("/onboarding/funnel", web::get().to(onboarding_handler::get_funnel_metrics))
+            .route("/onboarding/funnel/record", web::post().to(onboarding_handler::record_funnel_stage))
+            .route("/onboarding/{user_id}/progress", web::get().to(onboarding_handler::get_progress))
+            .route("/onboarding/{user_id}/transition", web::post().to(onboarding_handler::transition_state)),
     );
 
     // Public preview endpoint (no HMAC required)
@@ -411,6 +433,9 @@ pub fn configure_api_routes(cfg: &mut web::ServiceConfig) {
 
     // Cloud file storage routes (GCS/S3)
     file_handler::configure_routes(cfg);
+
+    // R4-06: Backup/restore routes
+    media_backup_handler::configure_routes(cfg);
 
     // Sensitive auth endpoints with strict rate limits (10 req/min)
     cfg.service(
@@ -515,12 +540,35 @@ pub fn configure_api_routes(cfg: &mut web::ServiceConfig) {
             .route("/devices", web::post().to(communication_handler::register_device)),
     );
 
+    // Pilot enrollment check (Phase 9) - public
+    cfg.service(
+        web::scope("/api/v1/pilot")
+            .wrap(RateLimiter::new(RateLimitConfig::default()))
+            .route("/{market_code}/check", web::get().to(pilot_handler::check_enrollment)),
+    );
+
+    // R3-13: Onboarding journey endpoints (user-facing)
+    cfg.service(
+        web::scope("/api/v1/onboarding")
+            .wrap(RateLimiter::new(RateLimitConfig::default()))
+            .route("/progress", web::get().to(onboarding_handler::get_or_create_progress))
+            .route("/resume", web::post().to(onboarding_handler::resume_onboarding))
+            .route("/eligibility", web::post().to(onboarding_handler::complete_eligibility))
+            .route("/economics", web::post().to(onboarding_handler::accept_economics))
+            .route("/setup", web::post().to(onboarding_handler::complete_setup_step))
+            .route("/reserve", web::post().to(onboarding_handler::reserve_license))
+            .route("/activate", web::post().to(onboarding_handler::activate_license)),
+    );
+
     // Inbound webhook endpoint (Phase 8) - public with signature validation
     cfg.service(
         web::scope("/api/v1/webhooks")
             .wrap(RateLimiter::new(RateLimitConfig::default()))
             .route("/inbound/{source}", web::post().to(webhook_handler::receive_webhook)),
     );
+
+    // Prometheus metrics endpoint (no rate limiting for scraping)
+    cfg.route("/metrics", web::get().to(metrics_handler::get_metrics));
 
     // Then configure public API routes with standard rate limiting (100 req/min)
     cfg.service(

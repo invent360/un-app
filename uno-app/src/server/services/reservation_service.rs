@@ -5,6 +5,7 @@
 //! - Publication status validation
 //! - Atomic reservation with locking
 //! - Issuance state tracking
+//! - R3-05: Capacity ceiling enforcement
 
 use async_trait::async_trait;
 use chrono::{DateTime, Duration, Utc};
@@ -18,6 +19,10 @@ use crate::server::repositories::{
     EligibilityRepository, EligibilityContext, EligibilityResult, CheckType, DeviceType,
 };
 use crate::types::AppError;
+
+/// R3-05: Maximum number of occupied licenses (reserved + issued + active + pending release)
+/// Prevents system from over-allocating beyond capacity.
+pub const MAX_OCCUPIED_LICENSES: i64 = 2500;
 
 // ============================================
 // SERVICE TYPES
@@ -213,6 +218,51 @@ impl ReservationServiceImpl {
         }
     }
 
+    /// R3-05: Check if capacity ceiling allows new reservation
+    ///
+    /// Counts licenses in occupied states (reserved, issued, active, release_pending)
+    /// and returns error if at or above MAX_OCCUPIED_LICENSES.
+    async fn check_capacity(&self) -> Result<(), ReservationError> {
+        let now = Utc::now();
+
+        // Count licenses that are:
+        // - Reserved (reserved_until > now)
+        // - Claimed (claimed = true)
+        // - Or in active lifecycle states
+        let count: (i64,) = sqlx::query_as(
+            r#"
+            SELECT COUNT(*) as count
+            FROM licenses
+            WHERE
+                claimed = true
+                OR (reserved_until IS NOT NULL AND reserved_until > $1)
+            "#,
+        )
+        .bind(now)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| ReservationError::new("capacity_check_failed", &e.to_string()))?;
+
+        if count.0 >= MAX_OCCUPIED_LICENSES {
+            tracing::warn!(
+                occupied = count.0,
+                ceiling = MAX_OCCUPIED_LICENSES,
+                "Capacity ceiling reached"
+            );
+            return Err(ReservationError::new(
+                "capacity_exceeded",
+                "License capacity has been reached. Please try again later.",
+            ));
+        }
+
+        tracing::debug!(
+            occupied = count.0,
+            ceiling = MAX_OCCUPIED_LICENSES,
+            "Capacity check passed"
+        );
+        Ok(())
+    }
+
     /// Find license ID and check eligibility atomically
     async fn find_eligible_license(
         &self,
@@ -287,6 +337,9 @@ impl ReservationService for ReservationServiceImpl {
         &self,
         request: ReservationRequest,
     ) -> Result<ExtendedReservationResult, ReservationError> {
+        // R3-05: Check capacity ceiling before attempting reservation
+        self.check_capacity().await?;
+
         // Use existing atomic_reserve with split_type and referral
         // The underlying repository handles locking
         let result = self.claim_repo
@@ -512,5 +565,17 @@ mod tests {
         let req = ReservationRequest::default();
         assert!(req.split_type.is_none());
         assert!(!req.is_verified);
+    }
+
+    #[test]
+    fn test_capacity_ceiling_constant() {
+        // R3-05: Verify capacity ceiling is configured correctly
+        assert_eq!(MAX_OCCUPIED_LICENSES, 2500);
+    }
+
+    #[test]
+    fn test_capacity_exceeded_error() {
+        let err = ReservationError::new("capacity_exceeded", "License capacity has been reached.");
+        assert_eq!(err.code, "capacity_exceeded");
     }
 }

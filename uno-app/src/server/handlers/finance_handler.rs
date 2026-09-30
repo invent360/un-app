@@ -1,8 +1,13 @@
 //! Finance HTTP handlers
 //!
 //! Provides REST endpoints for allocation management, settlements, and finance operations.
+//!
+//! # Authentication
+//! All mutating endpoints require JWT authentication. Actor identity for audit trails
+//! is derived from the verified JWT token (R4-02 security fix).
 
 use actix_web::{web, HttpRequest, HttpResponse};
+use crate::server::extractors::auth::get_actor_id;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -29,6 +34,10 @@ pub struct CreateAllocationRequest {
     pub period_end: DateTime<Utc>,
     pub source: String,
     pub external_ref: Option<String>,
+    /// R3-08: Provider identifier for deduplication (e.g., "unetwork", "marketplace")
+    pub provider_id: Option<String>,
+    /// R3-08: Unique event ID from provider for duplicate prevention
+    pub reward_event_id: Option<String>,
 }
 
 fn default_currency() -> String {
@@ -77,6 +86,8 @@ pub struct AllocationResponse {
     pub ulo_micros: i64,
     pub uno_micros: i64,
     pub referral_micros: i64,
+    /// R3-07: Reserve allocation for no-referral cases
+    pub reserve_micros: i64,
     pub ulo_bps: i32,
     pub uno_bps: i32,
     pub referral_bps: i32,
@@ -85,6 +96,10 @@ pub struct AllocationResponse {
     pub period_end: DateTime<Utc>,
     pub source: String,
     pub external_ref: Option<String>,
+    /// R3-08: Provider identifier
+    pub provider_id: Option<String>,
+    /// R3-08: Unique event ID from provider
+    pub reward_event_id: Option<String>,
     pub state: Option<String>,
     pub allocated_at: DateTime<Utc>,
 }
@@ -144,19 +159,24 @@ fn service_unavailable() -> HttpResponse {
     }))
 }
 
-fn error_response<E: std::fmt::Display>(e: E) -> HttpResponse {
-    HttpResponse::InternalServerError().json(serde_json::json!({
-        "error": e.to_string()
+fn error_response(e: crate::types::AppError) -> HttpResponse {
+    let status = match &e {
+        crate::types::AppError::NotFound(_) => actix_web::http::StatusCode::NOT_FOUND,
+        crate::types::AppError::ValidationError(_) => actix_web::http::StatusCode::BAD_REQUEST,
+        crate::types::AppError::Unauthorized(_) => actix_web::http::StatusCode::UNAUTHORIZED,
+        crate::types::AppError::Forbidden(_) => actix_web::http::StatusCode::FORBIDDEN,
+        crate::types::AppError::ServiceUnavailable(_) => actix_web::http::StatusCode::SERVICE_UNAVAILABLE,
+        _ => actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
+    };
+
+    HttpResponse::build(status).json(serde_json::json!({
+        "error": e.to_string(),
+        "code": e.error_response().code
     }))
 }
 
-fn get_admin_id(req: &HttpRequest) -> String {
-    req.headers()
-        .get("X-Admin-Id")
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("admin")
-        .to_string()
-}
+// R4-02: Removed insecure get_admin_id function that read from X-Admin-Id header.
+// Actor identity is now derived from verified JWT via get_actor_id().
 
 fn micros_to_dollars(micros: i64) -> f64 {
     micros as f64 / 1_000_000.0
@@ -194,6 +214,8 @@ pub async fn create_allocation(
         period_end: body.period_end,
         source: body.source.clone(),
         external_ref: body.external_ref.clone(),
+        provider_id: body.provider_id.clone(),
+        reward_event_id: body.reward_event_id.clone(),
     };
 
     match settlement_service.record_allocation(input).await {
@@ -205,6 +227,7 @@ pub async fn create_allocation(
             ulo_micros: entry.ulo_micros,
             uno_micros: entry.uno_micros,
             referral_micros: entry.referral_micros,
+            reserve_micros: entry.reserve_micros,
             ulo_bps: entry.ulo_bps,
             uno_bps: entry.uno_bps,
             referral_bps: entry.referral_bps,
@@ -213,10 +236,12 @@ pub async fn create_allocation(
             period_end: entry.period_end,
             source: entry.source,
             external_ref: entry.external_ref,
+            provider_id: entry.provider_id,
+            reward_event_id: entry.reward_event_id,
             state: entry.state,
             allocated_at: entry.allocated_at,
         }),
-        Err(e) => error_response(e),
+        Err(e) => error_response(e.into()),
     }
 }
 
@@ -249,6 +274,7 @@ pub async fn get_allocation(
             ulo_micros: entry.ulo_micros,
             uno_micros: entry.uno_micros,
             referral_micros: entry.referral_micros,
+            reserve_micros: entry.reserve_micros,
             ulo_bps: entry.ulo_bps,
             uno_bps: entry.uno_bps,
             referral_bps: entry.referral_bps,
@@ -257,13 +283,15 @@ pub async fn get_allocation(
             period_end: entry.period_end,
             source: entry.source,
             external_ref: entry.external_ref,
+            provider_id: entry.provider_id,
+            reward_event_id: entry.reward_event_id,
             state: entry.state,
             allocated_at: entry.allocated_at,
         }),
         Ok(None) => HttpResponse::NotFound().json(serde_json::json!({
             "error": "Allocation not found"
         })),
-        Err(e) => error_response(e),
+        Err(e) => error_response(e.into()),
     }
 }
 
@@ -300,6 +328,7 @@ pub async fn list_allocations(
                     ulo_micros: entry.ulo_micros,
                     uno_micros: entry.uno_micros,
                     referral_micros: entry.referral_micros,
+                    reserve_micros: entry.reserve_micros,
                     ulo_bps: entry.ulo_bps,
                     uno_bps: entry.uno_bps,
                     referral_bps: entry.referral_bps,
@@ -308,6 +337,8 @@ pub async fn list_allocations(
                     period_end: entry.period_end,
                     source: entry.source,
                     external_ref: entry.external_ref,
+                    provider_id: entry.provider_id,
+                    reward_event_id: entry.reward_event_id,
                     state: entry.state,
                     allocated_at: entry.allocated_at,
                 }
@@ -358,7 +389,7 @@ pub async fn get_pool_balance(
             payable_micros: summary.payable_micros,
             paid_micros: summary.paid_micros,
         }),
-        Err(e) => error_response(e),
+        Err(e) => error_response(e.into()),
     }
 }
 
@@ -389,7 +420,7 @@ pub async fn get_payable_balances(
             total_referral_payable_dollars: micros_to_dollars(balances.total_referral_payable_micros),
             license_count: balances.license_count,
         }),
-        Err(e) => error_response(e),
+        Err(e) => error_response(e.into()),
     }
 }
 
@@ -412,14 +443,18 @@ pub async fn mark_payable(
         })),
     };
 
-    let actor_id = get_admin_id(&req);
+    // R4-02: Actor ID derived from verified JWT, not insecure header
+    let actor_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
 
     match settlement_service.mark_payable(&body.ids, &actor_id).await {
         Ok(count) => HttpResponse::Ok().json(serde_json::json!({
             "success": true,
             "updated_count": count
         })),
-        Err(e) => error_response(e),
+        Err(e) => error_response(e.into()),
     }
 }
 
@@ -446,7 +481,11 @@ pub async fn prepare_settlement(
         })),
     };
 
-    let preparer_id = get_admin_id(&req);
+    // R4-02: Actor ID derived from verified JWT, not insecure header
+    let preparer_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
 
     let input = PrepareSettlementInput {
         party_type: body.party_type.clone(),
@@ -468,7 +507,7 @@ pub async fn prepare_settlement(
             "net_dollars": micros_to_dollars(prep.net_micros),
             "allocation_count": prep.allocation_count
         })),
-        Err(e) => error_response(e),
+        Err(e) => error_response(e.into()),
     }
 }
 
@@ -518,7 +557,7 @@ pub async fn list_settlements(
                 "count": items.len()
             }))
         }
-        Err(e) => error_response(e),
+        Err(e) => error_response(e.into()),
     }
 }
 
@@ -561,7 +600,7 @@ pub async fn get_settlement(
         Ok(None) => HttpResponse::NotFound().json(serde_json::json!({
             "error": "Settlement not found"
         })),
-        Err(e) => error_response(e),
+        Err(e) => error_response(e.into()),
     }
 }
 
@@ -584,8 +623,13 @@ pub async fn approve_settlement(
         })),
     };
 
+    // R4-02: Actor ID derived from verified JWT, not insecure header
+    let approver_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
+
     let settlement_ref = path.into_inner();
-    let approver_id = get_admin_id(&req);
 
     match settlement_service.approve_settlement(&settlement_ref, &approver_id).await {
         Ok(true) => HttpResponse::Ok().json(serde_json::json!({
@@ -595,7 +639,7 @@ pub async fn approve_settlement(
         Ok(false) => HttpResponse::BadRequest().json(serde_json::json!({
             "error": "Settlement could not be approved (invalid state)"
         })),
-        Err(e) => error_response(e),
+        Err(e) => error_response(e.into()),
     }
 }
 
@@ -619,8 +663,13 @@ pub async fn execute_settlement(
         })),
     };
 
+    // R4-02: Actor ID derived from verified JWT, not insecure header
+    let executor_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
+
     let settlement_ref = path.into_inner();
-    let executor_id = get_admin_id(&req);
 
     let input = ExecuteSettlementInput {
         settlement_ref: settlement_ref.clone(),
@@ -645,6 +694,6 @@ pub async fn execute_settlement(
             approved_at: settlement.approved_at,
             executed_at: settlement.executed_at,
         }),
-        Err(e) => error_response(e),
+        Err(e) => error_response(e.into()),
     }
 }

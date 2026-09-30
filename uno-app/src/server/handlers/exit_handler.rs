@@ -6,10 +6,11 @@
 //! - Exit feedback
 //! - Market waitlist
 
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::server::extractors::auth::get_actor_id;
 use crate::server::repositories::{
     DynExitRepository, ExitType, ExitStatus,
     InitiateExitInput, SubmitFeedbackInput, AddToWaitlistInput,
@@ -20,15 +21,13 @@ use crate::types::AppError;
 // REQUEST/RESPONSE TYPES
 // ============================================
 
+// R4-02: user_id and requested_by now come from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct InitiateExitRequest {
-    pub user_id: String,
     pub license_id: String,
     pub exit_type: Option<String>,
     pub exit_reason: Option<String>,
     pub exit_details: Option<String>,
-    pub requested_by: Option<String>,
-    pub requested_by_type: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -47,30 +46,24 @@ pub struct FailPayoutRequest {
     pub reason: String,
 }
 
+// R4-02: rejected_by now comes from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct RejectExitRequest {
     pub reason: String,
-    pub rejected_by: String,
-    pub rejected_by_type: String,
 }
 
+// R4-02: processed_by now comes from authenticated token (no body fields needed)
 #[derive(Debug, Deserialize)]
-pub struct ApproveExitRequest {
-    pub processed_by: String,
-    pub processed_by_type: String,
-}
+pub struct ApproveExitRequest {}
 
+// R4-02: cancelled_by now comes from authenticated token (no body fields needed)
 #[derive(Debug, Deserialize)]
-pub struct CancelExitRequest {
-    pub cancelled_by: String,
-    pub cancelled_by_type: String,
-}
+pub struct CancelExitRequest {}
 
+// R4-02: actor_id now comes from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct UpdateStatusRequest {
     pub status: String,
-    pub actor_id: String,
-    pub actor_type: String,
     pub notes: Option<String>,
 }
 
@@ -85,9 +78,9 @@ pub struct SubmitFeedbackRequest {
     pub improvement_suggestions: Option<String>,
 }
 
+// R4-02: user_id now comes from authenticated token (optional - unauthenticated users can join waitlist)
 #[derive(Debug, Deserialize)]
 pub struct AddToWaitlistRequest {
-    pub user_id: Option<String>,
     pub email: String,
     pub country_code: String,
     pub consent_given: bool,
@@ -102,9 +95,9 @@ pub struct UpdateWaitlistStatusRequest {
     pub notification_reference: Option<String>,
 }
 
+// R4-02: user_id now comes from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct CalculateBalanceRequest {
-    pub user_id: String,
     pub license_id: String,
 }
 
@@ -127,22 +120,27 @@ pub struct StatusQuery {
 /// POST /api/v1/exit
 /// Initiate a voluntary exit
 pub async fn initiate_exit(
+    req: HttpRequest,
     repo: web::Data<DynExitRepository>,
     body: web::Json<InitiateExitRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get user_id from authenticated token, not request body
+    let user_id = get_actor_id(&req)?;
+
     let exit_type = body.exit_type
         .as_ref()
         .and_then(|t| ExitType::from_str(t))
         .unwrap_or(ExitType::Voluntary);
 
     let input = InitiateExitInput {
-        user_id: body.user_id.clone(),
+        user_id: user_id.clone(),
         license_id: body.license_id.clone(),
         exit_type,
         exit_reason: body.exit_reason.clone(),
         exit_details: body.exit_details.clone(),
-        requested_by: body.requested_by.clone().unwrap_or_else(|| body.user_id.clone()),
-        requested_by_type: body.requested_by_type.clone().unwrap_or_else(|| "user".to_string()),
+        // R4-02: requested_by is always the authenticated user
+        requested_by: user_id,
+        requested_by_type: "user".to_string(),
     };
 
     let exit = repo.initiate_exit(input).await?;
@@ -192,22 +190,28 @@ pub async fn get_user_exits(
 /// POST /api/v1/exit/balance
 /// Calculate exit balance (preview before exit)
 pub async fn calculate_balance(
+    req: HttpRequest,
     repo: web::Data<DynExitRepository>,
     body: web::Json<CalculateBalanceRequest>,
 ) -> Result<HttpResponse, AppError> {
-    let balance = repo.calculate_exit_balance(&body.user_id, &body.license_id).await?;
+    // R4-02: Get user_id from authenticated token, not request body
+    let user_id = get_actor_id(&req)?;
+    let balance = repo.calculate_exit_balance(&user_id, &body.license_id).await?;
     Ok(HttpResponse::Ok().json(balance))
 }
 
 /// POST /api/v1/exit/{id}/cancel
 /// Cancel exit (user can cancel before processing)
 pub async fn cancel_exit(
+    req: HttpRequest,
     repo: web::Data<DynExitRepository>,
     path: web::Path<Uuid>,
-    body: web::Json<CancelExitRequest>,
+    _body: web::Json<CancelExitRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get cancelled_by from authenticated token, not request body
+    let actor_id = get_actor_id(&req)?;
     let id = path.into_inner();
-    let exit = repo.cancel_exit(id, &body.cancelled_by, &body.cancelled_by_type).await?;
+    let exit = repo.cancel_exit(id, &actor_id, "user").await?;
     Ok(HttpResponse::Ok().json(exit))
 }
 
@@ -284,11 +288,15 @@ pub async fn get_feedback(
 /// POST /api/v1/waitlist
 /// Add to market waitlist
 pub async fn add_to_waitlist(
+    req: HttpRequest,
     repo: web::Data<DynExitRepository>,
     body: web::Json<AddToWaitlistRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get user_id from authenticated token if available (waitlist allows unauthenticated)
+    let user_id = get_actor_id(&req).ok();
+
     let input = AddToWaitlistInput {
-        user_id: body.user_id.clone(),
+        user_id,
         email: body.email.clone(),
         country_code: body.country_code.clone(),
         consent_given: body.consent_given,
@@ -353,34 +361,43 @@ pub async fn get_exits_pending_payout(
 /// POST /api/v1/admin/exits/{id}/approve
 /// Approve exit
 pub async fn approve_exit(
+    req: HttpRequest,
     repo: web::Data<DynExitRepository>,
     path: web::Path<Uuid>,
-    body: web::Json<ApproveExitRequest>,
+    _body: web::Json<ApproveExitRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get processed_by from authenticated token, not request body
+    let actor_id = get_actor_id(&req)?;
     let id = path.into_inner();
-    let exit = repo.approve_exit(id, &body.processed_by, &body.processed_by_type).await?;
+    let exit = repo.approve_exit(id, &actor_id, "admin").await?;
     Ok(HttpResponse::Ok().json(exit))
 }
 
 /// POST /api/v1/admin/exits/{id}/reject
 /// Reject exit
 pub async fn reject_exit(
+    req: HttpRequest,
     repo: web::Data<DynExitRepository>,
     path: web::Path<Uuid>,
     body: web::Json<RejectExitRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get rejected_by from authenticated token, not request body
+    let actor_id = get_actor_id(&req)?;
     let id = path.into_inner();
-    let exit = repo.reject_exit(id, &body.reason, &body.rejected_by, &body.rejected_by_type).await?;
+    let exit = repo.reject_exit(id, &body.reason, &actor_id, "admin").await?;
     Ok(HttpResponse::Ok().json(exit))
 }
 
 /// POST /api/v1/admin/exits/{id}/status
 /// Update exit status
 pub async fn update_status(
+    req: HttpRequest,
     repo: web::Data<DynExitRepository>,
     path: web::Path<Uuid>,
     body: web::Json<UpdateStatusRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: Get actor_id from authenticated token, not request body
+    let actor_id = get_actor_id(&req)?;
     let id = path.into_inner();
     let status = ExitStatus::from_str(&body.status)
         .ok_or_else(|| AppError::BadRequest(format!("Invalid status: {}", body.status)))?;
@@ -388,8 +405,8 @@ pub async fn update_status(
     let exit = repo.update_status(
         id,
         status,
-        &body.actor_id,
-        &body.actor_type,
+        &actor_id,
+        "admin",
         body.notes.as_deref(),
     ).await?;
 

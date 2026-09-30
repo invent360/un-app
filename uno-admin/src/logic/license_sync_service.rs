@@ -2,8 +2,6 @@
 //!
 //! Fetches licenses from Unetwork API and syncs to local database.
 //! Runs every 10 minutes, tracks progress for resume on failure.
-//!
-//! Supports both ScyllaDB (legacy) and PostgreSQL backends via feature flags.
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -14,11 +12,7 @@ use crate::db::DbPool;
 use crate::models::entity::{NewLicenseFromApi, NewSyncJob, SyncJobEntity};
 use crate::repository::traits::{LicenseRepositoryTrait, SyncJobRepositoryTrait};
 
-// Import the appropriate repositories based on feature flag
-#[cfg(feature = "postgres-db")]
 use crate::repository::postgres::{PgLicenseRepository as LicenseRepository, PgSyncJobRepository as SyncJobRepository};
-#[cfg(not(feature = "postgres-db"))]
-use crate::repository::scylla::{LicenseRepository, SyncJobRepository};
 
 #[cfg(feature = "ssr")]
 use crate::ws::broadcast_job_update;

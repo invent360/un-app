@@ -81,6 +81,7 @@ pub async fn claim_license(
     };
 
     // Check session blacklist for revoked tokens
+    // R3-03: Fail closed on database errors - security over availability
     if let Some(token) = user.token() {
         match factory.session_service.is_session_valid(token).await {
             Ok(false) => {
@@ -90,8 +91,11 @@ pub async fn claim_license(
                 }));
             }
             Err(e) => {
-                tracing::warn!(error = %e, "Failed to check session validity, allowing request");
-                // Fail open for availability, but log the issue
+                tracing::error!(error = %e, "Session validation unavailable - failing closed");
+                return HttpResponse::ServiceUnavailable().json(serde_json::json!({
+                    "error": "Auth service unavailable",
+                    "code": "SERVICE_UNAVAILABLE"
+                }));
             }
             Ok(true) => {}
         }

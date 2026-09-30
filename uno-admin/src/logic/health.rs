@@ -3,19 +3,14 @@
 //! Implements Kubernetes-style health probes:
 //! - Liveness: Is the process alive?
 //! - Readiness: Can the process handle traffic?
-//!
-//! Supports both ScyllaDB (legacy) and PostgreSQL backends via feature flags.
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
-#[cfg(all(feature = "ssr", not(feature = "postgres-db")))]
-use scylla::Session;
-
-#[cfg(all(feature = "ssr", feature = "postgres-db"))]
+#[cfg(feature = "ssr")]
 use crate::db::PgPool;
 
 /// Health check result
@@ -164,141 +159,14 @@ impl Default for HealthConfig {
     }
 }
 
-// =============================================================================
-// ScyllaDB Health Service (Legacy)
-// =============================================================================
-
-/// Health probe service for ScyllaDB
-#[cfg(all(feature = "ssr", not(feature = "postgres-db")))]
-pub struct HealthService {
-    session: Option<Arc<Session>>,
-    keyspace: Option<String>,
-    config: HealthConfig,
-}
-
-#[cfg(all(feature = "ssr", not(feature = "postgres-db")))]
-impl HealthService {
-    /// Create a new health service
-    pub fn new(session: Option<Arc<Session>>, keyspace: Option<String>) -> Self {
-        Self {
-            session,
-            keyspace,
-            config: HealthConfig::default(),
-        }
-    }
-
-    /// Create with custom configuration
-    pub fn with_config(session: Option<Arc<Session>>, keyspace: Option<String>, config: HealthConfig) -> Self {
-        Self { session, keyspace, config }
-    }
-
-    /// Liveness probe - just checks if process is alive
-    ///
-    /// Should be fast and not depend on external services.
-    pub async fn liveness(&self) -> HealthCheck {
-        let start = Instant::now();
-        let checks = vec![ComponentCheck::healthy("process", start.elapsed())];
-        HealthCheck::new(checks, start.elapsed())
-    }
-
-    /// Readiness probe - checks if service can handle traffic
-    ///
-    /// Includes database connectivity check with timeout.
-    pub async fn readiness(&self) -> HealthCheck {
-        let start = Instant::now();
-        let mut checks = Vec::new();
-
-        // Database check
-        let db_check = self.check_database().await;
-        checks.push(db_check);
-
-        // Memory check (basic)
-        let mem_check = self.check_memory();
-        checks.push(mem_check);
-
-        HealthCheck::new(checks, start.elapsed())
-    }
-
-    /// Full health check including optional external services
-    pub async fn full(&self) -> HealthCheck {
-        let start = Instant::now();
-        let mut checks = Vec::new();
-
-        // Core checks
-        checks.push(self.check_database().await);
-        checks.push(self.check_memory());
-
-        HealthCheck::new(checks, start.elapsed())
-    }
-
-    /// Check database connectivity with bounded timeout
-    async fn check_database(&self) -> ComponentCheck {
-        let start = Instant::now();
-
-        let Some(session) = &self.session else {
-            return ComponentCheck::unhealthy(
-                "database",
-                "Database session not configured",
-                start.elapsed(),
-            );
-        };
-
-        let Some(keyspace) = &self.keyspace else {
-            return ComponentCheck::unhealthy(
-                "database",
-                "Database keyspace not configured",
-                start.elapsed(),
-            );
-        };
-
-        // Use tokio timeout to bound the query
-        let result = tokio::time::timeout(
-            self.config.db_timeout,
-            session.query_unpaged(
-                format!("SELECT keyspace_name FROM system_schema.keyspaces WHERE keyspace_name = '{}'", keyspace),
-                &[],
-            ),
-        )
-        .await;
-
-        match result {
-            Ok(Ok(_)) => ComponentCheck::healthy("database", start.elapsed()),
-            Ok(Err(e)) => ComponentCheck::unhealthy(
-                "database",
-                format!("Query failed: {}", e),
-                start.elapsed(),
-            ),
-            Err(_) => ComponentCheck::unhealthy(
-                "database",
-                format!("Query timed out after {:?}", self.config.db_timeout),
-                start.elapsed(),
-            ),
-        }
-    }
-
-    /// Basic memory check
-    fn check_memory(&self) -> ComponentCheck {
-        let start = Instant::now();
-
-        // Simple check - if we can allocate, we're probably fine
-        let _test_alloc: Vec<u8> = Vec::with_capacity(1024);
-
-        ComponentCheck::healthy("memory", start.elapsed()).non_critical()
-    }
-}
-
-// =============================================================================
-// PostgreSQL Health Service
-// =============================================================================
-
 /// Health probe service for PostgreSQL
-#[cfg(all(feature = "ssr", feature = "postgres-db"))]
+#[cfg(feature = "ssr")]
 pub struct HealthService {
     pool: Option<Arc<PgPool>>,
     config: HealthConfig,
 }
 
-#[cfg(all(feature = "ssr", feature = "postgres-db"))]
+#[cfg(feature = "ssr")]
 impl HealthService {
     /// Create a new health service
     ///
@@ -401,103 +269,13 @@ impl HealthService {
     }
 }
 
-// =============================================================================
-// ScyllaDB Startup Checks (Legacy)
-// =============================================================================
-
-/// Startup checks - run once at application start (ScyllaDB)
-#[cfg(all(feature = "ssr", not(feature = "postgres-db")))]
-pub struct StartupChecks {
-    session: Option<Arc<Session>>,
-    keyspace: Option<String>,
-}
-
-#[cfg(all(feature = "ssr", not(feature = "postgres-db")))]
-impl StartupChecks {
-    pub fn new(session: Option<Arc<Session>>, keyspace: Option<String>) -> Self {
-        Self { session, keyspace }
-    }
-
-    /// Run all startup checks
-    ///
-    /// Returns Err if any critical check fails.
-    pub async fn run(&self) -> Result<(), String> {
-        info!("Running startup checks...");
-
-        // Check required configuration
-        self.check_required_config()?;
-
-        // Check database connectivity
-        self.check_database_connection().await?;
-
-        info!("Startup checks passed");
-        Ok(())
-    }
-
-    /// Check required environment variables
-    fn check_required_config(&self) -> Result<(), String> {
-        let required = [
-            "SCYLLA_URI",
-            "SCYLLA_KEYSPACE",
-        ];
-
-        let mut missing = Vec::new();
-        for var in required {
-            if std::env::var(var).is_err() {
-                missing.push(var);
-            }
-        }
-
-        if !missing.is_empty() {
-            // Warn but don't fail - config might come from other sources
-            warn!("Environment variables not set: {:?}", missing);
-        }
-
-        Ok(())
-    }
-
-    /// Check database is reachable
-    async fn check_database_connection(&self) -> Result<(), String> {
-        let Some(session) = &self.session else {
-            return Err("Database session not configured".to_string());
-        };
-
-        let Some(keyspace) = &self.keyspace else {
-            return Err("Database keyspace not configured".to_string());
-        };
-
-        // Try a simple query with timeout
-        let result = tokio::time::timeout(
-            Duration::from_secs(10),
-            session.query_unpaged(
-                format!("SELECT keyspace_name FROM system_schema.keyspaces WHERE keyspace_name = '{}'", keyspace),
-                &[],
-            ),
-        )
-        .await;
-
-        match result {
-            Ok(Ok(_)) => {
-                info!("Database connection verified");
-                Ok(())
-            }
-            Ok(Err(e)) => Err(format!("Database query failed: {}", e)),
-            Err(_) => Err("Database connection timed out".to_string()),
-        }
-    }
-}
-
-// =============================================================================
-// PostgreSQL Startup Checks
-// =============================================================================
-
-/// Startup checks - run once at application start (PostgreSQL)
-#[cfg(all(feature = "ssr", feature = "postgres-db"))]
+/// Startup checks - run once at application start
+#[cfg(feature = "ssr")]
 pub struct StartupChecks {
     pool: Option<Arc<PgPool>>,
 }
 
-#[cfg(all(feature = "ssr", feature = "postgres-db"))]
+#[cfg(feature = "ssr")]
 impl StartupChecks {
     pub fn new(pool: Option<Arc<PgPool>>, _keyspace: Option<String>) -> Self {
         Self { pool }

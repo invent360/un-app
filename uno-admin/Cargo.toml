@@ -28,7 +28,6 @@ urlencoding = "2.1"
 chrono = { version = "0.4", default-features = false, features = ["std", "clock", "serde", "wasmbind"] }
 
 # Database dependencies (SSR only)
-scylla = { version = "0.15", optional = true }
 sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "chrono", "uuid"], optional = true }
 uuid = { version = "1.0", features = ["v4", "serde"], optional = true }
 async-trait = { version = "0.1", optional = true }
@@ -68,27 +67,8 @@ ember-fx-core = { path = "../uno-app/deps/ember-fx/crates/core", optional = true
 ember-fx-icons = { path = "../uno-app/deps/ember-fx/crates/icons", features = ["tabler-system", "tabler-arrows", "flags"], optional = true }
 
 [features]
-# Minimal feature for standalone database scripts (no UI dependencies)
-seeder = ["dep:scylla", "dep:tokio", "dep:dotenvy", "dep:uuid"]
 csr = ["leptos/csr", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-icons", "ember-fx-components/csr", "ember-fx-core/csr"]
 hydrate = ["leptos/hydrate", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-icons", "dep:futures-util", "ember-fx-components/hydrate", "ember-fx-core/hydrate"]
-
-# Use PostgreSQL backend instead of ScyllaDB
-#
-# When enabled:
-# - Uses `DATABASE_URL` environment variable for PostgreSQL connection
-# - Repository implementations switch to Pg* variants
-# - DbPool becomes Arc<PgPool> instead of Arc<Session>
-# - Migrations use uno-app's PostgreSQL migrations (set `PG_MIGRATIONS_DIR` to override)
-#
-# Environment variables:
-# - `DATABASE_URL` (required): PostgreSQL connection string
-# - `DATABASE_MAX_CONNECTIONS` (optional, default: 10): Max pool connections
-# - `DATABASE_ACQUIRE_TIMEOUT` (optional, default: 5): Connection acquire timeout in seconds
-# - `DATABASE_IDLE_TIMEOUT` (optional, default: 600): Idle connection timeout in seconds
-# - `RUN_MIGRATIONS` (optional, default: true): Set to "false" to skip migrations
-# - `PG_MIGRATIONS_DIR` (optional, default: "../uno-app/migrations"): Migrations directory
-postgres-db = []
 
 ssr = [
   "dep:actix-files",
@@ -97,7 +77,7 @@ ssr = [
   "dep:actix-multipart",
   "dep:futures-util",
   "dep:leptos_actix",
-  "dep:scylla",
+  # NOTE: Scylla is NOT included here - use legacy-scylla feature if needed
   "dep:sqlx",
   "dep:tokio",
   "dep:dotenvy",
@@ -132,11 +112,6 @@ required-features = ["ssr"]
 name = "restore-content"
 path = "scripts/restore_content.rs"
 required-features = ["ssr"]
-
-[[bin]]
-name = "seed-rewards"
-path = "scripts/seed_rewards.rs"
-required-features = ["seeder"]
 
 [package.metadata.leptos]
 # The binary target to use for the server

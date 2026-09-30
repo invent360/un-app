@@ -12,6 +12,7 @@ mod referral;
 pub mod audit;
 pub mod rbac;
 pub mod schema;  // Schema-driven CMS types
+pub mod onboarding;  // R3-13: Onboarding journey state machine
 
 pub use license::*;
 pub use error::*;
@@ -24,3 +25,4 @@ pub use content_review::*;
 pub use referral::*;
 pub use audit::*;
 pub use schema::*;
+pub use onboarding::*;

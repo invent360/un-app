@@ -210,6 +210,69 @@ impl RevenueSplit {
             ulo_micros: ulo_micros as i64,
             uno_micros: uno_micros as i64,
             referral_micros: referral_micros as i64,
+            reserve_micros: 0, // R3-07: Reserve is 0 when referral is present
+            ulo_bps: self.ulo_bps,
+            uno_bps: self.uno_bps,
+            referral_bps: self.referral_bps,
+            remainder_micros: remainder as i64,
+        })
+    }
+
+    /// R3-07: Allocate for a license without a referral.
+    ///
+    /// When there's no referrer, the referral portion goes to reserve,
+    /// NOT to UNO. This ensures the 50/40/10 split is preserved as terms,
+    /// with the unclaimed 10% held separately.
+    ///
+    /// # Arguments
+    ///
+    /// * `pool_micros` - The total pool amount in micros
+    ///
+    /// # Returns
+    ///
+    /// An `Allocation` with referral_micros=0 and reserve_micros=(10% share)
+    pub fn allocate_without_referral(&self, pool_micros: i64) -> Result<Allocation, RevenueSplitError> {
+        if pool_micros < 0 {
+            return Err(RevenueSplitError::InvalidPoolAmount(pool_micros));
+        }
+
+        let pool = pool_micros as u64;
+
+        // Calculate shares using integer arithmetic
+        let ulo_micros = pool
+            .checked_mul(self.ulo_bps as u64)
+            .ok_or(RevenueSplitError::ArithmeticOverflow)?
+            / TOTAL_BASIS_POINTS as u64;
+
+        let uno_calculated = pool
+            .checked_mul(self.uno_bps as u64)
+            .ok_or(RevenueSplitError::ArithmeticOverflow)?
+            / TOTAL_BASIS_POINTS as u64;
+
+        // R3-07: Referral share goes to reserve, not UNO
+        let reserve_micros = pool
+            .checked_mul(self.referral_bps as u64)
+            .ok_or(RevenueSplitError::ArithmeticOverflow)?
+            / TOTAL_BASIS_POINTS as u64;
+
+        // Calculate remainder and assign to UNO
+        let subtotal = ulo_micros + uno_calculated + reserve_micros;
+        let remainder = pool.saturating_sub(subtotal);
+        let uno_micros = uno_calculated + remainder;
+
+        // Verify reconciliation
+        debug_assert_eq!(
+            ulo_micros + uno_micros + reserve_micros,
+            pool,
+            "Revenue allocation must reconcile exactly"
+        );
+
+        Ok(Allocation {
+            pool_micros: pool as i64,
+            ulo_micros: ulo_micros as i64,
+            uno_micros: uno_micros as i64,
+            referral_micros: 0, // No referral
+            reserve_micros: reserve_micros as i64, // R3-07: Goes to reserve
             ulo_bps: self.ulo_bps,
             uno_bps: self.uno_bps,
             referral_bps: self.referral_bps,
@@ -247,7 +310,10 @@ impl RevenueSplit {
 ///
 /// All amounts are in micros (1 USD = 1,000,000 micros).
 /// The allocation is guaranteed to reconcile exactly:
-/// `ulo_micros + uno_micros + referral_micros == pool_micros`
+/// `ulo_micros + uno_micros + referral_micros + reserve_micros == pool_micros`
+///
+/// R3-07: When no referral is attributed, the referral share goes to reserve,
+/// not to UNO. Reserve funds are held separately.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Allocation {
     /// Original pool amount in micros.
@@ -258,6 +324,8 @@ pub struct Allocation {
     pub uno_micros: i64,
     /// Referral allocation in micros.
     pub referral_micros: i64,
+    /// R3-07: Reserve allocation in micros (no-referral case).
+    pub reserve_micros: i64,
     /// ULO basis points used.
     pub ulo_bps: u32,
     /// UNO basis points used.
@@ -270,8 +338,10 @@ pub struct Allocation {
 
 impl Allocation {
     /// Verify that the allocation reconciles exactly.
+    ///
+    /// R3-07: Includes reserve_micros in verification for no-referral cases.
     pub fn verify(&self) -> bool {
-        self.ulo_micros + self.uno_micros + self.referral_micros == self.pool_micros
+        self.ulo_micros + self.uno_micros + self.referral_micros + self.reserve_micros == self.pool_micros
     }
 
     /// Convert ULO allocation to dollars.
@@ -364,6 +434,21 @@ mod tests {
         assert_eq!(alloc.ulo_micros, 500_000);   // 50%
         assert_eq!(alloc.uno_micros, 400_000);   // 40%
         assert_eq!(alloc.referral_micros, 100_000); // 10%
+        assert_eq!(alloc.reserve_micros, 0);     // R3-07: No reserve with referral
+        assert_eq!(alloc.remainder_micros, 0);
+        assert!(alloc.verify());
+    }
+
+    #[test]
+    fn test_allocation_without_referral() {
+        // R3-07: When no referral, referral share goes to reserve, not UNO
+        let split = RevenueSplit::default();
+        let alloc = split.allocate_without_referral(1_000_000).unwrap();
+
+        assert_eq!(alloc.ulo_micros, 500_000);     // 50% - unchanged
+        assert_eq!(alloc.uno_micros, 400_000);     // 40% - unchanged, does NOT get referral share
+        assert_eq!(alloc.referral_micros, 0);       // No referral
+        assert_eq!(alloc.reserve_micros, 100_000); // R3-07: 10% goes to reserve
         assert_eq!(alloc.remainder_micros, 0);
         assert!(alloc.verify());
     }
@@ -399,6 +484,7 @@ mod tests {
         assert_eq!(alloc.ulo_micros, 500_000_000_000);
         assert_eq!(alloc.uno_micros, 400_000_000_000);
         assert_eq!(alloc.referral_micros, 100_000_000_000);
+        assert_eq!(alloc.reserve_micros, 0);
         assert!(alloc.verify());
     }
 
@@ -417,11 +503,14 @@ mod tests {
         assert_eq!(alloc.ulo_micros, 0);
         assert_eq!(alloc.uno_micros, 0);
         assert_eq!(alloc.referral_micros, 0);
+        assert_eq!(alloc.reserve_micros, 0);
         assert!(alloc.verify());
     }
 
     #[test]
-    fn test_without_referral() {
+    fn test_without_referral_legacy() {
+        // Legacy without_referral creates a 60/40/0 split (redistributes to UNO)
+        // This is kept for backwards compatibility but should NOT be used for new code
         let split = RevenueSplit::without_referral(6000).unwrap();
         assert_eq!(split.ulo_bps, 6000);
         assert_eq!(split.uno_bps, 4000);
@@ -432,6 +521,24 @@ mod tests {
         assert_eq!(alloc.ulo_micros, 600_000);
         assert_eq!(alloc.uno_micros, 400_000);
         assert_eq!(alloc.referral_micros, 0);
+        assert_eq!(alloc.reserve_micros, 0);
+    }
+
+    #[test]
+    fn test_r3_07_no_referral_goes_to_reserve() {
+        // R3-07: Use allocate_without_referral for 50/40/10 with no referral
+        // Referral share goes to RESERVE, not UNO
+        let split = RevenueSplit::default();
+        let alloc = split.allocate_without_referral(1_000_000).unwrap();
+
+        // ULO and UNO get their standard 50% and 40%
+        assert_eq!(alloc.ulo_micros, 500_000);
+        assert_eq!(alloc.uno_micros, 400_000);
+        // Referral is 0 (no referral)
+        assert_eq!(alloc.referral_micros, 0);
+        // Reserve gets the 10% that would have gone to referral
+        assert_eq!(alloc.reserve_micros, 100_000);
+        assert!(alloc.verify());
     }
 
     #[test]

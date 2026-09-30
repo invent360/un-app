@@ -1,12 +1,15 @@
 //! License lifecycle HTTP handlers
 //!
 //! Provides REST endpoints for license cancellation, release, reactivation, and exposure tracking.
+//!
+//! R4-02: All actor IDs are derived from authenticated JWT tokens, not headers.
 
 use actix_web::{web, HttpRequest, HttpResponse};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::server::app::ServiceFactory;
+use crate::server::extractors::auth::get_actor_id;
 use crate::server::services::{
     CancelLicenseInput, ReleaseLicenseInput, ReactivateLicenseInput,
 };
@@ -43,6 +46,7 @@ pub struct PendingExpiryQuery {
 
 /// POST /api/v1/admin/licenses/{id}/cancel
 /// Cancel a license
+/// R4-02: Actor ID derived from authenticated token
 pub async fn cancel_license(
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<String>,
@@ -54,8 +58,13 @@ pub async fn cancel_license(
         None => return service_unavailable(),
     };
 
+    // R4-02: Get actor from authenticated token, not header
+    let canceller_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
+
     let license_id = path.into_inner();
-    let canceller_id = get_admin_id(&req);
 
     let input = CancelLicenseInput {
         license_id,
@@ -74,6 +83,7 @@ pub async fn cancel_license(
 
 /// POST /api/v1/admin/licenses/{id}/release
 /// Release a license (user-initiated)
+/// R4-02: Actor ID derived from authenticated token
 pub async fn release_license(
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<String>,
@@ -85,8 +95,13 @@ pub async fn release_license(
         None => return service_unavailable(),
     };
 
+    // R4-02: Get actor from authenticated token, not header
+    let releaser_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
+
     let license_id = path.into_inner();
-    let releaser_id = get_admin_id(&req);
 
     let input = ReleaseLicenseInput {
         license_id,
@@ -105,6 +120,7 @@ pub async fn release_license(
 
 /// POST /api/v1/admin/licenses/{id}/reactivate
 /// Reactivate an expired or cancelled license
+/// R4-02: Actor ID derived from authenticated token
 pub async fn reactivate_license(
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<String>,
@@ -116,8 +132,13 @@ pub async fn reactivate_license(
         None => return service_unavailable(),
     };
 
+    // R4-02: Get actor from authenticated token, not header
+    let reactivator_id = match get_actor_id(&req) {
+        Ok(id) => id,
+        Err(e) => return error_response(e),
+    };
+
     let license_id = path.into_inner();
-    let reactivator_id = get_admin_id(&req);
 
     let input = ReactivateLicenseInput {
         license_id,
@@ -229,6 +250,7 @@ fn error_response(e: crate::types::AppError) -> HttpResponse {
         crate::types::AppError::ValidationError(_) => actix_web::http::StatusCode::BAD_REQUEST,
         crate::types::AppError::Unauthorized(_) => actix_web::http::StatusCode::UNAUTHORIZED,
         crate::types::AppError::Forbidden(_) => actix_web::http::StatusCode::FORBIDDEN,
+        crate::types::AppError::ServiceUnavailable(_) => actix_web::http::StatusCode::SERVICE_UNAVAILABLE,
         _ => actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
     };
 
@@ -236,14 +258,4 @@ fn error_response(e: crate::types::AppError) -> HttpResponse {
         "error": e.to_string(),
         "code": e.error_response().code
     }))
-}
-
-fn get_admin_id(req: &HttpRequest) -> String {
-    // Extract admin ID from request extensions or headers
-    // In production, this would come from the authenticated admin context
-    req.headers()
-        .get("X-Admin-Id")
-        .and_then(|v| v.to_str().ok())
-        .map(|s| s.to_string())
-        .unwrap_or_else(|| "system".to_string())
 }

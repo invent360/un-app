@@ -212,14 +212,23 @@ impl WorkerRunner {
             }
         };
 
-        // Complete or fail the job
+        // R3-10: Complete or fail the job with fencing verification
         if result.success {
-            self.job_service.complete_job(&job.id, result).await?;
-            self.jobs_processed += 1;
-            tracing::info!(job_id = %job.id, "Job completed successfully");
+            let completed = self.job_service.complete_job_fenced(&job, result).await?;
+            if completed {
+                self.jobs_processed += 1;
+                tracing::info!(job_id = %job.id, "Job completed successfully");
+            } else {
+                // Lease was lost - another worker may have taken over
+                tracing::warn!(
+                    job_id = %job.id,
+                    worker_id = %self.worker_id,
+                    "Job completion rejected - lease expired or job reassigned"
+                );
+            }
         } else {
             let error = result.error.as_deref().unwrap_or("Unknown error");
-            let will_retry = self.job_service.fail_job(&job.id, error).await?;
+            let will_retry = self.job_service.fail_job_fenced(&job, error).await?;
             self.jobs_failed += 1;
 
             if will_retry {
@@ -363,6 +372,89 @@ pub async fn run_event_cleanup(
             Ok(_) => {}
             Err(e) => {
                 tracing::error!(error = %e, "Failed to cleanup inbox events");
+            }
+        }
+    }
+}
+
+/// R3-10: Background task for recovering stale publishing events
+pub async fn run_stale_event_recovery(
+    job_service: JobService,
+    check_interval: Duration,
+    stale_threshold_secs: i32,
+    shutdown: Arc<AtomicBool>,
+) {
+    let mut timer = interval(check_interval);
+
+    loop {
+        timer.tick().await;
+
+        if shutdown.load(Ordering::Relaxed) {
+            break;
+        }
+
+        match job_service.recover_stale_publishing_events(stale_threshold_secs).await {
+            Ok(count) if count > 0 => {
+                tracing::info!(count = count, "Recovered stale publishing events");
+            }
+            Ok(_) => {}
+            Err(e) => {
+                tracing::error!(error = %e, "Failed to recover stale events");
+            }
+        }
+    }
+}
+
+/// R3-17: Background task for data retention cleanup
+/// Enforces retention policies from the retention_policies table
+pub async fn run_retention_cleanup(
+    retention_service: super::DynRetentionService,
+    cleanup_interval: Duration,
+    shutdown: Arc<AtomicBool>,
+) {
+    let mut timer = interval(cleanup_interval);
+
+    loop {
+        timer.tick().await;
+
+        if shutdown.load(Ordering::Relaxed) {
+            break;
+        }
+
+        // Check if any policies are overdue (haven't been cleaned in 24+ hours)
+        match retention_service.has_overdue_policies(24).await {
+            Ok(true) => {
+                tracing::info!("Starting retention cleanup (overdue policies detected)");
+            }
+            Ok(false) => {
+                // Skip this cycle if no policies are overdue
+                continue;
+            }
+            Err(e) => {
+                tracing::error!(error = %e, "Failed to check overdue policies");
+                continue;
+            }
+        }
+
+        match retention_service.run_full_cleanup().await {
+            Ok(summary) => {
+                tracing::info!(
+                    policies_processed = summary.policies_processed,
+                    rows_deleted = summary.total_rows_deleted,
+                    rows_archived = summary.total_rows_archived,
+                    duration_ms = summary.total_duration_ms,
+                    errors = summary.errors.len(),
+                    "Retention cleanup completed"
+                );
+
+                if !summary.errors.is_empty() {
+                    for error in &summary.errors {
+                        tracing::warn!(error = %error, "Retention cleanup partial failure");
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::error!(error = %e, "Retention cleanup failed");
             }
         }
     }

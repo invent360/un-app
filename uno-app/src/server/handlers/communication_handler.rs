@@ -3,10 +3,11 @@
 //! Provides endpoints for managing user communication preferences,
 //! message templates, suppressions, and scheduled messages.
 
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::server::extractors::auth::get_actor_id;
 use crate::server::repositories::{
     DynCommunicationRepository, UpdatePreferencesInput, AddSuppressionInput,
     CreateTemplateInput, UpdateTemplateInput, ScheduleMessageInput, RegisterDeviceInput,
@@ -19,8 +20,11 @@ use crate::types::AppError;
 // Request/Response Types
 // ============================================================================
 
+// R4-02: GetPreferencesQuery removed for user endpoints - user_id now derived from authenticated token
+
+// R4-02: Admin-only query for targeting specific users (protected by admin middleware)
 #[derive(Debug, Deserialize)]
-pub struct GetPreferencesQuery {
+pub struct AdminUserQuery {
     pub user_id: String,
 }
 
@@ -99,6 +103,8 @@ pub struct ApproveTemplateRequest {
     pub approved_by: String,
 }
 
+// R4-02: Admin-only endpoint - user_id in body is for targeting recipient,
+// not for access control. Endpoint is protected by admin auth middleware.
 #[derive(Debug, Deserialize)]
 pub struct ScheduleMessageRequest {
     pub user_id: String,
@@ -111,6 +117,8 @@ pub struct ScheduleMessageRequest {
     pub variables: Option<serde_json::Value>,
 }
 
+// R4-02: Admin-only endpoint - user_id in body is for targeting recipient,
+// not for access control. Endpoint is protected by admin auth middleware.
 #[derive(Debug, Deserialize)]
 pub struct SendImmediateRequest {
     pub user_id: String,
@@ -121,9 +129,9 @@ pub struct SendImmediateRequest {
     pub variables: Option<serde_json::Value>,
 }
 
+// R4-02: user_id removed - derived from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct RegisterDeviceRequest {
-    pub user_id: String,
     pub device_token: String,
     pub platform: String,
     pub device_name: Option<String>,
@@ -256,10 +264,12 @@ pub struct CanReceiveResponse {
 /// GET /api/v1/communication/preferences
 /// Get communication preferences for current user
 pub async fn get_preferences(
+    req: HttpRequest,
     service: web::Data<DynCommunicationService>,
-    query: web::Query<GetPreferencesQuery>,
 ) -> Result<impl Responder, AppError> {
-    let prefs = service.get_preferences(&query.user_id).await?;
+    // R4-02: User ID derived from authenticated token, not query parameter
+    let user_id = get_actor_id(&req)?;
+    let prefs = service.get_preferences(&user_id).await?;
 
     Ok(HttpResponse::Ok().json(PreferencesResponse {
         id: prefs.id,
@@ -285,10 +295,13 @@ pub async fn get_preferences(
 /// PUT /api/v1/communication/preferences
 /// Update communication preferences
 pub async fn update_preferences(
+    req: HttpRequest,
     service: web::Data<DynCommunicationService>,
-    query: web::Query<GetPreferencesQuery>,
     body: web::Json<UpdatePreferencesRequest>,
 ) -> Result<impl Responder, AppError> {
+    // R4-02: User ID derived from authenticated token, not query parameter
+    let user_id = get_actor_id(&req)?;
+
     // Parse quiet hours if provided
     let quiet_hours_start = body.quiet_hours_start.as_ref().and_then(|s| {
         chrono::NaiveTime::parse_from_str(s, "%H:%M:%S")
@@ -303,7 +316,7 @@ pub async fn update_preferences(
 
     let prefs = service
         .update_preferences(
-            &query.user_id,
+            &user_id,
             UpdatePreferencesInput {
                 email_enabled: body.email_enabled,
                 push_enabled: body.push_enabled,
@@ -349,12 +362,14 @@ pub async fn update_preferences(
 /// POST /api/v1/communication/opt-out
 /// Global opt-out
 pub async fn opt_out(
+    req: HttpRequest,
     service: web::Data<DynCommunicationService>,
-    query: web::Query<GetPreferencesQuery>,
     body: web::Json<OptOutRequest>,
 ) -> Result<impl Responder, AppError> {
+    // R4-02: User ID derived from authenticated token, not query parameter
+    let user_id = get_actor_id(&req)?;
     service
-        .opt_out(&query.user_id, body.reason.as_deref())
+        .opt_out(&user_id, body.reason.as_deref())
         .await?;
     Ok(HttpResponse::NoContent().finish())
 }
@@ -362,12 +377,16 @@ pub async fn opt_out(
 /// POST /api/v1/communication/devices
 /// Register a device for push notifications
 pub async fn register_device(
+    req: HttpRequest,
     service: web::Data<DynCommunicationService>,
     body: web::Json<RegisterDeviceRequest>,
 ) -> Result<impl Responder, AppError> {
+    // R4-02: User ID derived from authenticated token, not request body
+    let user_id = get_actor_id(&req)?;
+
     let device = service
         .register_device(RegisterDeviceInput {
-            user_id: body.user_id.clone(),
+            user_id: user_id.clone(),
             token: body.device_token.clone(),
             platform: body.platform.clone(),
             platform_version: None,
@@ -830,9 +849,10 @@ pub async fn process_scheduled(
 
 /// GET /api/v1/admin/communication/can-receive
 /// Check if a user can receive a message
+/// R4-02: Admin-only endpoint - user_id in query is for targeting, protected by admin middleware
 pub async fn can_receive(
     service: web::Data<DynCommunicationService>,
-    query: web::Query<GetPreferencesQuery>,
+    query: web::Query<AdminUserQuery>,
     channel_query: web::Query<CheckSuppressionQuery>,
 ) -> Result<impl Responder, AppError> {
     let channel = parse_channel(&channel_query.channel).ok_or_else(|| {

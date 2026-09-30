@@ -483,6 +483,42 @@ async fn check_media_storage() -> DependencyStatus {
         );
     }
 
+    // R3-11: Check marker file in production mode
+    let is_production = std::env::var("PRODUCTION")
+        .or_else(|_| std::env::var("APP_ENV"))
+        .map(|v| v == "production" || v == "true" || v == "1")
+        .unwrap_or(false);
+
+    if is_production {
+        let marker_path = path.join(".uno-volume");
+        if !marker_path.exists() {
+            return DependencyStatus::unhealthy(
+                "media_storage",
+                format!("Volume marker file missing: {}/.uno-volume", storage_path),
+            );
+        }
+
+        // Verify marker content if FILE_STORAGE_VOLUME_ID is set
+        if let Ok(expected_id) = std::env::var("FILE_STORAGE_VOLUME_ID") {
+            match std::fs::read_to_string(&marker_path) {
+                Ok(content) => {
+                    if content.trim() != expected_id.trim() {
+                        return DependencyStatus::unhealthy(
+                            "media_storage",
+                            format!("Volume identity mismatch: expected '{}', got '{}'", expected_id.trim(), content.trim()),
+                        );
+                    }
+                }
+                Err(e) => {
+                    return DependencyStatus::unhealthy(
+                        "media_storage",
+                        format!("Failed to read volume marker: {}", e),
+                    );
+                }
+            }
+        }
+    }
+
     // Try to verify write access by checking temp file creation
     let test_file = path.join(".health_check_test");
     match std::fs::write(&test_file, b"health_check") {

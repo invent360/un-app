@@ -90,22 +90,7 @@ This document provides a comprehensive inventory of all environment variables, c
 
 ## 2. uno-admin Configuration
 
-### 2.1 ScyllaDB Configuration
-
-| Variable | Source | Required | Purpose | Default | Security Notes |
-|----------|--------|----------|---------|---------|----------------|
-| `SCYLLA_DB_HOST` | env | No | ScyllaDB host | `127.0.0.1` | - |
-| `SCYLLA_DB_PORT` | env | No | ScyllaDB port | `9042` | - |
-| `SCYLLA_DB_KEYSPACE` | env | No | ScyllaDB keyspace | `unity_dashboard` | Hyphens converted to underscores. |
-| `SCYLLA_DB_USERNAME` | env | No | ScyllaDB username | None | Only if authentication enabled. |
-| `SCYLLA_DB_PASSWORD` | env | No | ScyllaDB password | None | SENSITIVE. Only if authentication enabled. |
-| `SCYLLA_DB_REPLICATION_FACTOR` | env | No | Replication factor | `1` | Increase for production. |
-| `SCYLLA_KEYSPACE` | env | No | Keyspace (health check) | None | Alias used in health checks. |
-| `SCYLLA_URI` | env | No | ScyllaDB URI (health check) | None | Used in startup checks. |
-
-**Configuration Struct**: `uno-admin/src/db/connection.rs` - `DatabaseConfig`
-
-### 2.2 PostgreSQL Configuration (postgres-db feature)
+### 2.1 PostgreSQL Configuration
 
 | Variable | Source | Required | Purpose | Default | Security Notes |
 |----------|--------|----------|---------|---------|----------------|
@@ -115,7 +100,7 @@ This document provides a comprehensive inventory of all environment variables, c
 | `DATABASE_IDLE_TIMEOUT` | env | No | Idle connection timeout (secs) | `600` | - |
 | `PG_MIGRATIONS_DIR` | env | No | PostgreSQL migrations directory | `../uno-app/migrations` | Shared with uno-app. |
 
-**Configuration Struct**: `uno-admin/src/db/connection.rs` - `PostgresConfig`
+**Configuration Struct**: `uno-admin/src/db/connection.rs` - `DatabaseConfig`
 
 ### 2.3 Database Operations
 
@@ -124,7 +109,7 @@ This document provides a comprehensive inventory of all environment variables, c
 | `RUN_MIGRATIONS` | env | No | Run migrations on startup | `true` | Set to "false" to skip. |
 | `DESTROY_TABLES` | env | No | Drop all tables on startup | `false` | **DANGEROUS**. Development only. |
 | `SKIP_SEED` | env | No | Skip database seeding | `false` | Set to "true" to skip. |
-| `MIGRATIONS_DIR` | env | No | ScyllaDB migrations directory | `./migrations` | - |
+| `MIGRATIONS_DIR` | env | No | PostgreSQL migrations directory | `./migrations` | - |
 
 ### 2.4 Data Seeding
 
@@ -256,7 +241,6 @@ This document provides a comprehensive inventory of all environment variables, c
 | `csr` | Client-side rendering | No |
 | `hydrate` | SSR + hydration | No |
 | `seeder` | Standalone database seeding | No |
-| `postgres-db` | Use PostgreSQL instead of ScyllaDB | No |
 
 ---
 
@@ -278,8 +262,7 @@ This document provides a comprehensive inventory of all environment variables, c
 
 | Struct | File | Purpose |
 |--------|------|---------|
-| `DatabaseConfig` | `src/db/connection.rs` | ScyllaDB connection settings |
-| `PostgresConfig` | `src/db/connection.rs` | PostgreSQL connection settings |
+| `DatabaseConfig` | `src/db/connection.rs` | PostgreSQL connection settings |
 | `UnityApiConfig` | `src/api/config.rs` | Unity API client configuration |
 
 ### 6.3 uno-api
@@ -361,11 +344,9 @@ UNO_API_URL=http://localhost:3000
 UNO_CLIENT_ID=uno-admin
 UNO_SECRET_KEY=your-secure-secret-key-here-change-in-production
 
-# ScyllaDB Configuration
-SCYLLA_DB_HOST=127.0.0.1
-SCYLLA_DB_PORT=9042
-SCYLLA_DB_KEYSPACE=unity_dashboard
-SCYLLA_DB_REPLICATION_FACTOR=1
+# PostgreSQL Configuration
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/uno_admin
+DATABASE_MAX_CONNECTIONS=10
 
 # Set to true to drop all tables on startup (use with caution!)
 DESTROY_TABLES=false
@@ -387,9 +368,6 @@ GCS_SERVICE_ACCOUNT_KEY=/path/to/service-account.json
 
 **Database (PostgreSQL)**
 - `DATABASE_URL`, `DATABASE_MAX_CONNECTIONS`, `DATABASE_ACQUIRE_TIMEOUT`, `DATABASE_IDLE_TIMEOUT`
-
-**Database (ScyllaDB)**
-- `SCYLLA_DB_HOST`, `SCYLLA_DB_PORT`, `SCYLLA_DB_KEYSPACE`, `SCYLLA_DB_USERNAME`, `SCYLLA_DB_PASSWORD`, `SCYLLA_DB_REPLICATION_FACTOR`
 
 **Authentication**
 - `ADMIN_API_KEY`, `ADMIN_CLIENT_ID`, `ADMIN_SECRET_KEY`, `CSRF_SECRET_KEY`, `SESSION_SECRET`, `PREVIEW_SECRET_KEY`

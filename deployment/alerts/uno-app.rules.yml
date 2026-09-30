@@ -1,0 +1,244 @@
+# UNO-APP Prometheus Alert Rules
+# Phase 9: Release Validation monitoring infrastructure
+#
+# These alerts cover critical operational metrics for production monitoring.
+# Configure alert manager to route these appropriately (PagerDuty, Slack, etc.)
+
+groups:
+  - name: uno_claims
+    rules:
+      # Allocation Conflict Spike
+      # Triggers when concurrent claim conflicts exceed threshold
+      - alert: AllocationConflictSpike
+        expr: rate(uno_claims_conflicts_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High rate of allocation conflicts detected"
+          description: "Allocation conflicts are occurring at {{ $value | printf \"%.2f\" }}/s over the last 5 minutes. This may indicate excessive concurrent claims."
+          runbook_url: "https://runbooks.uno.app/allocation-conflicts"
+
+      # Claims Failing
+      # Triggers when claim failures exceed successful claims
+      - alert: ClaimFailureRateHigh
+        expr: |
+          sum(rate(uno_claims_failed_total[5m])) /
+          (sum(rate(uno_claims_success_total[5m])) + sum(rate(uno_claims_failed_total[5m])) + 0.001) > 0.5
+        for: 10m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "High claim failure rate"
+          description: "More than 50% of claims are failing. Check license availability and eligibility rules."
+
+  - name: uno_sync
+    rules:
+      # Sync Stale
+      # Triggers when any sync checkpoint is older than 1 hour
+      - alert: SyncStale
+        expr: uno_sync_staleness_seconds > 3600
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Sync checkpoint is stale"
+          description: "Sync '{{ $labels.sync_id }}' has not updated in {{ $value | humanizeDuration }}."
+
+      # Sync Critically Stale
+      - alert: SyncCriticallyStale
+        expr: uno_sync_staleness_seconds > 14400  # 4 hours
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Sync checkpoint critically stale"
+          description: "Sync '{{ $labels.sync_id }}' has not updated in over 4 hours. Data may be significantly out of date."
+
+  - name: uno_queue
+    rules:
+      # Queue Backlog
+      # Triggers when pending jobs exceed threshold
+      - alert: QueueBacklog
+        expr: uno_queue_depth{status="pending"} > 1000
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Job queue backlog growing"
+          description: "{{ $value }} pending jobs in queue. Workers may be overwhelmed or failing."
+
+      # Queue Critical Backlog
+      - alert: QueueCriticalBacklog
+        expr: uno_queue_depth{status="pending"} > 5000
+        for: 10m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Critical job queue backlog"
+          description: "{{ $value }} pending jobs. Immediate investigation required."
+
+      # Dead Letter Accumulation
+      - alert: DeadLetterAccumulation
+        expr: increase(uno_queue_dead_letter_total[1h]) > 50
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Jobs moving to dead letter queue"
+          description: "{{ $value }} jobs have failed and moved to dead letter queue in the last hour."
+
+      # Old Jobs in Queue
+      - alert: QueueJobsStale
+        expr: uno_queue_oldest_age_seconds > 3600  # 1 hour
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Old jobs stuck in queue"
+          description: "Oldest job in queue is {{ $value | humanizeDuration }} old."
+
+  - name: uno_webhooks
+    rules:
+      # Webhook Delivery Errors
+      - alert: WebhookDeliveryErrors
+        expr: rate(uno_webhook_errors_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: integrations
+        annotations:
+          summary: "Webhook delivery errors"
+          description: "Webhook endpoint '{{ $labels.endpoint }}' is experiencing delivery errors."
+
+      # Webhook Latency High
+      - alert: WebhookLatencyHigh
+        expr: histogram_quantile(0.95, rate(uno_webhook_latency_seconds_bucket[5m])) > 5
+        for: 10m
+        labels:
+          severity: warning
+          team: integrations
+        annotations:
+          summary: "High webhook delivery latency"
+          description: "95th percentile webhook latency is {{ $value | printf \"%.1f\" }}s."
+
+  - name: uno_system
+    rules:
+      # Disk Usage Critical
+      - alert: DiskUsageCritical
+        expr: uno_disk_usage_percent > 95
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Disk usage critical"
+          description: "File storage disk usage is at {{ $value | printf \"%.1f\" }}%."
+
+      # Disk Usage Warning
+      - alert: DiskUsageWarning
+        expr: uno_disk_usage_percent > 80
+        for: 30m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Disk usage high"
+          description: "File storage disk usage is at {{ $value | printf \"%.1f\" }}%."
+
+      # Low Inodes
+      - alert: DiskInodesLow
+        expr: uno_disk_inodes_free < 10000
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Low free inodes"
+          description: "Only {{ $value }} free inodes remaining on file storage."
+
+      # Database Pool Exhaustion
+      - alert: DatabasePoolExhaustion
+        expr: uno_db_pool_connections{state="available"} < 2
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Database connection pool low"
+          description: "Only {{ $value }} database connections available."
+
+  - name: uno_http
+    rules:
+      # High Error Rate
+      - alert: HTTPErrorRateHigh
+        expr: |
+          sum(rate(uno_http_requests_total{status=~"5.."}[5m])) /
+          sum(rate(uno_http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High HTTP error rate"
+          description: "{{ $value | humanizePercentage }} of requests are returning 5xx errors."
+
+      # Critical Error Rate
+      - alert: HTTPErrorRateCritical
+        expr: |
+          sum(rate(uno_http_requests_total{status=~"5.."}[5m])) /
+          sum(rate(uno_http_requests_total[5m])) > 0.2
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Critical HTTP error rate"
+          description: "{{ $value | humanizePercentage }} of requests are returning 5xx errors. Immediate investigation required."
+
+      # High Latency
+      - alert: HTTPLatencyHigh
+        expr: histogram_quantile(0.95, rate(uno_http_request_duration_seconds_bucket[5m])) > 2
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High HTTP latency"
+          description: "95th percentile request latency is {{ $value | printf \"%.2f\" }}s."
+
+  - name: uno_finance
+    rules:
+      # Unknown Funding Sources
+      - alert: UnknownFundingSources
+        expr: uno_funding_unknown_count > 10
+        for: 1h
+        labels:
+          severity: warning
+          team: finance
+        annotations:
+          summary: "Allocations with unknown funding"
+          description: "{{ $value }} allocations have unknown funding sources."
+
+  - name: uno_pilot
+    rules:
+      # Pilot Dropout Rate High
+      - alert: PilotDropoutRateHigh
+        expr: |
+          sum(rate(uno_pilot_milestones_total{milestone="dropped"}[24h])) /
+          (sum(rate(uno_pilot_milestones_total{milestone="license_claimed"}[24h])) + 0.001) > 0.3
+        for: 4h
+        labels:
+          severity: warning
+          team: product
+        annotations:
+          summary: "High pilot dropout rate"
+          description: "Pilot dropout rate is {{ $value | humanizePercentage }} over the last 24 hours."

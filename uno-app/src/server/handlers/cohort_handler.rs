@@ -5,11 +5,12 @@
 //! - Cohort analytics
 //! - Notification management
 
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use chrono::{NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::server::extractors::auth::get_actor_id;
 use crate::server::repositories::{
     DynCohortRepository, CreateCohortInput, RecordActivityInput,
     ScheduleNotificationInput,
@@ -20,9 +21,9 @@ use crate::types::AppError;
 // REQUEST/RESPONSE TYPES
 // ============================================
 
+// R4-02: Removed user_id from request body - derived from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct CreateCohortRequest {
-    pub user_id: String,
     pub license_id: String,
     pub cohort_date: Option<NaiveDate>,
 }
@@ -71,13 +72,17 @@ pub struct CohortProgressResponse {
 /// POST /api/v1/cohort
 /// Create cohort entry for a participant (called on license claim)
 pub async fn create_cohort(
+    req: HttpRequest,
     repo: web::Data<DynCohortRepository>,
     body: web::Json<CreateCohortRequest>,
 ) -> Result<HttpResponse, AppError> {
+    // R4-02: User ID derived from authenticated token, not request body
+    let user_id = get_actor_id(&req)?;
+
     let cohort_date = body.cohort_date.unwrap_or_else(|| Utc::now().date_naive());
 
     let input = CreateCohortInput {
-        user_id: body.user_id.clone(),
+        user_id,
         license_id: body.license_id.clone(),
         cohort_date,
     };
@@ -98,25 +103,30 @@ pub async fn get_cohort(
     Ok(HttpResponse::Ok().json(cohort))
 }
 
-/// GET /api/v1/cohort/user/{user_id}/license/{license_id}
-/// Get cohort by user and license
+/// GET /api/v1/cohort/license/{license_id}
+/// Get cohort by authenticated user and license
 pub async fn get_cohort_by_user_license(
+    req: HttpRequest,
     repo: web::Data<DynCohortRepository>,
-    path: web::Path<(String, String)>,
+    path: web::Path<String>,
 ) -> Result<HttpResponse, AppError> {
-    let (user_id, license_id) = path.into_inner();
+    // R4-02: User ID derived from authenticated token, not path parameter
+    let user_id = get_actor_id(&req)?;
+    let license_id = path.into_inner();
+
     let cohort = repo.get_cohort_by_user_license(&user_id, &license_id).await?
         .ok_or_else(|| AppError::NotFound("Cohort not found".to_string()))?;
     Ok(HttpResponse::Ok().json(cohort))
 }
 
-/// GET /api/v1/cohort/user/{user_id}
-/// Get all cohorts for a user
+/// GET /api/v1/cohort/me
+/// Get all cohorts for authenticated user
 pub async fn get_user_cohorts(
+    req: HttpRequest,
     repo: web::Data<DynCohortRepository>,
-    path: web::Path<String>,
 ) -> Result<HttpResponse, AppError> {
-    let user_id = path.into_inner();
+    // R4-02: User ID derived from authenticated token, not path parameter
+    let user_id = get_actor_id(&req)?;
     let cohorts = repo.get_user_cohorts(&user_id).await?;
     Ok(HttpResponse::Ok().json(cohorts))
 }
@@ -391,13 +401,14 @@ pub async fn skip_notification(
 // ============================================
 
 /// Configure public cohort routes
+/// R4-02: Routes updated to use authenticated user from token instead of path params
 pub fn configure_public_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/cohort")
             .route("", web::post().to(create_cohort))
             .route("/{id}", web::get().to(get_cohort))
-            .route("/user/{user_id}", web::get().to(get_user_cohorts))
-            .route("/user/{user_id}/license/{license_id}", web::get().to(get_cohort_by_user_license))
+            .route("/me", web::get().to(get_user_cohorts))
+            .route("/license/{license_id}", web::get().to(get_cohort_by_user_license))
             .route("/{id}/progress", web::get().to(get_cohort_progress))
             .route("/{id}/activity", web::post().to(record_activity))
             .route("/{id}/activities", web::get().to(get_cohort_activities))

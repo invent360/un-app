@@ -6,7 +6,7 @@
 use actix_web::{HttpResponse, web};
 use chrono::{DateTime, Utc};
 
-use uno_api::auth::{verify_request, SignedRequest};
+use uno_api::auth::{verify_request_with_replay_protection_async, SignedRequest};
 use uno_api::models::{PaginationParams, CsvImportRequest, RevokeRequest, PublishLicensesRequest};
 use uno_api::models::marketplace::{
     GetClaimedLicensesRequest, ClaimedLicenseDto, ClaimedLicensesResponse,
@@ -36,8 +36,13 @@ pub async fn publish_licenses(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"
@@ -73,8 +78,13 @@ pub async fn import_csv(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"
@@ -110,8 +120,13 @@ pub async fn search_licenses(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"
@@ -148,8 +163,13 @@ pub async fn revoke_licenses(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"
@@ -184,8 +204,13 @@ pub async fn get_summary(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"
@@ -228,8 +253,13 @@ pub async fn get_claimed_licenses(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"
@@ -245,6 +275,18 @@ pub async fn get_claimed_licenses(
 
     match factory.claim_repository.get_claimed_since(since, limit).await {
         Ok(claimed) => {
+            // R3-06: Cursor-based pagination with compound key (timestamp:id)
+            let has_more = claimed.len() as i32 >= limit;
+            let next_cursor = if has_more {
+                claimed.last().and_then(|c| {
+                    c.claimed_at.map(|dt| {
+                        format!("{}:{}", dt.timestamp_millis(), c.license_id)
+                    })
+                })
+            } else {
+                None
+            };
+
             let licenses: Vec<ClaimedLicenseDto> = claimed
                 .into_iter()
                 .map(|c| ClaimedLicenseDto {
@@ -262,6 +304,8 @@ pub async fn get_claimed_licenses(
             HttpResponse::Ok().json(ClaimedLicensesResponse {
                 licenses,
                 total,
+                next_cursor,
+                has_more,
             })
         }
         Err(e) => {
@@ -290,8 +334,13 @@ pub async fn get_referrals(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"
@@ -346,8 +395,13 @@ pub async fn sync_referrals(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"
@@ -421,8 +475,13 @@ pub async fn get_visitor_stats(
         }
     };
 
-    // Verify HMAC signature
-    if let Err(e) = verify_request(&body, &factory.client_registry, MAX_REQUEST_AGE_SECS) {
+    // Verify HMAC signature with replay protection
+    if let Err(e) = verify_request_with_replay_protection_async(
+        &body,
+        &factory.client_registry,
+        factory.nonce_repository.as_ref(),
+        MAX_REQUEST_AGE_SECS,
+    ).await {
         return HttpResponse::Unauthorized().json(serde_json::json!({
             "error": e.to_string(),
             "code": "UNAUTHORIZED"

@@ -33,6 +33,12 @@ pub struct AllocationRequest {
     /// External reference (e.g., upstream transaction ID).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub external_ref: Option<String>,
+    /// R3-08: Provider identifier for deduplication (e.g., "unetwork", "marketplace")
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provider_id: Option<String>,
+    /// R3-08: Unique event ID from provider for duplicate prevention
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reward_event_id: Option<String>,
 }
 
 fn default_currency() -> String {
@@ -54,6 +60,9 @@ pub struct AllocationEntry {
     pub ulo_micros: i64,
     pub uno_micros: i64,
     pub referral_micros: i64,
+    /// R3-07: Reserve allocation for no-referral cases
+    #[serde(default)]
+    pub reserve_micros: i64,
     pub ulo_bps: u32,
     pub uno_bps: u32,
     pub referral_bps: u32,
@@ -62,6 +71,15 @@ pub struct AllocationEntry {
     pub period_end: DateTime<Utc>,
     pub source: String,
     pub external_ref: Option<String>,
+    /// R3-08: Provider identifier for deduplication
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provider_id: Option<String>,
+    /// R3-08: Unique event ID from provider
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reward_event_id: Option<String>,
+    /// R3-07: Agent receiving referral share (if any)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub referral_agent_id: Option<Uuid>,
     pub allocated_at: DateTime<Utc>,
 }
 
@@ -77,6 +95,7 @@ impl AllocationEntry {
             ulo_micros: allocation.ulo_micros,
             uno_micros: allocation.uno_micros,
             referral_micros: allocation.referral_micros,
+            reserve_micros: allocation.reserve_micros,
             ulo_bps: allocation.ulo_bps,
             uno_bps: allocation.uno_bps,
             referral_bps: allocation.referral_bps,
@@ -85,6 +104,9 @@ impl AllocationEntry {
             period_end: request.period_end,
             source: request.source.clone(),
             external_ref: request.external_ref.clone(),
+            provider_id: request.provider_id.clone(),
+            reward_event_id: request.reward_event_id.clone(),
+            referral_agent_id: None, // Set later when referral context is known
             allocated_at: Utc::now(),
         }
     }
@@ -270,6 +292,8 @@ mod tests {
             period_end: Utc::now(),
             source: "test".to_string(),
             external_ref: None,
+            provider_id: None,
+            reward_event_id: None,
         };
 
         let entry = service.create_entry(&request).unwrap();
@@ -279,6 +303,7 @@ mod tests {
         assert_eq!(entry.ulo_micros, 500_000);
         assert_eq!(entry.uno_micros, 400_000);
         assert_eq!(entry.referral_micros, 100_000);
+        assert_eq!(entry.reserve_micros, 0); // No reserve in standard allocation
     }
 
     #[test]
