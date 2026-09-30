@@ -116,6 +116,7 @@ impl StorageError {
     }
 }
 
+#[cfg(feature = "gcs")]
 impl From<reqwest::Error> for StorageError {
     fn from(err: reqwest::Error) -> Self {
         if err.is_timeout() {

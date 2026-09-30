@@ -1,9 +1,10 @@
 //! V4 Signed URL generation for GCS
 
-use rsa::pkcs1v15::SigningKey;
-use rsa::pkcs8::DecodePrivateKey;
-use rsa::signature::{SignatureEncoding, Signer};
-use rsa::RsaPrivateKey;
+use base64::{engine::general_purpose::STANDARD, Engine};
+use ring::{
+    rand::SystemRandom,
+    signature::{RsaKeyPair, RSA_PKCS1_SHA256},
+};
 use sha2::{Digest, Sha256};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -79,12 +80,33 @@ pub fn generate_signed_url(
     );
 
     // Parse private key and sign
-    let private_key = RsaPrivateKey::from_pkcs8_pem(&service_account.private_key)
-        .map_err(|e| StorageError::ConfigError(format!("Invalid private key: {}", e)))?;
-
-    let signing_key: SigningKey<Sha256> = SigningKey::new(private_key);
-    let signature = signing_key.sign(string_to_sign.as_bytes());
-    let signature_hex = hex::encode(signature.to_bytes());
+    let pem = service_account.private_key.trim();
+    let encoded = pem
+        .strip_prefix("-----BEGIN PRIVATE KEY-----")
+        .and_then(|value| value.strip_suffix("-----END PRIVATE KEY-----"))
+        .ok_or_else(|| StorageError::ConfigError("Invalid PKCS#8 private key PEM".to_string()))?;
+    let key_der = STANDARD
+        .decode(
+            encoded
+                .chars()
+                .filter(|c| !c.is_whitespace())
+                .collect::<String>(),
+        )
+        .map_err(|_| {
+            StorageError::ConfigError("Invalid PKCS#8 private key encoding".to_string())
+        })?;
+    let signing_key = RsaKeyPair::from_pkcs8(&key_der)
+        .map_err(|_| StorageError::ConfigError("Invalid PKCS#8 RSA private key".to_string()))?;
+    let mut signature = vec![0; signing_key.public().modulus_len()];
+    signing_key
+        .sign(
+            &RSA_PKCS1_SHA256,
+            &SystemRandom::new(),
+            string_to_sign.as_bytes(),
+            &mut signature,
+        )
+        .map_err(|_| StorageError::InternalError("GCS URL signing failed".to_string()))?;
+    let signature_hex = hex::encode(signature);
 
     // Build the signed URL
     let signed_url = format!(
@@ -132,6 +154,31 @@ mod tests {
     use super::*;
 
     #[test]
+    fn synthetic_pkcs8_key_signs_a_v4_url() {
+        let account = ServiceAccountKey {
+            client_email: "phase0-test@example.invalid".to_string(),
+            private_key: include_str!("../../../tests/fixtures/phase0_synthetic_gcs_key.pem")
+                .to_string(),
+            token_uri: "https://example.invalid/token".to_string(),
+        };
+        let url = generate_signed_url(
+            "test-bucket",
+            "test-object",
+            &account,
+            Duration::from_secs(60),
+        )
+        .expect("synthetic PKCS#8 key should sign");
+        assert!(url.starts_with("https://storage.googleapis.com/test-bucket/test-object?"));
+        assert!(url.contains("X-Goog-Algorithm=GOOG4-RSA-SHA256"));
+        let signature = url
+            .split("X-Goog-Signature=")
+            .nth(1)
+            .expect("signature query");
+        assert_eq!(signature.len(), 512);
+        assert!(signature.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    #[test]
     fn test_parse_storage_url_gcs() {
         let (bucket, object) = parse_storage_url("gcs://my-bucket/path/to/file.jpg").unwrap();
         assert_eq!(bucket, "my-bucket");
@@ -141,8 +188,7 @@ mod tests {
     #[test]
     fn test_parse_storage_url_https() {
         let (bucket, object) =
-            parse_storage_url("https://storage.googleapis.com/my-bucket/path/to/file.jpg")
-                .unwrap();
+            parse_storage_url("https://storage.googleapis.com/my-bucket/path/to/file.jpg").unwrap();
         assert_eq!(bucket, "my-bucket");
         assert_eq!(object, "path/to/file.jpg");
     }

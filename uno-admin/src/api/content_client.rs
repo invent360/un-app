@@ -368,8 +368,12 @@ mod ssr_impl {
         pub per_page: i32,
     }
 
-    fn default_page() -> i32 { 1 }
-    fn default_per_page() -> i32 { 50 }
+    fn default_page() -> i32 {
+        1
+    }
+    fn default_per_page() -> i32 {
+        50
+    }
 
     /// Audit log entry
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -469,12 +473,16 @@ mod ssr_impl {
             // ADMIN_CLIENT_ID takes precedence over UNO_CLIENT_ID
             let client_id = std::env::var("ADMIN_CLIENT_ID")
                 .or_else(|_| std::env::var("UNO_CLIENT_ID"))
-                .map_err(|_| ContentClientError::Config("ADMIN_CLIENT_ID or UNO_CLIENT_ID not set".into()))?;
+                .map_err(|_| {
+                    ContentClientError::Config("ADMIN_CLIENT_ID or UNO_CLIENT_ID not set".into())
+                })?;
 
             // ADMIN_SECRET_KEY takes precedence over UNO_SECRET_KEY
             let secret_key = std::env::var("ADMIN_SECRET_KEY")
                 .or_else(|_| std::env::var("UNO_SECRET_KEY"))
-                .map_err(|_| ContentClientError::Config("ADMIN_SECRET_KEY or UNO_SECRET_KEY not set".into()))?;
+                .map_err(|_| {
+                    ContentClientError::Config("ADMIN_SECRET_KEY or UNO_SECRET_KEY not set".into())
+                })?;
 
             Ok(Self::new(&api_url, &client_id, secret_key.as_bytes()))
         }
@@ -490,10 +498,7 @@ mod ssr_impl {
         }
 
         /// Sign a payload with HMAC-SHA256.
-        fn sign<T: Serialize>(&self, payload: &T) -> SignedRequest<T>
-        where
-            T: Clone,
-        {
+        fn sign<T: Serialize + Clone>(&self, payload: &T) -> SignedRequest<T> {
             use hmac::{Hmac, Mac};
             use sha2::Sha256;
 
@@ -501,7 +506,10 @@ mod ssr_impl {
             let nonce = uuid::Uuid::new_v4().to_string();
             let payload_json = serde_json::to_string(payload).unwrap_or_default();
 
-            let message = format!("{}:{}:{}:{}", self.client_id, timestamp, nonce, payload_json);
+            let message = format!(
+                "{}:{}:{}:{}",
+                self.client_id, timestamp, nonce, payload_json
+            );
 
             let mut mac = Hmac::<Sha256>::new_from_slice(&self.secret_key)
                 .expect("HMAC can take key of any size");
@@ -525,12 +533,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/contents", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -544,12 +547,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/contents/{}", self.base_url, id);
 
-            let response = self
-                .http_client
-                .put(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.put(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -562,12 +560,7 @@ mod ssr_impl {
             let signed = self.sign(&params);
             let url = format!("{}/api/v1/admin/contents/list", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -580,12 +573,7 @@ mod ssr_impl {
             let signed = self.sign(&serde_json::json!({}));
             let url = format!("{}/api/v1/admin/contents/{}/get", self.base_url, id);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -595,12 +583,7 @@ mod ssr_impl {
             let signed = self.sign(&serde_json::json!({}));
             let url = format!("{}/api/v1/admin/contents/{}/delete", self.base_url, id);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             let _: serde_json::Value = self.handle_response(response).await?;
             Ok(())
@@ -615,27 +598,20 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/contents/{}/publish", self.base_url, id);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
 
         /// Archive content.
-        pub async fn archive_content(&self, id: i32) -> Result<ContentResponse, ContentClientError> {
+        pub async fn archive_content(
+            &self,
+            id: i32,
+        ) -> Result<ContentResponse, ContentClientError> {
             let signed = self.sign(&serde_json::json!({}));
             let url = format!("{}/api/v1/admin/contents/{}/archive", self.base_url, id);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -649,12 +625,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/contents/{}/revert", self.base_url, id);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -678,12 +649,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/reviews/submit", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -701,14 +667,12 @@ mod ssr_impl {
                 "notes": notes
             });
             let signed = self.sign(&request);
-            let url = format!("{}/api/v1/admin/reviews/{}/approve", self.base_url, review_id);
+            let url = format!(
+                "{}/api/v1/admin/reviews/{}/approve",
+                self.base_url, review_id
+            );
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -726,14 +690,12 @@ mod ssr_impl {
                 "notes": notes
             });
             let signed = self.sign(&request);
-            let url = format!("{}/api/v1/admin/reviews/{}/request-changes", self.base_url, review_id);
+            let url = format!(
+                "{}/api/v1/admin/reviews/{}/request-changes",
+                self.base_url, review_id
+            );
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -751,14 +713,12 @@ mod ssr_impl {
                 "notes": notes
             });
             let signed = self.sign(&request);
-            let url = format!("{}/api/v1/admin/reviews/{}/reject", self.base_url, review_id);
+            let url = format!(
+                "{}/api/v1/admin/reviews/{}/reject",
+                self.base_url, review_id
+            );
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -772,12 +732,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/reviews/pending", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -795,12 +750,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/reviews/my-submissions", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -820,12 +770,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/preview-tokens", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -845,12 +790,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/publish/direct", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -868,12 +808,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/publish/batch", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -887,14 +822,12 @@ mod ssr_impl {
             // REST API uses path parameter for content_id
             let request = serde_json::json!({ "limit": limit });
             let signed = self.sign(&request);
-            let url = format!("{}/api/v1/admin/versions/{}/history", self.base_url, content_id);
+            let url = format!(
+                "{}/api/v1/admin/versions/{}/history",
+                self.base_url, content_id
+            );
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -912,14 +845,12 @@ mod ssr_impl {
                 "version_b": version_b
             });
             let signed = self.sign(&request);
-            let url = format!("{}/api/v1/admin/versions/{}/compare", self.base_url, content_id);
+            let url = format!(
+                "{}/api/v1/admin/versions/{}/compare",
+                self.base_url, content_id
+            );
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -937,14 +868,12 @@ mod ssr_impl {
                 "reverted_by": reverted_by
             });
             let signed = self.sign(&request);
-            let url = format!("{}/api/v1/admin/versions/{}/revert", self.base_url, content_id);
+            let url = format!(
+                "{}/api/v1/admin/versions/{}/revert",
+                self.base_url, content_id
+            );
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -965,14 +894,12 @@ mod ssr_impl {
                 unpublish_at,
             };
             let signed = self.sign(&request);
-            let url = format!("{}/api/v1/admin/contents/{}/schedule", self.base_url, content_id);
+            let url = format!(
+                "{}/api/v1/admin/contents/{}/schedule",
+                self.base_url, content_id
+            );
 
-            let response = self
-                .http_client
-                .put(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.put(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -989,12 +916,7 @@ mod ssr_impl {
             let signed = self.sign(&filter);
             let url = format!("{}/api/v1/admin/audit-logs", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -1005,14 +927,12 @@ mod ssr_impl {
             content_id: i32,
         ) -> Result<Vec<AuditLogEntry>, ContentClientError> {
             let signed = self.sign(&serde_json::json!({}));
-            let url = format!("{}/api/v1/admin/contents/{}/audit", self.base_url, content_id);
+            let url = format!(
+                "{}/api/v1/admin/contents/{}/audit",
+                self.base_url, content_id
+            );
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -1026,12 +946,7 @@ mod ssr_impl {
             let signed = self.sign(&serde_json::json!({}));
             let url = format!("{}/api/v1/admin/users/me/permissions", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -1042,14 +957,12 @@ mod ssr_impl {
             user_id: &str,
         ) -> Result<UserPermissions, ContentClientError> {
             let signed = self.sign(&serde_json::json!({}));
-            let url = format!("{}/api/v1/admin/users/{}/permissions", self.base_url, user_id);
+            let url = format!(
+                "{}/api/v1/admin/users/{}/permissions",
+                self.base_url, user_id
+            );
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -1059,12 +972,7 @@ mod ssr_impl {
             let signed = self.sign(&serde_json::json!({}));
             let url = format!("{}/api/v1/admin/roles", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -1082,12 +990,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/users/roles/assign", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }
@@ -1105,12 +1008,7 @@ mod ssr_impl {
             let signed = self.sign(&request);
             let url = format!("{}/api/v1/admin/users/roles/remove", self.base_url);
 
-            let response = self
-                .http_client
-                .post(&url)
-                .json(&signed)
-                .send()
-                .await?;
+            let response = self.http_client.post(&url).json(&signed).send().await?;
 
             self.handle_response(response).await
         }

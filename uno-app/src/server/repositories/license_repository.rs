@@ -3,7 +3,6 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use std::sync::Arc;
-use uuid::Uuid;
 
 use uno_api::error::DbError;
 use uno_api::models::{License, LicenseSummary, Paginated, PaginationParams, SplitType};
@@ -35,7 +34,7 @@ impl LicenseRepository for PostgresLicenseRepository {
             VALUES ($1, $2, $3, $4, $5::split_type, $6, $7, $8, $9, $10)
             "#,
         )
-        .bind(license.id)
+        .bind(&license.id)
         .bind(&license.lease_code)
         .bind(license.valid_from)
         .bind(license.valid_to)
@@ -74,7 +73,7 @@ impl LicenseRepository for PostgresLicenseRepository {
         Ok(count)
     }
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Option<License>, DbError> {
+    async fn get_by_id(&self, id: &str) -> Result<Option<License>, DbError> {
         let license = sqlx::query_as::<_, LicenseRow>(
             "SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at FROM licenses WHERE id = $1",
         )
@@ -255,7 +254,7 @@ impl LicenseRepository for PostgresLicenseRepository {
         Ok(count.0)
     }
 
-    async fn claim(&self, id: Uuid, device_id: Option<String>) -> Result<License, DbError> {
+    async fn claim(&self, id: &str, device_id: Option<String>) -> Result<License, DbError> {
         let now = Utc::now();
         let bound_to_device = device_id.is_some();
 
@@ -293,7 +292,7 @@ impl LicenseRepository for PostgresLicenseRepository {
         Ok(exists.0)
     }
 
-    async fn delete(&self, id: Uuid) -> Result<(), DbError> {
+    async fn delete(&self, id: &str) -> Result<(), DbError> {
         let result = sqlx::query("DELETE FROM licenses WHERE id = $1")
             .bind(id)
             .execute(&self.pool)
@@ -307,7 +306,7 @@ impl LicenseRepository for PostgresLicenseRepository {
         Ok(())
     }
 
-    async fn delete_batch(&self, ids: &[Uuid]) -> Result<usize, DbError> {
+    async fn delete_batch(&self, ids: &[String]) -> Result<usize, DbError> {
         if ids.is_empty() {
             return Ok(0);
         }
@@ -501,7 +500,7 @@ impl LicenseRepository for PostgresLicenseRepository {
 // Internal row type for SQLx mapping
 #[derive(Debug, sqlx::FromRow)]
 struct LicenseRow {
-    id: Uuid,
+    id: String,
     lease_code: String,
     valid_from: chrono::DateTime<Utc>,
     valid_to: chrono::DateTime<Utc>,
@@ -545,10 +544,11 @@ trait SplitTypeDbExt {
 
 impl SplitTypeDbExt for SplitType {
     fn as_db_str(&self) -> &'static str {
+        // Match PostgreSQL split_type enum values: '5050', '5545', '6040'
         match self {
-            SplitType::Split5050 => "50:50",
-            SplitType::Split5545 => "55:45",
-            SplitType::Split6040 => "60:40",
+            SplitType::Split5050 => "5050",
+            SplitType::Split5545 => "5545",
+            SplitType::Split6040 => "6040",
         }
     }
 }

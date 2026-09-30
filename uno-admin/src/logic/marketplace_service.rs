@@ -1,6 +1,8 @@
 //! Marketplace service for license distribution to uno-app.
 //!
 //! Handles publishing licenses to marketplace and polling for claimed licenses.
+//!
+//! Supports both ScyllaDB (legacy) and PostgreSQL backends via feature flags.
 
 use chrono::{Utc, Duration};
 use tracing::{debug, error, info, warn};
@@ -8,8 +10,13 @@ use uno_api::models::{LicenseInput, PublishLicensesRequest, SplitType};
 
 use crate::api::uno_client::{UnoLicenseClient, ClaimedLicenseDto};
 use crate::db::DbPool;
-use crate::repository::scylla::LicenseRepository;
 use crate::repository::traits::LicenseRepositoryTrait;
+
+// Import the appropriate repositories based on feature flag
+#[cfg(feature = "postgres-db")]
+use crate::repository::postgres::PgLicenseRepository as LicenseRepository;
+#[cfg(not(feature = "postgres-db"))]
+use crate::repository::scylla::LicenseRepository;
 
 /// Service for marketplace operations.
 pub struct MarketplaceService {

@@ -2,12 +2,14 @@
 
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    Error, HttpResponse, http::header::AUTHORIZATION,
+    http::header::AUTHORIZATION,
+    Error, HttpResponse,
 };
-use std::future::{ready, Ready, Future};
+use std::future::{ready, Future, Ready};
 use std::pin::Pin;
 
 /// Admin authentication middleware factory
+#[derive(Clone)]
 pub struct AdminAuth {
     api_key: String,
 }
@@ -20,10 +22,12 @@ impl AdminAuth {
     }
 
     /// Create from environment variable
-    pub fn from_env() -> Self {
+    pub fn from_env() -> Result<Self, &'static str> {
         let api_key = std::env::var("ADMIN_API_KEY")
-            .unwrap_or_else(|_| "dev-admin-key".to_string());
-        Self::new(api_key)
+            .ok()
+            .filter(|key| key.len() >= 32 && key != "dev-admin-key")
+            .ok_or("ADMIN_API_KEY must be configured with at least 32 characters")?;
+        Ok(Self::new(api_key))
     }
 }
 
@@ -70,22 +74,17 @@ where
             .headers()
             .get(AUTHORIZATION)
             .and_then(|h| h.to_str().ok())
-            .map(|s| s.trim_start_matches("Bearer ").to_string());
+            .and_then(|s| s.strip_prefix("Bearer "));
 
-        let is_authorized = auth_header
-            .map(|key| key == self.api_key)
-            .unwrap_or(false);
+        let is_authorized = auth_header.map(|key| key == self.api_key).unwrap_or(false);
 
         if !is_authorized {
-            let response = HttpResponse::Unauthorized()
-                .json(serde_json::json!({
-                    "error": "Unauthorized",
-                    "message": "Invalid or missing API key"
-                }));
-            
-            return Box::pin(async move {
-                Ok(req.into_response(response).map_into_right_body())
-            });
+            let response = HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Unauthorized",
+                "message": "Invalid or missing API key"
+            }));
+
+            return Box::pin(async move { Ok(req.into_response(response).map_into_right_body()) });
         }
 
         let fut = self.service.call(req);

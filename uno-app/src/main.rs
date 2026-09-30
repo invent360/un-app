@@ -5,20 +5,39 @@
 async fn main() -> std::io::Result<()> {
     use actix_files::Files;
     use actix_web::*;
-    use leptos::prelude::*;
     use leptos::config::get_configuration;
-    use leptos_meta::MetaTags;
+    use leptos::prelude::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
+    use leptos_meta::MetaTags;
     use tracing::{info, warn};
+    use uno_app::api::{
+        register_faq_server_fns, register_guides_server_fns, register_home_server_fns,
+        register_tasks_server_fns,
+    };
     use uno_app::app::App;
     use uno_app::server;
-    use uno_app::server::db::ConnectionManager;
     use uno_app::server::app::ServiceFactory;
-    use uno_app::server::middleware::{RequestLogger, VisitorTracker, CsrfProtection, SecurityHeaders, init_logging};
-    use uno_app::api::{register_faq_server_fns, register_guides_server_fns, register_tasks_server_fns, register_home_server_fns};
+    use uno_app::server::db::ConnectionManager;
+    use uno_app::server::middleware::{
+        init_logging, CsrfProtection, RequestLogger, SecurityHeaders, VisitorTracker,
+    };
 
     // Load environment variables
     dotenvy::dotenv().ok();
+    let session_verifier =
+        uno_api::auth::session::SessionVerifier::from_env().map_err(std::io::Error::other)?;
+    let _machine_auth =
+        uno_app::server::middleware::AdminAuth::from_env().map_err(std::io::Error::other)?;
+    let csrf_secret = std::env::var("CSRF_SECRET_KEY")
+        .ok()
+        .filter(|secret| secret.len() >= 32 && !secret.starts_with("dev-"))
+        .ok_or_else(|| {
+            std::io::Error::other("CSRF_SECRET_KEY must be configured with at least 32 characters")
+        })?;
+    let is_production = std::env::var("RUST_ENV")
+        .is_ok_and(|value| value.eq_ignore_ascii_case("production"))
+        || std::env::var("LEPTOS_ENV").is_ok_and(|value| value.eq_ignore_ascii_case("PROD"));
+    let ui_only = !is_production && std::env::var("UNO_UI_ONLY").is_ok_and(|value| value == "true");
 
     // Register server functions explicitly
     register_faq_server_fns();
@@ -46,6 +65,9 @@ async fn main() -> std::io::Result<()> {
             Some(factory)
         }
         Err(e) => {
+            if !ui_only {
+                return Err(std::io::Error::other(e));
+            }
             warn!(error = %e, "Database not available - running in UI-only mode");
             None
         }
@@ -57,17 +79,14 @@ async fn main() -> std::io::Result<()> {
     info!(address = %addr, "Server starting");
 
     // Determine if we're in development or production
-    let is_production = std::env::var("RUST_ENV")
-        .map(|v| v.to_lowercase() == "production")
-        .unwrap_or(false);
-
     HttpServer::new(move || {
         let routes = generate_route_list(App);
         let leptos_options = &conf.leptos_options;
         let site_root = leptos_options.site_root.clone().to_string();
 
         // Build the base app with optional ServiceFactory
-        let mut app = actix_web::App::new();
+        let mut app = actix_web::App::new()
+            .app_data(web::Data::new(session_verifier.clone()));
 
         // Add ServiceFactory if available
         if let Some(ref factory) = service_factory {
@@ -119,7 +138,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(SecurityHeaders)
             // Add CSRF protection (skip API routes which use token auth)
             .wrap(CsrfProtection::new(
-                std::env::var("CSRF_SECRET_KEY").unwrap_or_else(|_| "dev-csrf-secret-key-change-in-prod".to_string())
+                csrf_secret.clone()
             ).skip_api(true))
             // Add visitor tracking middleware
             .wrap(VisitorTracker)
@@ -139,7 +158,9 @@ async fn favicon(
     let leptos_options = leptos_options.into_inner();
     let site_root = &leptos_options.site_root;
     // Serve PNG favicon (ico not available)
-    Ok(actix_files::NamedFile::open(format!("{site_root}/favicon.png"))?)
+    Ok(actix_files::NamedFile::open(format!(
+        "{site_root}/favicon.png"
+    ))?)
 }
 
 #[cfg(not(any(feature = "ssr", feature = "csr")))]
@@ -149,8 +170,8 @@ pub fn main() {
 
 #[cfg(all(not(feature = "ssr"), feature = "csr"))]
 pub fn main() {
-    use uno_app::app::App;
     use leptos::mount::mount_to_body;
+    use uno_app::app::App;
     console_error_panic_hook::set_once();
     mount_to_body(App);
 }

@@ -1,9 +1,8 @@
 //! License administration service.
 
 use std::sync::Arc;
-use uuid::Uuid;
 
-use crate::error::{ApiError, DbError};
+use crate::error::ApiError;
 use crate::models::*;
 use crate::privacy::redact_credential;
 use crate::traits::{LicenseFilters, LicenseRepository};
@@ -146,7 +145,7 @@ impl LicenseAdminService {
     }
 
     /// Get a license by ID.
-    pub async fn get_license(&self, id: Uuid) -> Result<Option<LicenseDto>, ApiError> {
+    pub async fn get_license(&self, id: &str) -> Result<Option<LicenseDto>, ApiError> {
         let license = self.license_repo.get_by_id(id).await?;
         Ok(license.map(LicenseDto::from))
     }
@@ -189,7 +188,7 @@ impl LicenseAdminService {
         // Claim the license
         let claimed_license = self
             .license_repo
-            .claim(license.id, request.device_id)
+            .claim(&license.id, request.device_id)
             .await?;
 
         Ok(ClaimResponse::success(claimed_license))
@@ -211,24 +210,24 @@ impl LicenseAdminService {
 
     /// Revoke licenses.
     pub async fn revoke_licenses(&self, request: RevokeRequest) -> Result<RevokeResult, ApiError> {
+        use crate::error::DbError;
+
         let mut revoked = 0;
         let mut failed = 0;
         let mut errors = Vec::new();
 
         for id_str in &request.license_ids {
-            let id = match Uuid::parse_str(id_str) {
-                Ok(id) => id,
-                Err(_) => {
-                    failed += 1;
-                    errors.push(RevokeError {
-                        license_id: id_str.clone(),
-                        message: "Invalid UUID format".to_string(),
-                    });
-                    continue;
-                }
-            };
+            // Validate ID is not empty
+            if id_str.is_empty() {
+                failed += 1;
+                errors.push(RevokeError {
+                    license_id: id_str.clone(),
+                    message: "Empty license ID".to_string(),
+                });
+                continue;
+            }
 
-            match self.license_repo.delete(id).await {
+            match self.license_repo.delete(id_str).await {
                 Ok(()) => revoked += 1,
                 Err(DbError::NotFound(_)) => {
                     failed += 1;

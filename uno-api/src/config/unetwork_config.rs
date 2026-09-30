@@ -31,6 +31,20 @@ pub struct UnetworkConfig {
 }
 
 impl UnetworkConfig {
+    /// Server-side upstream configuration, independent of wallet libraries.
+    pub fn configured_base_url() -> String {
+        std::env::var("UNETWORK_API_URL")
+            .unwrap_or_else(|_| Self::DEFAULT_BASE_URL.to_string())
+            .trim_end_matches('/')
+            .to_string()
+    }
+
+    pub fn required_api_key() -> Result<String, String> {
+        std::env::var("UNETWORK_API_KEY")
+            .ok()
+            .filter(|key| !key.trim().is_empty())
+            .ok_or_else(|| "UNETWORK_API_KEY is required for upstream operations".to_string())
+    }
     /// Default base URL for the Unetwork API.
     pub const DEFAULT_BASE_URL: &'static str = "https://api.unityedge.io";
 
@@ -175,15 +189,13 @@ mod tests {
 
     #[test]
     fn test_custom_base_url() {
-        let config = UnetworkConfig::new("token")
-            .with_base_url("https://staging.unityedge.io/");
+        let config = UnetworkConfig::new("token").with_base_url("https://staging.unityedge.io/");
         assert_eq!(config.base_url, "https://staging.unityedge.io");
     }
 
     #[test]
     fn test_custom_timeout() {
-        let config = UnetworkConfig::new("token")
-            .with_timeout(Duration::from_secs(60));
+        let config = UnetworkConfig::new("token").with_timeout(Duration::from_secs(60));
         assert_eq!(config.timeout, Duration::from_secs(60));
     }
 

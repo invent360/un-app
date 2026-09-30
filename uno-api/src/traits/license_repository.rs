@@ -1,7 +1,6 @@
 //! License repository trait.
 
 use async_trait::async_trait;
-use uuid::Uuid;
 
 use crate::error::DbError;
 use crate::models::{License, LicenseSummary, Paginated, PaginationParams, SplitType};
@@ -10,6 +9,9 @@ use crate::models::{License, LicenseSummary, Paginated, PaginationParams, SplitT
 ///
 /// This trait defines the interface that must be implemented by the host
 /// application (e.g., uno-app) to provide database operations for licenses.
+///
+/// License IDs are strings (VARCHAR(66) in database) to preserve full upstream
+/// identifiers including blockchain hex addresses.
 #[async_trait]
 pub trait LicenseRepository: Send + Sync {
     /// Insert a new license.
@@ -19,8 +21,8 @@ pub trait LicenseRepository: Send + Sync {
     /// Returns the number of successfully inserted licenses.
     async fn insert_batch(&self, licenses: &[License]) -> Result<usize, DbError>;
 
-    /// Get a license by its ID.
-    async fn get_by_id(&self, id: Uuid) -> Result<Option<License>, DbError>;
+    /// Get a license by its ID (full upstream identifier).
+    async fn get_by_id(&self, id: &str) -> Result<Option<License>, DbError>;
 
     /// Get a license by its lease code.
     async fn get_by_lease_code(&self, lease_code: &str) -> Result<Option<License>, DbError>;
@@ -56,7 +58,7 @@ pub trait LicenseRepository: Send + Sync {
     /// Mark a license as claimed.
     async fn claim(
         &self,
-        id: Uuid,
+        id: &str,
         device_id: Option<String>,
     ) -> Result<License, DbError>;
 
@@ -64,10 +66,10 @@ pub trait LicenseRepository: Send + Sync {
     async fn lease_code_exists(&self, lease_code: &str) -> Result<bool, DbError>;
 
     /// Delete a license by ID.
-    async fn delete(&self, id: Uuid) -> Result<(), DbError>;
+    async fn delete(&self, id: &str) -> Result<(), DbError>;
 
     /// Delete multiple licenses by IDs.
-    async fn delete_batch(&self, ids: &[Uuid]) -> Result<usize, DbError>;
+    async fn delete_batch(&self, ids: &[String]) -> Result<usize, DbError>;
 
     /// Get license summary statistics.
     async fn get_summary(&self) -> Result<LicenseSummary, DbError>;

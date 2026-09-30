@@ -2,7 +2,6 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 /// License status for filtering and display.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -71,21 +70,25 @@ impl SplitType {
         }
     }
 
-    /// Convert to database string.
+    /// Convert to database string (matches PostgreSQL split_type enum).
     pub fn to_db_str(&self) -> &'static str {
         match self {
-            SplitType::Split5050 => "50:50",
-            SplitType::Split5545 => "55:45",
-            SplitType::Split6040 => "60:40",
+            SplitType::Split5050 => "5050",
+            SplitType::Split5545 => "5545",
+            SplitType::Split6040 => "6040",
         }
     }
 }
 
 /// License entity (minimal database representation).
+///
+/// The `id` field stores the full upstream identifier (VARCHAR(66) in database).
+/// This preserves blockchain addresses and other external IDs without truncation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct License {
-    /// Unique license identifier.
-    pub id: Uuid,
+    /// Unique license identifier (full upstream ID, not truncated).
+    /// Format: blockchain hex address (e.g., "0x0111e1758d35...") or UUID string.
+    pub id: String,
     /// Lease code (displayed to user for claiming).
     pub lease_code: String,
     /// Valid from date.
@@ -115,7 +118,7 @@ impl License {
         split_type: SplitType,
     ) -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: uuid::Uuid::new_v4().to_string(),
             lease_code,
             valid_from,
             valid_to,
@@ -129,8 +132,10 @@ impl License {
     }
 
     /// Create a new unclaimed license with a custom ID.
-    /// The ID should be a hex string (e.g., "0x0111e1758d35..." or just the hex without prefix).
-    /// If the hex string is 64 characters, it will be truncated to a valid UUID.
+    ///
+    /// The ID is preserved exactly as provided (no truncation).
+    /// This supports blockchain hex addresses (e.g., "0x0111e1758d35...")
+    /// and other external identifier formats up to 66 characters.
     pub fn with_custom_id(
         custom_id: &str,
         lease_code: String,
@@ -138,31 +143,8 @@ impl License {
         valid_to: DateTime<Utc>,
         split_type: SplitType,
     ) -> Self {
-        // Strip "0x" prefix if present
-        let hex_str = custom_id.strip_prefix("0x").unwrap_or(custom_id);
-
-        // Try to parse as UUID, or generate from hex
-        let id = if hex_str.len() >= 32 {
-            // Take first 32 hex characters (16 bytes) for UUID
-            let uuid_hex = &hex_str[..32];
-            Uuid::parse_str(uuid_hex).unwrap_or_else(|_| {
-                // Try parsing with dashes in standard UUID positions
-                let with_dashes = format!(
-                    "{}-{}-{}-{}-{}",
-                    &uuid_hex[0..8],
-                    &uuid_hex[8..12],
-                    &uuid_hex[12..16],
-                    &uuid_hex[16..20],
-                    &uuid_hex[20..32]
-                );
-                Uuid::parse_str(&with_dashes).unwrap_or_else(|_| Uuid::new_v4())
-            })
-        } else {
-            Uuid::new_v4()
-        };
-
         Self {
-            id,
+            id: custom_id.to_string(),
             lease_code,
             valid_from,
             valid_to,

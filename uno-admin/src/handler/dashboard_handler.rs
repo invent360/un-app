@@ -24,8 +24,13 @@ pub struct AgentWithLicenses {
 pub async fn get_agents_overview_from_db() -> Result<Vec<AgentWithLicenses>, ServerFnError> {
     use crate::db::get_db;
     use crate::logic::AgentService;
-    use crate::repository::scylla::LicenseRepository;
     use crate::repository::traits::LicenseRepositoryTrait;
+
+    // Import the appropriate repository based on feature flag
+    #[cfg(feature = "postgres-db")]
+    use crate::repository::postgres::PgLicenseRepository as LicenseRepository;
+    #[cfg(not(feature = "postgres-db"))]
+    use crate::repository::scylla::LicenseRepository;
 
     let pool = get_db()
         .ok_or_else(|| ServerFnError::new("Database not initialized"))?
@@ -85,9 +90,14 @@ pub async fn get_agents_overview_from_db() -> Result<Vec<AgentWithLicenses>, Ser
 #[server(GetRewardsFromDb, "/api")]
 pub async fn get_rewards_from_db() -> Result<Vec<RewardAllocation>, ServerFnError> {
     use crate::db::get_db;
-    use crate::repository::scylla::RewardRepository;
     use crate::repository::traits::RewardRepositoryTrait;
     use crate::models::entity::PaginationParams;
+
+    // Import the appropriate repository based on feature flag
+    #[cfg(feature = "postgres-db")]
+    use crate::repository::postgres::PgRewardRepository as RewardRepository;
+    #[cfg(not(feature = "postgres-db"))]
+    use crate::repository::scylla::RewardRepository;
 
     let pool = get_db()
         .ok_or_else(|| ServerFnError::new("Database not initialized"))?

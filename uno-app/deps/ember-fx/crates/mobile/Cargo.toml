@@ -1,4 +1,5 @@
 [package]
+workspace = "../../../../.."
 name = "ember-fx-mobile"
 description = "Mobile-specific components for ember-fx"
 version.workspace = true

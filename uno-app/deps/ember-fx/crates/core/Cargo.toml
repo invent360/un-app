@@ -1,4 +1,5 @@
 [package]
+workspace = "../../../../.."
 name = "ember-fx-core"
 description = "Foundation layer for ember-fx - context, signals, platform detection"
 version.workspace = true

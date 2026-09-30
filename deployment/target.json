@@ -1,0 +1,26 @@
+{
+  "status": "contract-only",
+  "deployment_adapter": null,
+  "topology": "one-authoritative-writer",
+  "writer_replicas": 1,
+  "services": [
+    {"name": "uno-app", "dockerfile": "uno-app/Dockerfile", "readiness": "/api/v1/ready"},
+    {"name": "uno-admin", "dockerfile": "uno-admin/Dockerfile", "readiness": "/health/ready"}
+  ],
+  "media": {
+    "backend": "local",
+    "volume_name": "uno-media",
+    "mount_path": "/var/lib/uno-app/media",
+    "external_provisioning_required": true,
+    "identity_check": ".uno-volume",
+    "actual_mount_check_required": true,
+    "writer_host_affinity_required": true
+  },
+  "database": {
+    "backend": "postgresql",
+    "separate_from_media": true,
+    "single_writer_required": true
+  },
+  "promotion_enabled": false,
+  "pending_confirmation": ["Ember volume attachment and rescheduling semantics", "production identity issuer and trusted keys", "representative deployed schema and data exports", "recovery destination and cutover authority"]
+}

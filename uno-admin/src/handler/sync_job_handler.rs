@@ -79,8 +79,13 @@ pub async fn run_sync_job(target_date: String) -> Result<SyncJobEntity, ServerFn
 pub async fn rerun_sync_job(job_id: String) -> Result<SyncJobEntity, ServerFnError> {
     use crate::db::get_db;
     use crate::logic::{enqueue, JobCommand, RewardsSyncService};
-    use crate::repository::scylla::SyncJobRepository;
     use crate::repository::traits::SyncJobRepositoryTrait;
+
+    // Import the appropriate repository based on feature flag
+    #[cfg(feature = "postgres-db")]
+    use crate::repository::postgres::PgSyncJobRepository as SyncJobRepository;
+    #[cfg(not(feature = "postgres-db"))]
+    use crate::repository::scylla::SyncJobRepository;
 
     let pool = get_db()
         .ok_or_else(|| ServerFnError::new("Database not initialized"))?

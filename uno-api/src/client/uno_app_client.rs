@@ -5,8 +5,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::auth::{sign_request, SignedRequest};
 use crate::error::ApiError;
-use crate::models::{self, *};
 use crate::models::marketplace;
+use crate::models::*;
 
 use super::ClientConfig;
 
@@ -47,6 +47,7 @@ impl UnoApiClient {
         let response = self
             .http
             .post(&url)
+            .bearer_auth(self.machine_key()?)
             .json(&signed)
             .send()
             .await
@@ -65,6 +66,7 @@ impl UnoApiClient {
         let response = self
             .http
             .get(&url)
+            .bearer_auth(self.machine_key()?)
             .header("X-Client-Id", &self.config.client_id)
             .header("X-Timestamp", signed.timestamp.to_string())
             .header("X-Nonce", &signed.nonce)
@@ -88,12 +90,23 @@ impl UnoApiClient {
         let response = self
             .http
             .delete(&url)
+            .bearer_auth(self.machine_key()?)
             .json(&signed)
             .send()
             .await
             .map_err(|e| ApiError::Http(e.to_string()))?;
 
         self.handle_response(response).await
+    }
+
+    fn machine_key(&self) -> Result<&str, ApiError> {
+        self.config
+            .api_key
+            .as_deref()
+            .filter(|key| key.len() >= 32 && *key != "dev-admin-key")
+            .ok_or_else(|| {
+                ApiError::Validation("Machine bearer credential is not configured".into())
+            })
     }
 
     /// Handle the HTTP response.

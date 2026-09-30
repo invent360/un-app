@@ -1,4 +1,5 @@
 [package]
+workspace = "../../../../.."
 name = "ember-fx-components"
 description = "UI component library for ember-fx"
 version.workspace = true

@@ -57,6 +57,18 @@ pub enum AppError {
 
     #[error("Configuration error: {0}")]
     ConfigError(String),
+
+    #[error("Database error: {0}")]
+    DatabaseError(String),
+
+    #[error("Consent required: missing consents for {missing:?}")]
+    ConsentRequired { missing: Vec<String> },
+
+    #[error("Service unavailable: {0}")]
+    ServiceUnavailable(String),
+
+    #[error("Not implemented: {0}")]
+    NotImplemented(String),
 }
 
 impl AppError {
@@ -74,6 +86,10 @@ impl AppError {
             AppError::ImportError(_) => "IMPORT_ERROR",
             AppError::InternalServerError(_) => "INTERNAL_SERVER_ERROR",
             AppError::ConfigError(_) => "CONFIG_ERROR",
+            AppError::DatabaseError(_) => "DATABASE_ERROR",
+            AppError::ConsentRequired { .. } => "CONSENT_REQUIRED",
+            AppError::ServiceUnavailable(_) => "SERVICE_UNAVAILABLE",
+            AppError::NotImplemented(_) => "NOT_IMPLEMENTED",
         };
         ErrorResponse::new(self.to_string(), code.to_string())
     }
@@ -99,6 +115,10 @@ mod ssr_impl {
                 AppError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 AppError::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
                 AppError::ConfigError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                AppError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                AppError::ConsentRequired { .. } => StatusCode::FORBIDDEN,
+                AppError::ServiceUnavailable(_) => StatusCode::SERVICE_UNAVAILABLE,
+                AppError::NotImplemented(_) => StatusCode::NOT_IMPLEMENTED,
             }
         }
 

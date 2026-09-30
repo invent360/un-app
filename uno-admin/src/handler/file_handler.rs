@@ -83,13 +83,20 @@ pub async fn upload_files(mut payload: Multipart) -> HttpResponse {
     let mut resource_id: Option<String> = None;
     let mut files: Vec<(Vec<u8>, String, String)> = Vec::new();
 
-    // Process multipart fields
+    let mut total_bytes = 0usize;
+    let mut field_count = 0usize;
+
+    // Enforce limits before extending buffers, including resource-id fields.
     while let Some(item) = payload.next().await {
+        field_count += 1;
+        if field_count > 16 {
+            return HttpResponse::PayloadTooLarge().finish();
+        }
         let mut field = match item {
             Ok(f) => f,
             Err(e) => {
                 error!("Error reading multipart field: {}", e);
-                continue;
+                return HttpResponse::BadRequest().finish();
             }
         };
 
@@ -103,15 +110,30 @@ pub async fn upload_files(mut payload: Multipart) -> HttpResponse {
                 // Read resource_id as text
                 let mut data = Vec::new();
                 while let Some(chunk) = field.next().await {
-                    if let Ok(bytes) = chunk {
-                        data.extend_from_slice(&bytes);
+                    let bytes = match chunk {
+                        Ok(bytes) => bytes,
+                        Err(_) => return HttpResponse::BadRequest().finish(),
+                    };
+                    if bytes.len() > 128 - data.len()
+                        || bytes.len() > 20 * 1024 * 1024 - total_bytes
+                    {
+                        return HttpResponse::PayloadTooLarge().finish();
                     }
+                    total_bytes += bytes.len();
+                    data.extend_from_slice(&bytes);
                 }
-                if let Ok(id) = String::from_utf8(data) {
-                    resource_id = Some(id.trim().to_string());
+                if resource_id.is_some() {
+                    return HttpResponse::BadRequest().finish();
+                }
+                match String::from_utf8(data) {
+                    Ok(id) => resource_id = Some(id.trim().to_string()),
+                    Err(_) => return HttpResponse::BadRequest().finish(),
                 }
             }
             "file" | "files" => {
+                if files.len() >= 8 {
+                    return HttpResponse::PayloadTooLarge().finish();
+                }
                 // Read file data
                 let filename = content_disposition
                     .and_then(|cd| cd.get_filename().map(|s| s.to_string()))
@@ -124,9 +146,17 @@ pub async fn upload_files(mut payload: Multipart) -> HttpResponse {
 
                 let mut data = Vec::new();
                 while let Some(chunk) = field.next().await {
-                    if let Ok(bytes) = chunk {
-                        data.extend_from_slice(&bytes);
+                    let bytes = match chunk {
+                        Ok(bytes) => bytes,
+                        Err(_) => return HttpResponse::BadRequest().finish(),
+                    };
+                    if bytes.len() > 10 * 1024 * 1024 - data.len()
+                        || bytes.len() > 20 * 1024 * 1024 - total_bytes
+                    {
+                        return HttpResponse::PayloadTooLarge().finish();
                     }
+                    total_bytes += bytes.len();
+                    data.extend_from_slice(&bytes);
                 }
 
                 if !data.is_empty() {
@@ -134,7 +164,7 @@ pub async fn upload_files(mut payload: Multipart) -> HttpResponse {
                 }
             }
             _ => {
-                // Skip unknown fields
+                return HttpResponse::BadRequest().finish();
             }
         }
     }

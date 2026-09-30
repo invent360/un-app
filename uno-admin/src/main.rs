@@ -3,16 +3,18 @@
 async fn main() -> std::io::Result<()> {
     use actix_files::Files;
     use actix_web::*;
-    use leptos::prelude::*;
     use leptos::config::get_configuration;
-    use leptos_meta::MetaTags;
+    use leptos::prelude::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
+    use leptos_meta::MetaTags;
+    use tracing::{error, info, warn};
     use uno_admin::app::*;
     use uno_admin::repository::traits::SyncJobRepositoryTrait;
-    use tracing::{info, warn, error};
 
     // Load environment variables from .env file
     dotenvy::dotenv().ok();
+    let session_verifier =
+        uno_api::auth::session::SessionVerifier::from_env().map_err(std::io::Error::other)?;
 
     // Initialize JSON logging
     init_logging();
@@ -75,6 +77,7 @@ async fn main() -> std::io::Result<()> {
         tracing::info!("listening on http://{}", &addr);
 
         App::new()
+            .app_data(web::Data::new(session_verifier.clone()))
             // Health check endpoints (Kubernetes-style probes)
             .configure(uno_admin::handler::health_handler::configure_routes)
             // WebSocket endpoint for real-time job updates
@@ -112,6 +115,7 @@ async fn main() -> std::io::Result<()> {
                 }
             })
             .app_data(web::Data::new(leptos_options.to_owned()))
+            .wrap(uno_api::auth::web::ProtectAdmin)
         //.wrap(middleware::Compress::default())
     })
     .bind(&addr)?
@@ -162,7 +166,10 @@ fn start_marketplace_sync_scheduler() {
     use std::time::Duration;
 
     tokio::spawn(async move {
-        tracing::info!(scheduler = "marketplace", "Starting marketplace sync scheduler (5-minute interval)");
+        tracing::info!(
+            scheduler = "marketplace",
+            "Starting marketplace sync scheduler (5-minute interval)"
+        );
 
         // Wait for server initialization
         tokio::time::sleep(Duration::from_secs(60)).await;
@@ -178,21 +185,19 @@ fn start_marketplace_sync_scheduler() {
             if let Some(pool) = uno_admin::db::get_db() {
                 // Poll for claimed licenses
                 match uno_admin::logic::MarketplaceService::new(pool.clone()) {
-                    Ok(marketplace_service) => {
-                        match marketplace_service.poll_and_sync().await {
-                            Ok(result) => {
-                                tracing::info!(
-                                    scheduler = "marketplace",
-                                    fetched = result.fetched,
-                                    updated = result.updated,
-                                    "Claimed licenses synced"
-                                );
-                            }
-                            Err(e) => {
-                                tracing::error!(scheduler = "marketplace", error = %e, "Poll claimed failed");
-                            }
+                    Ok(marketplace_service) => match marketplace_service.poll_and_sync().await {
+                        Ok(result) => {
+                            tracing::info!(
+                                scheduler = "marketplace",
+                                fetched = result.fetched,
+                                updated = result.updated,
+                                "Claimed licenses synced"
+                            );
                         }
-                    }
+                        Err(e) => {
+                            tracing::error!(scheduler = "marketplace", error = %e, "Poll claimed failed");
+                        }
+                    },
                     Err(e) => {
                         tracing::error!(scheduler = "marketplace", error = %e, "Failed to create marketplace service");
                     }
@@ -200,22 +205,20 @@ fn start_marketplace_sync_scheduler() {
 
                 // Sync referrals bi-directionally
                 match uno_admin::logic::ReferralSyncService::new(pool.clone()) {
-                    Ok(referral_service) => {
-                        match referral_service.sync().await {
-                            Ok(result) => {
-                                tracing::info!(
-                                    scheduler = "marketplace",
-                                    created = result.created,
-                                    updated = result.updated,
-                                    failed = result.failed,
-                                    "Referrals synced"
-                                );
-                            }
-                            Err(e) => {
-                                tracing::error!(scheduler = "marketplace", error = %e, "Referral sync failed");
-                            }
+                    Ok(referral_service) => match referral_service.sync().await {
+                        Ok(result) => {
+                            tracing::info!(
+                                scheduler = "marketplace",
+                                created = result.created,
+                                updated = result.updated,
+                                failed = result.failed,
+                                "Referrals synced"
+                            );
                         }
-                    }
+                        Err(e) => {
+                            tracing::error!(scheduler = "marketplace", error = %e, "Referral sync failed");
+                        }
+                    },
                     Err(e) => {
                         tracing::error!(scheduler = "marketplace", error = %e, "Failed to create referral service");
                     }
@@ -239,7 +242,10 @@ fn start_license_sync_scheduler() {
     use std::time::Duration;
 
     tokio::spawn(async move {
-        tracing::info!(scheduler = "license_sync", "Starting license sync scheduler (10-minute interval)");
+        tracing::info!(
+            scheduler = "license_sync",
+            "Starting license sync scheduler (10-minute interval)"
+        );
 
         // Wait for server initialization
         tokio::time::sleep(Duration::from_secs(45)).await;
@@ -294,7 +300,10 @@ fn start_rewards_sync_scheduler() {
     use std::time::Duration;
 
     tokio::spawn(async move {
-        tracing::info!(scheduler = "rewards", "Starting rewards sync scheduler (1-minute interval)");
+        tracing::info!(
+            scheduler = "rewards",
+            "Starting rewards sync scheduler (1-minute interval)"
+        );
 
         // Wait a bit for server to fully initialize
         tokio::time::sleep(Duration::from_secs(30)).await;
@@ -350,8 +359,17 @@ fn start_job_watchdog() {
     use std::time::Duration;
     use uno_admin::repository::traits::SyncJobRepositoryTrait;
 
+    // Import the appropriate repository based on feature flag
+    #[cfg(feature = "postgres-db")]
+    use uno_admin::repository::postgres::PgSyncJobRepository as SyncJobRepository;
+    #[cfg(not(feature = "postgres-db"))]
+    use uno_admin::repository::scylla::SyncJobRepository;
+
     tokio::spawn(async move {
-        tracing::info!(scheduler = "watchdog", "Starting job watchdog (60-second interval)");
+        tracing::info!(
+            scheduler = "watchdog",
+            "Starting job watchdog (60-second interval)"
+        );
 
         // Wait for server initialization
         tokio::time::sleep(Duration::from_secs(30)).await;
@@ -366,8 +384,7 @@ fn start_job_watchdog() {
             interval.tick().await;
 
             if let Some(pool) = uno_admin::db::get_db() {
-                let job_repo =
-                    uno_admin::repository::scylla::SyncJobRepository::new(pool.clone());
+                let job_repo = SyncJobRepository::new(pool.clone());
 
                 match job_repo.list_jobs_by_status("running").await {
                     Ok(running_jobs) => {
@@ -452,9 +469,8 @@ fn init_logging() {
     };
 
     // Get log level from environment or default to info
-    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-        EnvFilter::new("warn,uno_admin=info,actix_web=info,actix_server=info")
-    });
+    let env_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("warn,uno_admin=info,actix_web=info,actix_server=info"));
 
     // Check LOG_FORMAT env var (default to json)
     let use_json = std::env::var("LOG_FORMAT")

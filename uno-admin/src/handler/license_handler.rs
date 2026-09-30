@@ -11,17 +11,15 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 #[cfg(feature = "ssr")]
-use uno_api::client::{UnetworkClient, UnetworkConfig};
-#[cfg(feature = "ssr")]
-use uno_api::services::unetwork::{UnetworkLicenseService, UnetworkLicenseTrait};
-#[cfg(feature = "ssr")]
-use ember_multichain::siwe::unetwork;
-#[cfg(feature = "ssr")]
 use crate::db::get_db;
+#[cfg(feature = "ssr")]
+use crate::repository::traits::LicenseRepositoryTrait;
 #[cfg(feature = "ssr")]
 use crate::repository::LicenseRepository;
 #[cfg(feature = "ssr")]
-use crate::repository::traits::LicenseRepositoryTrait;
+use uno_api::client::{UnetworkClient, UnetworkConfig};
+#[cfg(feature = "ssr")]
+use uno_api::services::unetwork::{UnetworkLicenseService, UnetworkLicenseTrait};
 
 /// License DTO returned to the UI
 /// Compatible with the existing LicenseEntity structure
@@ -96,7 +94,7 @@ impl LicenseDto {
             (Some(ulo), _, Some(uno)) => {
                 format!("{:.0}:{:.0}", ulo, uno)
             }
-            _ => "-".to_string()
+            _ => "-".to_string(),
         }
     }
 }
@@ -196,13 +194,13 @@ impl PaginatedLicenseRequest {
     pub fn new(page: i32, page_size: i32) -> Self {
         Self {
             role: "uno".to_string(),
-            is_leased: None,   // None = omit field = show all
-            is_grouped: None,  // None = omit field = show all
-            is_bound: None,    // None = omit field = show all
+            is_leased: None,  // None = omit field = show all
+            is_grouped: None, // None = omit field = show all
+            is_bound: None,   // None = omit field = show all
             page,
             page_size,
-            search: None,      // None = omit field = no search
-            is_online: None,   // None = omit field = show all
+            search: None,    // None = omit field = no search
+            is_online: None, // None = omit field = show all
             skip: (page - 1) * page_size,
             take: page_size,
             uptime_min: None,
@@ -300,7 +298,10 @@ pub async fn get_paginated_licenses(
     let jwt_token = get_jwt_token()?;
 
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/functions/v1/licenses_get_licenses", unetwork::API_URL);
+    let url = format!(
+        "{}/functions/v1/licenses_get_licenses",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     let request_body = PaginatedLicenseRequest::new(page, page_size)
         .with_filters(is_leased, is_bound, is_online)
@@ -310,11 +311,17 @@ pub async fn get_paginated_licenses(
     // Log the request
     eprintln!("=== UNETWORK API REQUEST ===");
     eprintln!("URL: {}", url);
-    eprintln!("Request body: {}", serde_json::to_string_pretty(&request_body).unwrap_or_default());
+    eprintln!(
+        "Request body: {}",
+        serde_json::to_string_pretty(&request_body).unwrap_or_default()
+    );
 
     let response = client
         .post(&url)
-        .header("apikey", unetwork::API_KEY)
+        .header(
+            "apikey",
+            uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+        )
         .header("Authorization", format!("Bearer {}", jwt_token))
         .header("Content-Type", "application/json")
         .json(&request_body)
@@ -325,13 +332,18 @@ pub async fn get_paginated_licenses(
     let status = response.status();
 
     // Get raw response text for logging
-    let response_text = response.text().await
+    let response_text = response
+        .text()
+        .await
         .map_err(|e| ServerFnError::new(format!("Failed to read response: {}", e)))?;
 
     // Log the response
     eprintln!("=== UNETWORK API RESPONSE ===");
     eprintln!("Status: {}", status);
-    eprintln!("Response body: {}", &response_text[..response_text.len().min(2000)]); // Limit to 2000 chars
+    eprintln!(
+        "Response body: {}",
+        &response_text[..response_text.len().min(2000)]
+    ); // Limit to 2000 chars
 
     if !status.is_success() {
         return Err(ServerFnError::new(format!(
@@ -358,7 +370,9 @@ pub async fn get_paginated_licenses(
         .into_iter()
         .map(|item| {
             // Use API-provided is_leased and is_bound values directly
-            let is_leased = item.is_leased.unwrap_or_else(|| item.lease_user_id.is_some());
+            let is_leased = item
+                .is_leased
+                .unwrap_or_else(|| item.lease_user_id.is_some());
             let is_bound = item.is_bound.unwrap_or(false);
 
             LicenseDto {
@@ -411,7 +425,10 @@ pub async fn get_paginated_licenses(
                 }
             }
             Err(e) => {
-                eprintln!("Warning: Failed to fetch marketplace data from ScyllaDB: {}", e);
+                eprintln!(
+                    "Warning: Failed to fetch marketplace data from ScyllaDB: {}",
+                    e
+                );
             }
         }
         // Also enrich with split data from ScyllaDB
@@ -449,20 +466,28 @@ pub async fn search_license_by_id(license_id: String) -> Result<Option<LicenseDt
     let jwt_token = get_jwt_token()?;
 
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/functions/v1/licenses_get_licenses", unetwork::API_URL);
+    let url = format!(
+        "{}/functions/v1/licenses_get_licenses",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     // Create request with search parameter - no filter constraints to find ALL licenses
-    let request_body = PaginatedLicenseRequest::new(1, 100)
-        .with_search(Some(license_id.clone()));
+    let request_body = PaginatedLicenseRequest::new(1, 100).with_search(Some(license_id.clone()));
 
     eprintln!("=== LICENSE SEARCH REQUEST ===");
     eprintln!("URL: {}", url);
     eprintln!("Search ID: {}", license_id);
-    eprintln!("Request body: {}", serde_json::to_string_pretty(&request_body).unwrap_or_default());
+    eprintln!(
+        "Request body: {}",
+        serde_json::to_string_pretty(&request_body).unwrap_or_default()
+    );
 
     let response = client
         .post(&url)
-        .header("apikey", unetwork::API_KEY)
+        .header(
+            "apikey",
+            uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+        )
         .header("Authorization", format!("Bearer {}", jwt_token))
         .header("Content-Type", "application/json")
         .json(&request_body)
@@ -471,15 +496,24 @@ pub async fn search_license_by_id(license_id: String) -> Result<Option<LicenseDt
         .map_err(|e| ServerFnError::new(format!("Failed to search license: {}", e)))?;
 
     let status = response.status();
-    let response_text = response.text().await
+    let response_text = response
+        .text()
+        .await
         .map_err(|e| ServerFnError::new(format!("Failed to read response: {}", e)))?;
 
     eprintln!("=== LICENSE SEARCH RESPONSE ===");
     eprintln!("Status: {}", status);
-    eprintln!("Response: {}", &response_text[..response_text.len().min(2000)]);
+    eprintln!(
+        "Response: {}",
+        &response_text[..response_text.len().min(2000)]
+    );
 
     if !status.is_success() {
-        return Err(ServerFnError::new(format!("API error {}: {}", status.as_u16(), response_text)));
+        return Err(ServerFnError::new(format!(
+            "API error {}: {}",
+            status.as_u16(),
+            response_text
+        )));
     }
 
     let items: Vec<PaginatedLicenseItem> = serde_json::from_str(&response_text)
@@ -487,7 +521,9 @@ pub async fn search_license_by_id(license_id: String) -> Result<Option<LicenseDt
 
     // Return the first matching license, if any
     Ok(items.into_iter().next().map(|item| {
-        let is_leased = item.is_leased.unwrap_or_else(|| item.lease_user_id.is_some());
+        let is_leased = item
+            .is_leased
+            .unwrap_or_else(|| item.lease_user_id.is_some());
         let is_bound = item.is_bound.unwrap_or(false);
 
         LicenseDto {
@@ -524,7 +560,10 @@ pub async fn search_license_by_id(license_id: String) -> Result<Option<LicenseDt
 pub async fn get_all_licenses_for_filtering() -> Result<Vec<LicenseDto>, ServerFnError> {
     let jwt_token = get_jwt_token()?;
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/functions/v1/licenses_get_licenses", ember_multichain::siwe::unetwork::API_URL);
+    let url = format!(
+        "{}/functions/v1/licenses_get_licenses",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     const PAGE_SIZE: i32 = 100; // API max
     let mut all_licenses: Vec<LicenseDto> = Vec::new();
@@ -536,13 +575,21 @@ pub async fn get_all_licenses_for_filtering() -> Result<Vec<LicenseDto>, ServerF
 
         let response = client
             .post(&url)
-            .header("apikey", ember_multichain::siwe::unetwork::API_KEY)
+            .header(
+                "apikey",
+                uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+            )
             .header("Authorization", format!("Bearer {}", jwt_token))
             .header("Content-Type", "application/json")
             .json(&request_body)
             .send()
             .await
-            .map_err(|e| ServerFnError::new(format!("Failed to fetch licenses page {}: {}", current_page, e)))?;
+            .map_err(|e| {
+                ServerFnError::new(format!(
+                    "Failed to fetch licenses page {}: {}",
+                    current_page, e
+                ))
+            })?;
 
         let status = response.status();
         if !status.is_success() {
@@ -554,10 +601,12 @@ pub async fn get_all_licenses_for_filtering() -> Result<Vec<LicenseDto>, ServerF
             )));
         }
 
-        let items: Vec<PaginatedLicenseItem> = response
-            .json()
-            .await
-            .map_err(|e| ServerFnError::new(format!("Failed to parse licenses page {}: {}", current_page, e)))?;
+        let items: Vec<PaginatedLicenseItem> = response.json().await.map_err(|e| {
+            ServerFnError::new(format!(
+                "Failed to parse licenses page {}: {}",
+                current_page, e
+            ))
+        })?;
 
         // On first page, calculate total pages
         if current_page == 1 {
@@ -572,7 +621,9 @@ pub async fn get_all_licenses_for_filtering() -> Result<Vec<LicenseDto>, ServerF
         // Convert to LicenseDto and add to collection
         for item in items {
             // Use API-provided is_leased and is_bound values directly
-            let is_leased = item.is_leased.unwrap_or_else(|| item.lease_user_id.is_some());
+            let is_leased = item
+                .is_leased
+                .unwrap_or_else(|| item.lease_user_id.is_some());
             let is_bound = item.is_bound.unwrap_or(false);
 
             all_licenses.push(LicenseDto {
@@ -734,7 +785,10 @@ pub async fn get_license_by_id(license_id: String) -> Result<Option<LicenseDto>,
     let jwt_token = get_jwt_token()?;
 
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/functions/v1/licenses_get_licenses", unetwork::API_URL);
+    let url = format!(
+        "{}/functions/v1/licenses_get_licenses",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     // Search through pages until we find the license
     // API maximum take is 100
@@ -755,7 +809,10 @@ pub async fn get_license_by_id(license_id: String) -> Result<Option<LicenseDto>,
 
         let response = client
             .post(&url)
-            .header("apikey", unetwork::API_KEY)
+            .header(
+                "apikey",
+                uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+            )
             .header("Authorization", format!("Bearer {}", jwt_token))
             .header("Content-Type", "application/json")
             .json(&request_body)
@@ -776,7 +833,9 @@ pub async fn get_license_by_id(license_id: String) -> Result<Option<LicenseDto>,
         // Check if we found the license
         if let Some(item) = items.iter().find(|item| item.id == license_id) {
             // Use API-provided is_leased and is_bound values directly
-            let is_leased = item.is_leased.unwrap_or_else(|| item.lease_user_id.is_some());
+            let is_leased = item
+                .is_leased
+                .unwrap_or_else(|| item.lease_user_id.is_some());
             let is_bound = item.is_bound.unwrap_or(false);
 
             return Ok(Some(LicenseDto {
@@ -876,12 +935,18 @@ pub async fn get_uno_licenses_summary() -> Result<UnoLicensesSummaryDto, ServerF
     eprintln!("DEBUG: JWT token length: {}", jwt_token.len());
 
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/rest/v1/rpc/licenses_get_uno_licenses_summary", unetwork::API_URL);
+    let url = format!(
+        "{}/rest/v1/rpc/licenses_get_uno_licenses_summary",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
     eprintln!("DEBUG: API URL: {}", url);
 
     let response = client
         .post(&url)
-        .header("apikey", unetwork::API_KEY)
+        .header(
+            "apikey",
+            uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+        )
         .header("Authorization", format!("Bearer {}", jwt_token))
         .header("Content-Type", "application/json")
         .header("Content-Profile", "public")
@@ -915,11 +980,17 @@ pub async fn get_allocations_summary() -> Result<AllocationsSummaryDto, ServerFn
     let jwt_token = get_jwt_token()?;
 
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/rest/v1/rpc/rewards_get_allocations_summary", unetwork::API_URL);
+    let url = format!(
+        "{}/rest/v1/rpc/rewards_get_allocations_summary",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     let response = client
         .post(&url)
-        .header("apikey", unetwork::API_KEY)
+        .header(
+            "apikey",
+            uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+        )
         .header("Authorization", format!("Bearer {}", jwt_token))
         .header("Content-Type", "application/json")
         .header("Content-Profile", "public")
@@ -973,26 +1044,31 @@ fn get_jwt_token() -> Result<String, ServerFnError> {
 // ========================================
 // License Details API (for detail page)
 // ========================================
-
 use crate::api::types::{
-    AllocationsSummaryApi, UptimeAnalyticsPoint, LeaseResponse,
-    LicenseSettingsResponse, WalletSettingsResponse,
+    AllocationsSummaryApi, LeaseResponse, LicenseSettingsResponse, UptimeAnalyticsPoint,
+    WalletSettingsResponse,
 };
 
 /// Get allocation summary for a specific license from Unetwork RPC endpoint
 /// Calls: POST /rest/v1/rpc/rewards_get_allocations_summary with licenseId
 #[server(GetLicenseAllocationSummary, "/api")]
 pub async fn get_license_allocation_summary(
-    license_id: String
+    license_id: String,
 ) -> Result<AllocationsSummaryApi, ServerFnError> {
     let jwt_token = get_jwt_token()?;
 
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/rest/v1/rpc/rewards_get_allocations_summary", unetwork::API_URL);
+    let url = format!(
+        "{}/rest/v1/rpc/rewards_get_allocations_summary",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     let response = client
         .post(&url)
-        .header("apikey", unetwork::API_KEY)
+        .header(
+            "apikey",
+            uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+        )
         .header("Authorization", format!("Bearer {}", jwt_token))
         .header("Content-Type", "application/json")
         .header("Content-Profile", "public")
@@ -1031,11 +1107,17 @@ pub async fn get_license_uptime_analytics(
     let jwt_token = get_jwt_token()?;
 
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/rest/v1/rpc/license_analytics_get_by_license", unetwork::API_URL);
+    let url = format!(
+        "{}/rest/v1/rpc/license_analytics_get_by_license",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     let response = client
         .post(&url)
-        .header("apikey", unetwork::API_KEY)
+        .header(
+            "apikey",
+            uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+        )
         .header("Authorization", format!("Bearer {}", jwt_token))
         .header("Content-Type", "application/json")
         .header("Content-Profile", "public")
@@ -1085,15 +1167,18 @@ pub async fn get_batch_uptime_history(
     let end_str = end.format("%Y-%m-%d").to_string();
 
     // Fetch uptime history for each license in parallel
-    let futures: Vec<_> = license_ids.iter().map(|id| {
-        let id = id.clone();
-        let start = start_str.clone();
-        let end = end_str.clone();
-        async move {
-            let result = get_license_uptime_analytics(id.clone(), start, end).await;
-            (id, result)
-        }
-    }).collect();
+    let futures: Vec<_> = license_ids
+        .iter()
+        .map(|id| {
+            let id = id.clone();
+            let start = start_str.clone();
+            let end = end_str.clone();
+            async move {
+                let result = get_license_uptime_analytics(id.clone(), start, end).await;
+                (id, result)
+            }
+        })
+        .collect();
 
     let results = futures_util::future::join_all(futures).await;
 
@@ -1113,16 +1198,22 @@ pub async fn get_batch_uptime_history(
 /// Calls: POST /rest/v1/rpc/licenses_get_license_settings
 #[server(GetLicenseSettings, "/api")]
 pub async fn get_license_settings(
-    license_id: String
+    license_id: String,
 ) -> Result<LicenseSettingsResponse, ServerFnError> {
     let jwt_token = get_jwt_token()?;
 
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/rest/v1/rpc/licenses_get_license_settings", unetwork::API_URL);
+    let url = format!(
+        "{}/rest/v1/rpc/licenses_get_license_settings",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     let response = client
         .post(&url)
-        .header("apikey", unetwork::API_KEY)
+        .header(
+            "apikey",
+            uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+        )
         .header("Authorization", format!("Bearer {}", jwt_token))
         .header("Content-Type", "application/json")
         .header("Content-Profile", "public")
@@ -1154,16 +1245,22 @@ pub async fn get_license_settings(
 /// Calls: POST /rest/v1/rpc/get_lease_id_by_license
 #[server(GetLeaseByLicense, "/api")]
 pub async fn get_lease_by_license(
-    license_id: String
+    license_id: String,
 ) -> Result<Option<LeaseResponse>, ServerFnError> {
     let jwt_token = get_jwt_token()?;
 
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/rest/v1/rpc/get_lease_id_by_license", unetwork::API_URL);
+    let url = format!(
+        "{}/rest/v1/rpc/get_lease_id_by_license",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     let response = client
         .post(&url)
-        .header("apikey", unetwork::API_KEY)
+        .header(
+            "apikey",
+            uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+        )
         .header("Authorization", format!("Bearer {}", jwt_token))
         .header("Content-Type", "application/json")
         .header("Content-Profile", "public")
@@ -1198,11 +1295,17 @@ pub async fn get_wallet_settings() -> Result<WalletSettingsResponse, ServerFnErr
     let jwt_token = get_jwt_token()?;
 
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/rest/v1/rpc/wallet_settings_get", unetwork::API_URL);
+    let url = format!(
+        "{}/rest/v1/rpc/wallet_settings_get",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     let response = client
         .post(&url)
-        .header("apikey", unetwork::API_KEY)
+        .header(
+            "apikey",
+            uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+        )
         .header("Authorization", format!("Bearer {}", jwt_token))
         .header("Content-Type", "application/json")
         .header("Content-Profile", "public")
@@ -1236,14 +1339,16 @@ pub async fn get_license_paginated_rewards(
     license_id: String,
     page: u32,
     limit: u32,
-) -> Result<crate::models::entity::PaginatedResult<crate::models::entity::RewardEntity>, ServerFnError> {
+) -> Result<
+    crate::models::entity::PaginatedResult<crate::models::entity::RewardEntity>,
+    ServerFnError,
+> {
     use crate::db::get_db;
-    use crate::repository::RewardRepository;
-    use crate::repository::traits::RewardRepositoryTrait;
     use crate::models::entity::{ListRewardsByLicenseParams, PaginationParams};
+    use crate::repository::traits::RewardRepositoryTrait;
+    use crate::repository::RewardRepository;
 
-    let pool = get_db()
-        .ok_or_else(|| ServerFnError::new("Database not initialized"))?;
+    let pool = get_db().ok_or_else(|| ServerFnError::new("Database not initialized"))?;
 
     let repo = RewardRepository::new(pool);
 
@@ -1286,7 +1391,9 @@ pub async fn publish_to_marketplace(
     let service = MarketplaceService::new(pool)
         .map_err(|e| ServerFnError::new(format!("Failed to create marketplace service: {}", e)))?;
 
-    let result = service.publish_to_marketplace(license_ids).await
+    let result = service
+        .publish_to_marketplace(license_ids)
+        .await
         .map_err(|e| ServerFnError::new(format!("Failed to publish to marketplace: {}", e)))?;
 
     Ok(PublishToMarketplaceResponse {
@@ -1299,7 +1406,8 @@ pub async fn publish_to_marketplace(
 /// Get marketplace licenses with live claim status from uno-app
 /// Syncs claim statuses from uno-app on every call for fresh data
 #[server(GetMarketplaceLicenses, "/api")]
-pub async fn get_marketplace_licenses() -> Result<Vec<crate::models::entity::LicenseEntity>, ServerFnError> {
+pub async fn get_marketplace_licenses(
+) -> Result<Vec<crate::models::entity::LicenseEntity>, ServerFnError> {
     use crate::db::get_db;
     use crate::logic::MarketplaceService;
 
@@ -1308,16 +1416,16 @@ pub async fn get_marketplace_licenses() -> Result<Vec<crate::models::entity::Lic
         .map_err(|e| ServerFnError::new(format!("Failed to create marketplace service: {}", e)))?;
 
     // Sync claim statuses from uno-app and return enriched licenses
-    service.sync_and_get_licenses().await
+    service
+        .sync_and_get_licenses()
+        .await
         .map_err(|e| ServerFnError::new(format!("Failed to sync marketplace licenses: {}", e)))
 }
 
 /// Unpublish licenses from marketplace
 /// Removes selected licenses from the public marketplace
 #[server(UnpublishFromMarketplace, "/api")]
-pub async fn unpublish_from_marketplace(
-    license_ids: Vec<String>,
-) -> Result<usize, ServerFnError> {
+pub async fn unpublish_from_marketplace(license_ids: Vec<String>) -> Result<usize, ServerFnError> {
     use crate::db::get_db;
     use crate::logic::MarketplaceService;
 
@@ -1329,7 +1437,9 @@ pub async fn unpublish_from_marketplace(
     let service = MarketplaceService::new(pool)
         .map_err(|e| ServerFnError::new(format!("Failed to create marketplace service: {}", e)))?;
 
-    service.unpublish_from_marketplace(license_ids).await
+    service
+        .unpublish_from_marketplace(license_ids)
+        .await
         .map_err(|e| ServerFnError::new(format!("Failed to unpublish from marketplace: {}", e)))
 }
 
@@ -1351,7 +1461,9 @@ pub async fn poll_marketplace_status() -> Result<PollMarketplaceResponse, Server
     let service = MarketplaceService::new(pool)
         .map_err(|e| ServerFnError::new(format!("Failed to create marketplace service: {}", e)))?;
 
-    let result = service.poll_and_sync().await
+    let result = service
+        .poll_and_sync()
+        .await
         .map_err(|e| ServerFnError::new(format!("Failed to poll marketplace status: {}", e)))?;
 
     Ok(PollMarketplaceResponse {
@@ -1395,12 +1507,15 @@ pub async fn bulk_save_license_settings(
     request: BulkSaveSettingsRequest,
 ) -> Result<BulkSaveSettingsResponse, ServerFnError> {
     use crate::db::get_db;
-    use crate::repository::LicenseRepository;
     use crate::repository::traits::LicenseRepositoryTrait;
+    use crate::repository::LicenseRepository;
 
     let jwt_token = get_jwt_token()?;
     let client = crate::api::http_client::get_client();
-    let url = format!("{}/rest/v1/rpc/licenses_bulk_save_license_settings", unetwork::API_URL);
+    let url = format!(
+        "{}/rest/v1/rpc/licenses_bulk_save_license_settings",
+        uno_api::config::UnetworkConfig::configured_base_url()
+    );
 
     // Build payload for Unetwork API
     let api_payload = serde_json::json!({
@@ -1413,12 +1528,18 @@ pub async fn bulk_save_license_settings(
 
     eprintln!("=== BULK SAVE LICENSE SETTINGS ===");
     eprintln!("URL: {}", url);
-    eprintln!("Payload: {}", serde_json::to_string_pretty(&api_payload).unwrap_or_default());
+    eprintln!(
+        "Payload: {}",
+        serde_json::to_string_pretty(&api_payload).unwrap_or_default()
+    );
 
     // Call Unetwork API
     let api_response = client
         .post(&url)
-        .header("apikey", unetwork::API_KEY)
+        .header(
+            "apikey",
+            uno_api::config::UnetworkConfig::required_api_key().map_err(ServerFnError::new)?,
+        )
         .header("Authorization", format!("Bearer {}", jwt_token))
         .header("Content-Type", "application/json")
         .header("Content-Profile", "public")
@@ -1457,13 +1578,16 @@ pub async fn bulk_save_license_settings(
         };
 
         for license_id in &request.license_ids {
-            match repo.update_marketplace_status_extended(
-                license_id,
-                request.unetwork_marketplace,
-                request.uno_marketplace,
-                status,
-                request.referral_code.as_deref(),
-            ).await {
+            match repo
+                .update_marketplace_status_extended(
+                    license_id,
+                    request.unetwork_marketplace,
+                    request.uno_marketplace,
+                    status,
+                    request.referral_code.as_deref(),
+                )
+                .await
+            {
                 Ok(_) => local_updated += 1,
                 Err(e) => {
                     // License doesn't exist locally - this is OK, Unetwork API was already updated
@@ -1483,7 +1607,10 @@ pub async fn bulk_save_license_settings(
     let errors: Vec<(String, String)> = Vec::new();
 
     eprintln!("=== BULK SAVE COMPLETE ===");
-    eprintln!("Total: {}, Succeeded: {}, Failed: {}", total, succeeded, failed);
+    eprintln!(
+        "Total: {}, Succeeded: {}, Failed: {}",
+        total, succeeded, failed
+    );
 
     Ok(BulkSaveSettingsResponse {
         total,
@@ -1506,15 +1633,36 @@ pub fn register_license_server_fns() {
     println!("  GetUnoLicensesSummary: {}", GetUnoLicensesSummary::url());
     println!("  GetAllocationsSummary: {}", GetAllocationsSummary::url());
     println!("  GetPaginatedLicenses: {}", GetPaginatedLicenses::url());
-    println!("  GetAllLicensesForFiltering: {}", GetAllLicensesForFiltering::url());
-    println!("  GetLicenseAllocationSummary: {}", GetLicenseAllocationSummary::url());
-    println!("  GetLicenseUptimeAnalytics: {}", GetLicenseUptimeAnalytics::url());
+    println!(
+        "  GetAllLicensesForFiltering: {}",
+        GetAllLicensesForFiltering::url()
+    );
+    println!(
+        "  GetLicenseAllocationSummary: {}",
+        GetLicenseAllocationSummary::url()
+    );
+    println!(
+        "  GetLicenseUptimeAnalytics: {}",
+        GetLicenseUptimeAnalytics::url()
+    );
     println!("  GetLicenseSettings: {}", GetLicenseSettings::url());
     println!("  GetLeaseByLicense: {}", GetLeaseByLicense::url());
     println!("  GetWalletSettings: {}", GetWalletSettings::url());
-    println!("  GetLicensePaginatedRewards: {}", GetLicensePaginatedRewards::url());
+    println!(
+        "  GetLicensePaginatedRewards: {}",
+        GetLicensePaginatedRewards::url()
+    );
     println!("  PublishToMarketplace: {}", PublishToMarketplace::url());
-    println!("  GetMarketplaceLicenses: {}", GetMarketplaceLicenses::url());
-    println!("  UnpublishFromMarketplace: {}", UnpublishFromMarketplace::url());
-    println!("  BulkSaveLicenseSettings: {}", BulkSaveLicenseSettings::url());
+    println!(
+        "  GetMarketplaceLicenses: {}",
+        GetMarketplaceLicenses::url()
+    );
+    println!(
+        "  UnpublishFromMarketplace: {}",
+        UnpublishFromMarketplace::url()
+    );
+    println!(
+        "  BulkSaveLicenseSettings: {}",
+        BulkSaveLicenseSettings::url()
+    );
 }

@@ -20,8 +20,13 @@ pub struct DailyIncentive {
 pub async fn get_daily_incentive_totals() -> Result<Vec<DailyIncentive>, ServerFnError> {
     use chrono::{Duration, Utc};
     use crate::db::get_db;
-    use crate::repository::scylla::RewardRepository;
     use crate::repository::traits::RewardRepositoryTrait;
+
+    // Import the appropriate repository based on feature flag
+    #[cfg(feature = "postgres-db")]
+    use crate::repository::postgres::PgRewardRepository as RewardRepository;
+    #[cfg(not(feature = "postgres-db"))]
+    use crate::repository::scylla::RewardRepository;
 
     let pool = get_db()
         .ok_or_else(|| ServerFnError::new("Database not initialized"))?

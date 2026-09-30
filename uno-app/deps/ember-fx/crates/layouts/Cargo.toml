@@ -1,4 +1,5 @@
 [package]
+workspace = "../../../../.."
 name = "ember-fx-layouts"
 description = "Modular app shell layouts for ember-fx"
 version.workspace = true

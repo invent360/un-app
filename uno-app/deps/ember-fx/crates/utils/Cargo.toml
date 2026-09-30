@@ -1,4 +1,5 @@
 [package]
+workspace = "../../../../.."
 name = "ember-fx-utils"
 description = "DOM utilities and helpers for ember-fx"
 version.workspace = true

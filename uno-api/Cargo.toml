@@ -25,6 +25,8 @@ hmac = { version = "0.12", optional = true }
 sha2 = { version = "0.10", optional = true }
 hex = { version = "0.4", optional = true }
 base64 = { version = "0.22", optional = true }
+jsonwebtoken = { version = "9.3.1", optional = true }
+actix-web = { version = "4", default-features = false, optional = true, features = ["cookies", "unicode", "ws", "macros"] }
 
 # Time handling
 chrono = { version = "0.4", features = ["serde"] }
@@ -39,7 +41,7 @@ rand = "0.9"
 reqwest = { version = "0.12", features = ["json"], optional = true }
 
 # Validation
-validator = { version = "0.18", features = ["derive"], optional = true }
+validator = { version = "0.20", features = ["derive"], optional = true }
 
 # Logging
 tracing = "0.1"
@@ -47,8 +49,9 @@ tracing = "0.1"
 [features]
 default = ["services"]
 services = ["dep:csv", "dep:validator"]
-auth = ["dep:hmac", "dep:sha2", "dep:hex", "dep:base64"]
-client = ["auth", "dep:reqwest", "dep:tokio"]
+auth = ["dep:hmac", "dep:sha2", "dep:hex", "dep:base64", "dep:jsonwebtoken"]
+web-auth = ["auth", "dep:actix-web"]
+client = ["auth", "services", "dep:reqwest", "dep:tokio"]
 full = ["services", "auth", "client"]
 
 [dev-dependencies]

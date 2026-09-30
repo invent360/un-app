@@ -172,9 +172,14 @@ pub struct SyncResultDto {
 pub async fn sync_rewards_if_stale(_jwt_token: String) -> Result<SyncResultDto, ServerFnError> {
     use crate::db::get_db;
     use crate::logic::RewardsSyncService;
-    use crate::repository::scylla::SyncJobRepository;
     use crate::repository::traits::SyncJobRepositoryTrait;
     use chrono::{Utc, Duration};
+
+    // Import the appropriate repository based on feature flag
+    #[cfg(feature = "postgres-db")]
+    use crate::repository::postgres::PgSyncJobRepository as SyncJobRepository;
+    #[cfg(not(feature = "postgres-db"))]
+    use crate::repository::scylla::SyncJobRepository;
 
     println!("[SYNC] Checking if rewards data is stale...");
 

@@ -1,7 +1,9 @@
 //! License synchronization service
 //!
-//! Fetches licenses from Unetwork API and syncs to local ScyllaDB.
+//! Fetches licenses from Unetwork API and syncs to local database.
 //! Runs every 10 minutes, tracks progress for resume on failure.
+//!
+//! Supports both ScyllaDB (legacy) and PostgreSQL backends via feature flags.
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -10,14 +12,16 @@ use tracing::{debug, error, info, warn};
 
 use crate::db::DbPool;
 use crate::models::entity::{NewLicenseFromApi, NewSyncJob, SyncJobEntity};
-use crate::repository::scylla::{LicenseRepository, SyncJobRepository};
 use crate::repository::traits::{LicenseRepositoryTrait, SyncJobRepositoryTrait};
+
+// Import the appropriate repositories based on feature flag
+#[cfg(feature = "postgres-db")]
+use crate::repository::postgres::{PgLicenseRepository as LicenseRepository, PgSyncJobRepository as SyncJobRepository};
+#[cfg(not(feature = "postgres-db"))]
+use crate::repository::scylla::{LicenseRepository, SyncJobRepository};
 
 #[cfg(feature = "ssr")]
 use crate::ws::broadcast_job_update;
-
-#[cfg(feature = "ssr")]
-use ember_multichain::siwe::unetwork;
 
 /// Context for license sync job (stored as JSON in job_context)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -155,7 +159,10 @@ impl LicenseSyncService {
         }
 
         // 2. Create new job
-        let job = self.job_repo.create_job(NewSyncJob::licenses_sync()).await?;
+        let job = self
+            .job_repo
+            .create_job(NewSyncJob::licenses_sync())
+            .await?;
         let job_id = job.id.clone();
 
         // 3. Mark as running
@@ -235,7 +242,10 @@ impl LicenseSyncService {
         logs.push(Self::log_line("JWT token loaded successfully"));
 
         let client = crate::api::http_client::get_client();
-        let url = format!("{}/functions/v1/licenses_get_licenses", unetwork::API_URL);
+        let url = format!(
+            "{}/functions/v1/licenses_get_licenses",
+            uno_api::config::UnetworkConfig::configured_base_url()
+        );
 
         let mut all_licenses: Vec<NewLicenseFromApi> = Vec::new();
         let mut page = 1;
@@ -246,13 +256,19 @@ impl LicenseSyncService {
 
         // Paginate through all licenses
         loop {
-            logs.push(Self::log_line(&format!("Fetching page {} (size {})", page, page_size)));
+            logs.push(Self::log_line(&format!(
+                "Fetching page {} (size {})",
+                page, page_size
+            )));
 
             let request = LicenseApiRequest::new(page, page_size);
 
             let response = client
                 .post(&url)
-                .header("apikey", unetwork::API_KEY)
+                .header(
+                    "apikey",
+                    uno_api::config::UnetworkConfig::required_api_key()?,
+                )
                 .header("Authorization", format!("Bearer {}", jwt_token))
                 .header("Content-Type", "application/json")
                 .json(&request)
@@ -267,7 +283,12 @@ impl LicenseSyncService {
             let status = response.status();
             if !status.is_success() {
                 let error_text = response.text().await.unwrap_or_default();
-                let msg = format!("API error {} on page {}: {}", status.as_u16(), page, error_text);
+                let msg = format!(
+                    "API error {} on page {}: {}",
+                    status.as_u16(),
+                    page,
+                    error_text
+                );
                 logs.push(Self::log_line(&format!("ERROR: {}", msg)));
                 return Err(msg);
             }
@@ -338,7 +359,12 @@ impl LicenseSyncService {
                 total_pages: 0,
                 unique_licenses: 0,
             };
-            return Ok((0, 0, serde_json::to_string(&context).unwrap_or_default(), logs.join("\n")));
+            return Ok((
+                0,
+                0,
+                serde_json::to_string(&context).unwrap_or_default(),
+                logs.join("\n"),
+            ));
         }
 
         // Upsert licenses to database
@@ -347,7 +373,11 @@ impl LicenseSyncService {
         let mut errors = 0;
 
         for license in &all_licenses {
-            match self.license_repo.upsert_license_from_api(license.clone()).await {
+            match self
+                .license_repo
+                .upsert_license_from_api(license.clone())
+                .await
+            {
                 Ok(_) => upserted_count += 1,
                 Err(e) => {
                     warn!("Failed to upsert license {}: {}", license.license_id, e);
@@ -400,7 +430,9 @@ impl LicenseSyncService {
         if let Some(ctx) = prev_context {
             info!(
                 "Resuming job {} from page {} (previously fetched {})",
-                job_id, ctx.last_processed_page + 1, ctx.total_fetched
+                job_id,
+                ctx.last_processed_page + 1,
+                ctx.total_fetched
             );
         }
 
@@ -446,7 +478,10 @@ impl LicenseSyncService {
         }
 
         // Create a new pending job
-        let job = self.job_repo.create_job(NewSyncJob::licenses_sync()).await?;
+        let job = self
+            .job_repo
+            .create_job(NewSyncJob::licenses_sync())
+            .await?;
 
         // Broadcast pending job
         #[cfg(feature = "ssr")]

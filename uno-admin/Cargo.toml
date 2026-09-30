@@ -3,20 +3,18 @@ name = "uno-admin"
 version = "0.1.0"
 edition = "2021"
 
-[workspace]
-
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 actix-files = { version = "0.6", optional = true }
-actix-web = { version = "4", optional = true, features = ["macros"] }
+actix-web = { version = "4", default-features = false, optional = true, features = ["macros", "cookies", "unicode", "ws"] }
 console_error_panic_hook = "0.1"
 http = { version = "1.3.1", optional = true }
-leptos = { version = "0.8.2", features = ["nightly"] }
+leptos = { version = "0.8.2" }
 leptos_meta = { version = "0.8.2" }
-leptos_actix = { version = "0.8.2", optional = true }
-leptos_router = { version = "0.8.2", features = ["nightly"] }
+leptos_actix = { version = "0.8.2", default-features = false, optional = true }
+leptos_router = { version = "0.8.2" }
 wasm-bindgen = "0.2.121"
 js-sys = "0.3.76"
 gloo-storage = "0.3"
@@ -31,6 +29,7 @@ chrono = { version = "0.4", default-features = false, features = ["std", "clock"
 
 # Database dependencies (SSR only)
 scylla = { version = "0.15", optional = true }
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "chrono", "uuid"], optional = true }
 uuid = { version = "1.0", features = ["v4", "serde"], optional = true }
 async-trait = { version = "0.1", optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"], optional = true }
@@ -48,21 +47,15 @@ reqwest = { version = "0.12", features = ["json"], optional = true }
 actix-ws = { version = "0.3", optional = true }
 futures-util = { version = "0.3", optional = true }
 
-# File storage for cloud uploads (GCS, S3, etc.)
-file-storage = { path = "../file-storage", features = ["gcs"], optional = true }
+# Both applications use the same local-only production backend.
+file-storage = { workspace = true, optional = true }
 actix-multipart = { version = "0.7", optional = true }
 
 # Base64 encoding/decoding for image conversion
 base64 = { version = "0.22", optional = true }
 
 # UNO API client for license management
-uno-api = { path = "../uno-api", features = ["client"], optional = true }
-
-# Multi-chain wallet library for Web3 authentication
-# TODO: Vendor ember-multichain into deps/ or use git dependency
-# For now, SSR feature requires this dependency - use git clone to set up:
-#   git clone https://github.com/polkanight/ember-multichain.git ../deps/ember-multichain
-ember-multichain = { path = "../deps/ember-multichain", features = ["evm"], optional = true }
+uno-api = { workspace = true, features = ["client", "web-auth"], optional = true }
 
 # ember-fx UI Components (Table, Select, Button, etc.) with Prime styling
 # Uses vendored copy from uno-app/deps/ember-fx
@@ -79,6 +72,24 @@ ember-fx-icons = { path = "../uno-app/deps/ember-fx/crates/icons", features = ["
 seeder = ["dep:scylla", "dep:tokio", "dep:dotenvy", "dep:uuid"]
 csr = ["leptos/csr", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-icons", "ember-fx-components/csr", "ember-fx-core/csr"]
 hydrate = ["leptos/hydrate", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-icons", "dep:futures-util", "ember-fx-components/hydrate", "ember-fx-core/hydrate"]
+
+# Use PostgreSQL backend instead of ScyllaDB
+#
+# When enabled:
+# - Uses `DATABASE_URL` environment variable for PostgreSQL connection
+# - Repository implementations switch to Pg* variants
+# - DbPool becomes Arc<PgPool> instead of Arc<Session>
+# - Migrations use uno-app's PostgreSQL migrations (set `PG_MIGRATIONS_DIR` to override)
+#
+# Environment variables:
+# - `DATABASE_URL` (required): PostgreSQL connection string
+# - `DATABASE_MAX_CONNECTIONS` (optional, default: 10): Max pool connections
+# - `DATABASE_ACQUIRE_TIMEOUT` (optional, default: 5): Connection acquire timeout in seconds
+# - `DATABASE_IDLE_TIMEOUT` (optional, default: 600): Idle connection timeout in seconds
+# - `RUN_MIGRATIONS` (optional, default: true): Set to "false" to skip migrations
+# - `PG_MIGRATIONS_DIR` (optional, default: "../uno-app/migrations"): Migrations directory
+postgres-db = []
+
 ssr = [
   "dep:actix-files",
   "dep:actix-web",
@@ -87,6 +98,7 @@ ssr = [
   "dep:futures-util",
   "dep:leptos_actix",
   "dep:scylla",
+  "dep:sqlx",
   "dep:tokio",
   "dep:dotenvy",
   "dep:uuid",
@@ -100,7 +112,6 @@ ssr = [
   "dep:ember-fx-components",
   "dep:ember-fx-core",
   "dep:ember-fx-icons",
-  "dep:ember-multichain",
   "dep:file-storage",
   "dep:base64",
   "leptos/ssr",
@@ -111,12 +122,6 @@ ssr = [
 ]
 
 # Defines a size-optimized profile for the WASM bundle in release mode
-[profile.wasm-release]
-inherits = "release"
-opt-level = 'z'
-lto = true
-codegen-units = 1
-panic = "abort"
 
 [[bin]]
 name = "upload-content"
@@ -139,7 +144,7 @@ bin-target = "uno-admin"
 # The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
 output-name = "uno-admin"
 # The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
-site-root = "target/site"
+site-root = "target/site/uno-admin"
 # The site-root relative folder where all compiled output (JS, WASM and CSS) is written
 # Defaults to pkg
 site-pkg-dir = "pkg"

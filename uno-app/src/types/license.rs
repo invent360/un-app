@@ -103,10 +103,13 @@ impl AvailabilityStatus {
 }
 
 /// License model for claim service.
+///
+/// The `id` field stores the full upstream identifier (VARCHAR(66) in database).
+/// This preserves blockchain addresses and other external IDs without truncation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "ssr", derive(sqlx::FromRow))]
 pub struct License {
-    pub id: uuid::Uuid,
+    pub id: String,
     pub lease_code: String,
     pub valid_from: DateTime<Utc>,
     pub valid_to: DateTime<Utc>,
@@ -149,7 +152,7 @@ impl License {
 /// License DTO for API responses (minimal info for claiming).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LicenseDto {
-    pub id: uuid::Uuid,
+    pub id: String,
     pub lease_code: String,
     pub split_type: SplitType,
     pub user_share: i32,
@@ -180,6 +183,9 @@ pub struct ClaimRequest {
     pub lease_code: String,
     #[serde(default)]
     pub device_id: Option<String>,
+    /// The authenticated user's ID (set by handler, not client)
+    #[serde(skip)]
+    pub user_id: Option<uuid::Uuid>,
 }
 
 /// Response after claiming a license.

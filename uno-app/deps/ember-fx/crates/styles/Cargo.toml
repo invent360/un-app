@@ -1,4 +1,5 @@
 [package]
+workspace = "../../../../.."
 name = "ember-fx-styles"
 description = "CSS compilation and theme registry for ember-fx"
 version.workspace = true

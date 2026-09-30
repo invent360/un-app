@@ -5,9 +5,12 @@
 //! - Immutable referral attribution
 //! - Owner verification for confirmations
 
+use crate::server::repositories::{ClaimRepository, ClaimResult, ReservationResult};
+use crate::types::{
+    AppError, ClaimPageData, ClaimRequest, ClaimResponse, License, LicenseDto, LicenseSummary,
+    SplitType,
+};
 use std::sync::Arc;
-use crate::types::{ClaimRequest, ClaimResponse, ClaimPageData, License, LicenseDto, LicenseSummary, SplitType, AppError};
-use crate::server::repositories::{ClaimRepository, ReservationResult, ClaimResult};
 use uno_api::traits::LicenseRepository;
 
 /// Extended claim response with session token for two-phase flow
@@ -78,6 +81,14 @@ impl LicenseService {
         }
     }
 
+    // Fail closed until Phase 4 replaces every legacy claim path with verified,
+    // owner-bound issuance. This intentionally has no environment bypass.
+    fn ensure_issuance_ready() -> Result<(), AppError> {
+        Err(AppError::LicenseUnavailable(
+            "Licence issuance is paused pending secure allocation".into(),
+        ))
+    }
+
     /// Atomically reserve a license with session binding (Phase 1)
     ///
     /// Returns a session token that must be used to confirm the claim.
@@ -87,14 +98,16 @@ impl LicenseService {
         split_type: Option<SplitType>,
         referral_code: Option<String>,
     ) -> Result<ReservationResponse, AppError> {
-        let claim_repo = self.claim_repo.as_ref()
+        Self::ensure_issuance_ready()?;
+        let claim_repo = self
+            .claim_repo
+            .as_ref()
             .ok_or_else(|| AppError::ConfigError("Claim repository not configured".into()))?;
 
         let split_str = split_type.map(|st| convert_to_db_split(st));
-        let result = claim_repo.atomic_reserve(
-            split_str.as_deref(),
-            referral_code.as_deref(),
-        ).await?;
+        let result = claim_repo
+            .atomic_reserve(split_str.as_deref(), referral_code.as_deref())
+            .await?;
 
         Ok(ReservationResponse::success(result))
     }
@@ -110,18 +123,15 @@ impl LicenseService {
         device_id: Option<String>,
         referral_id: Option<i32>,
     ) -> Result<ClaimResponse, AppError> {
-        let claim_repo = self.claim_repo.as_ref()
+        Self::ensure_issuance_ready()?;
+        let claim_repo = self
+            .claim_repo
+            .as_ref()
             .ok_or_else(|| AppError::ConfigError("Claim repository not configured".into()))?;
 
-        let id = uuid::Uuid::parse_str(license_id)
-            .map_err(|e| AppError::ValidationError(format!("Invalid license ID: {}", e)))?;
-
-        let result = claim_repo.atomic_confirm(
-            id,
-            session_token,
-            device_id.as_deref(),
-            referral_id,
-        ).await?;
+        let result = claim_repo
+            .atomic_confirm(license_id, session_token, device_id.as_deref(), referral_id)
+            .await?;
 
         // Convert to ClaimResponse
         Ok(ClaimResponse {
@@ -141,21 +151,27 @@ impl LicenseService {
         license_id: &str,
         session_token: &str,
     ) -> Result<(), AppError> {
-        let claim_repo = self.claim_repo.as_ref()
+        Self::ensure_issuance_ready()?;
+        let claim_repo = self
+            .claim_repo
+            .as_ref()
             .ok_or_else(|| AppError::ConfigError("Claim repository not configured".into()))?;
 
-        let id = uuid::Uuid::parse_str(license_id)
-            .map_err(|e| AppError::ValidationError(format!("Invalid license ID: {}", e)))?;
-
-        claim_repo.release_reservation(id, session_token).await
+        claim_repo.release_reservation(license_id, session_token).await
     }
 
     /// Claim a license by split type (auto-assigns an available license).
-    pub async fn claim_by_split_type(&self, split_type: SplitType, device_id: Option<String>) -> Result<ClaimResponse, AppError> {
+    pub async fn claim_by_split_type(
+        &self,
+        split_type: SplitType,
+        device_id: Option<String>,
+    ) -> Result<ClaimResponse, AppError> {
+        Self::ensure_issuance_ready()?;
         let api_split = convert_to_api_split(split_type);
 
         // Get the first unclaimed license of this type
-        let license = self.license_repo
+        let license = self
+            .license_repo
             .get_first_unclaimed(api_split)
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
@@ -163,26 +179,36 @@ impl LicenseService {
         let license = match license {
             Some(l) => l,
             None => {
-                return Ok(ClaimResponse::error("No licenses available for this split type"));
+                return Ok(ClaimResponse::error(
+                    "No licenses available for this split type",
+                ));
             }
         };
 
         // Claim the license
-        let claimed_license = self.license_repo
-            .claim(license.id, device_id)
+        let claimed_license = self
+            .license_repo
+            .claim(&license.id, device_id)
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
 
-        Ok(ClaimResponse::success(convert_to_local_license(claimed_license)))
+        Ok(ClaimResponse::success(convert_to_local_license(
+            claimed_license,
+        )))
     }
 
     /// Reserve a license by split type (returns license info WITHOUT marking as claimed).
     /// This is phase 1 of the two-phase claim process.
-    pub async fn reserve_by_split_type(&self, split_type: SplitType) -> Result<ClaimResponse, AppError> {
+    pub async fn reserve_by_split_type(
+        &self,
+        split_type: SplitType,
+    ) -> Result<ClaimResponse, AppError> {
+        Self::ensure_issuance_ready()?;
         let api_split = convert_to_api_split(split_type);
 
         // Get the first unclaimed license of this type (without claiming)
-        let license = self.license_repo
+        let license = self
+            .license_repo
             .get_first_unclaimed(api_split)
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
@@ -190,7 +216,9 @@ impl LicenseService {
         let license = match license {
             Some(l) => l,
             None => {
-                return Ok(ClaimResponse::error("No licenses available for this split type"));
+                return Ok(ClaimResponse::error(
+                    "No licenses available for this split type",
+                ));
             }
         };
 
@@ -202,8 +230,10 @@ impl LicenseService {
     /// Returns license info WITHOUT marking as claimed.
     /// This is phase 1 of the simplified two-phase claim process.
     pub async fn reserve_next_available(&self) -> Result<ClaimResponse, AppError> {
+        Self::ensure_issuance_ready()?;
         // Get the first unclaimed license (any split type)
-        let license = self.license_repo
+        let license = self
+            .license_repo
             .get_first_unclaimed_any()
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
@@ -221,7 +251,11 @@ impl LicenseService {
 
     /// Check if any licenses are available for claiming.
     pub async fn has_available_licenses(&self) -> Result<bool, AppError> {
-        let count = self.license_repo
+        if Self::ensure_issuance_ready().is_err() {
+            return Ok(false);
+        }
+        let count = self
+            .license_repo
             .count_unclaimed()
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
@@ -231,6 +265,9 @@ impl LicenseService {
 
     /// Get the count of available (unclaimed) licenses.
     pub async fn get_available_count(&self) -> Result<i64, AppError> {
+        if Self::ensure_issuance_ready().is_err() {
+            return Ok(0);
+        }
         self.license_repo
             .count_unclaimed()
             .await
@@ -239,14 +276,22 @@ impl LicenseService {
 
     /// Confirm a license claim by ID (marks as claimed).
     /// This is phase 2 of the two-phase claim process - called when user copies the key.
-    pub async fn confirm_claim(&self, license_id: &str, device_id: Option<String>) -> Result<ClaimResponse, AppError> {
-        // Parse the license ID
-        let id = uuid::Uuid::parse_str(license_id)
-            .map_err(|e| AppError::ValidationError(format!("Invalid license ID: {}", e)))?;
+    pub async fn confirm_claim(
+        &self,
+        license_id: &str,
+        device_id: Option<String>,
+    ) -> Result<ClaimResponse, AppError> {
+        Self::ensure_issuance_ready()?;
+
+        // Validate license ID is not empty
+        if license_id.is_empty() {
+            return Err(AppError::ValidationError("License ID cannot be empty".to_string()));
+        }
 
         // Check if license exists and is not already claimed
-        let license = self.license_repo
-            .get_by_id(id)
+        let license = self
+            .license_repo
+            .get_by_id(license_id)
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
 
@@ -264,18 +309,23 @@ impl LicenseService {
         }
 
         // Claim the license
-        let claimed_license = self.license_repo
-            .claim(id, device_id)
+        let claimed_license = self
+            .license_repo
+            .claim(license_id, device_id)
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
 
-        Ok(ClaimResponse::success(convert_to_local_license(claimed_license)))
+        Ok(ClaimResponse::success(convert_to_local_license(
+            claimed_license,
+        )))
     }
 
     /// Claim a license by lease code.
     pub async fn claim_license(&self, request: ClaimRequest) -> Result<ClaimResponse, AppError> {
+        Self::ensure_issuance_ready()?;
         // Find the license by lease code
-        let license = self.license_repo
+        let license = self
+            .license_repo
             .get_by_lease_code(&request.lease_code)
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
@@ -302,17 +352,25 @@ impl LicenseService {
         }
 
         // Claim the license
-        let claimed_license = self.license_repo
-            .claim(license.id, request.device_id)
+        let claimed_license = self
+            .license_repo
+            .claim(&license.id, request.device_id)
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
 
-        Ok(ClaimResponse::success(convert_to_local_license(claimed_license)))
+        Ok(ClaimResponse::success(convert_to_local_license(
+            claimed_license,
+        )))
     }
 
     /// Get a license by lease code (for display).
-    pub async fn get_license_by_code(&self, lease_code: &str) -> Result<Option<ClaimPageData>, AppError> {
-        let license = self.license_repo
+    pub async fn get_license_by_code(
+        &self,
+        lease_code: &str,
+    ) -> Result<Option<ClaimPageData>, AppError> {
+        Self::ensure_issuance_ready()?;
+        let license = self
+            .license_repo
             .get_by_lease_code(lease_code)
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
@@ -322,6 +380,9 @@ impl LicenseService {
 
     /// Get available license count by split type.
     pub async fn get_available_by_split(&self, split_type: SplitType) -> Result<i64, AppError> {
+        if Self::ensure_issuance_ready().is_err() {
+            return Ok(0);
+        }
         let api_split = convert_to_api_split(split_type);
         self.license_repo
             .count_unclaimed_by_split(api_split)
@@ -331,7 +392,8 @@ impl LicenseService {
 
     /// Get license summary statistics.
     pub async fn get_summary(&self) -> Result<LicenseSummary, AppError> {
-        let api_summary = self.license_repo
+        let api_summary = self
+            .license_repo
             .get_summary()
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
@@ -342,16 +404,22 @@ impl LicenseService {
     /// Get available licenses by split type.
     pub async fn get_available_splits(&self) -> Result<Vec<SplitTypeAvailability>, AppError> {
         // Use summary to get both available and claimed counts
-        let summary = self.license_repo
+        let summary = self
+            .license_repo
             .get_summary()
             .await
             .map_err(|e| AppError::Database(e.to_string()))?;
 
-        let result = summary.by_split_type
+        let result = summary
+            .by_split_type
             .into_iter()
             .map(|s| SplitTypeAvailability {
                 split_type: convert_to_local_split(s.split_type),
-                available: s.available,
+                available: if Self::ensure_issuance_ready().is_err() {
+                    0
+                } else {
+                    s.available
+                },
                 claimed: s.claimed,
                 total: s.total,
             })
@@ -417,7 +485,7 @@ fn convert_to_local_summary(api_summary: uno_api::models::LicenseSummary) -> Lic
     LicenseSummary {
         total: api_summary.total,
         claimed: api_summary.claimed,
-        unclaimed: api_summary.available,  // uno-api uses 'available', uno-app uses 'unclaimed'
+        unclaimed: api_summary.available, // uno-api uses 'available', uno-app uses 'unclaimed'
         expired: api_summary.expired,
         by_split_type: api_summary
             .by_split_type
@@ -426,7 +494,7 @@ fn convert_to_local_summary(api_summary: uno_api::models::LicenseSummary) -> Lic
                 split_type: convert_to_local_split(s.split_type),
                 total: s.total,
                 claimed: s.claimed,
-                unclaimed: s.available,  // uno-api uses 'available', uno-app uses 'unclaimed'
+                unclaimed: s.available, // uno-api uses 'available', uno-app uses 'unclaimed'
             })
             .collect(),
     }

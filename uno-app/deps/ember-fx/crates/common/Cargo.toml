@@ -1,4 +1,5 @@
 [package]
+workspace = "../../../../.."
 name = "ember-fx-common"
 description = "Shared types, traits, and constants for ember-fx"
 version.workspace = true

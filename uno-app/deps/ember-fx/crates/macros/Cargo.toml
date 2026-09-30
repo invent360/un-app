@@ -1,4 +1,5 @@
 [package]
+workspace = "../../../../.."
 name = "ember-fx-macros"
 description = "Procedural and declarative macros for ember-fx"
 version.workspace = true

@@ -5,12 +5,11 @@
 //! SECURITY: All mutating operations require authentication. User identity is
 //! extracted from the request context, not from client-provided parameters.
 
-use leptos::prelude::*;
 use crate::types::{
-    ContentReview, PreviewToken, ReviewWithContent, PendingReviewsResponse,
-    PublishResult, PublishError, VersionDiff, ContentChange, ChangeType,
-    ContentVersion,
+    ChangeType, ContentChange, ContentReview, ContentVersion, PendingReviewsResponse, PreviewToken,
+    PublishError, PublishResult, ReviewWithContent, VersionDiff,
 };
+use leptos::prelude::*;
 
 /// Submit content version for review
 ///
@@ -23,11 +22,11 @@ pub async fn submit_for_review(
     submitted_by: String,
     notes: Option<String>,
 ) -> Result<ContentReview, ServerFnError> {
-    use actix_web::{web::Data, HttpRequest};
-    use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
     use crate::server::extractors::auth::get_authenticated_user;
     use crate::types::SubmitReviewRequest;
+    use actix_web::{web::Data, HttpRequest};
+    use leptos_actix::extract;
 
     // SECURITY: Extract authenticated user from request context
     let req: HttpRequest = extract().await?;
@@ -35,6 +34,10 @@ pub async fn submit_for_review(
         .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
 
     // Use authenticated user ID, not client-provided value
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentWrite)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
     let verified_submitter = auth_user.id;
     tracing::info!(
         authenticated_user = %verified_submitter,
@@ -50,7 +53,8 @@ pub async fn submit_for_review(
         notes,
     };
 
-    let review = factory.review_repository
+    let review = factory
+        .review_repository
         .submit_for_review(&request)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -68,16 +72,20 @@ pub async fn approve_review(
     reviewed_by: String,
     notes: Option<String>,
 ) -> Result<ContentReview, ServerFnError> {
-    use actix_web::{web::Data, HttpRequest};
-    use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
     use crate::server::extractors::auth::get_authenticated_user;
-    use crate::types::{ReviewDecisionRequest, ReviewDecision};
+    use crate::types::{ReviewDecision, ReviewDecisionRequest};
+    use actix_web::{web::Data, HttpRequest};
+    use leptos_actix::extract;
 
     // SECURITY: Extract authenticated user
     let req: HttpRequest = extract().await?;
     let auth_user = get_authenticated_user(&req)
         .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentReview)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let verified_reviewer = auth_user.id;
     tracing::info!(
@@ -96,7 +104,8 @@ pub async fn approve_review(
         notes,
     };
 
-    let review = factory.review_repository
+    let review = factory
+        .review_repository
         .process_decision(&request)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -114,20 +123,26 @@ pub async fn request_changes(
     reviewed_by: String,
     notes: String,
 ) -> Result<ContentReview, ServerFnError> {
-    use actix_web::{web::Data, HttpRequest};
-    use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
     use crate::server::extractors::auth::get_authenticated_user;
-    use crate::types::{ReviewDecisionRequest, ReviewDecision};
+    use crate::types::{ReviewDecision, ReviewDecisionRequest};
+    use actix_web::{web::Data, HttpRequest};
+    use leptos_actix::extract;
 
     if notes.trim().is_empty() {
-        return Err(ServerFnError::new("Notes are required when requesting changes"));
+        return Err(ServerFnError::new(
+            "Notes are required when requesting changes",
+        ));
     }
 
     // SECURITY: Extract authenticated user
     let req: HttpRequest = extract().await?;
     let auth_user = get_authenticated_user(&req)
         .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentReview)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let verified_reviewer = auth_user.id;
 
@@ -140,7 +155,8 @@ pub async fn request_changes(
         notes: Some(notes),
     };
 
-    let review = factory.review_repository
+    let review = factory
+        .review_repository
         .process_decision(&request)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -158,16 +174,20 @@ pub async fn reject_review(
     reviewed_by: String,
     notes: Option<String>,
 ) -> Result<ContentReview, ServerFnError> {
-    use actix_web::{web::Data, HttpRequest};
-    use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
     use crate::server::extractors::auth::get_authenticated_user;
-    use crate::types::{ReviewDecisionRequest, ReviewDecision};
+    use crate::types::{ReviewDecision, ReviewDecisionRequest};
+    use actix_web::{web::Data, HttpRequest};
+    use leptos_actix::extract;
 
     // SECURITY: Extract authenticated user
     let req: HttpRequest = extract().await?;
     let auth_user = get_authenticated_user(&req)
         .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentReview)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let verified_reviewer = auth_user.id;
 
@@ -180,7 +200,8 @@ pub async fn reject_review(
         notes,
     };
 
-    let review = factory.review_repository
+    let review = factory
+        .review_repository
         .process_decision(&request)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -193,13 +214,21 @@ pub async fn reject_review(
 pub async fn get_pending_reviews(
     limit: Option<i32>,
 ) -> Result<PendingReviewsResponse, ServerFnError> {
+    use crate::server::app::ServiceFactory;
     use actix_web::web::Data;
     use leptos_actix::extract;
-    use crate::server::app::ServiceFactory;
+
+    let req: actix_web::HttpRequest = extract().await?;
+    let auth_user = crate::server::extractors::auth::get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentReview)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let factory: Data<ServiceFactory> = extract().await?;
 
-    let reviews = factory.review_repository
+    let reviews = factory
+        .review_repository
         .get_pending_reviews(limit)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -215,13 +244,22 @@ pub async fn get_my_submissions(
     submitter: String,
     limit: Option<i32>,
 ) -> Result<Vec<ReviewWithContent>, ServerFnError> {
+    use crate::server::app::ServiceFactory;
     use actix_web::web::Data;
     use leptos_actix::extract;
-    use crate::server::app::ServiceFactory;
+
+    let req: actix_web::HttpRequest = extract().await?;
+    let auth_user = crate::server::extractors::auth::get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentRead)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let submitter = auth_user.id;
 
     let factory: Data<ServiceFactory> = extract().await?;
 
-    let reviews = factory.review_repository
+    let reviews = factory
+        .review_repository
         .get_reviews_by_submitter(&submitter, limit)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -239,15 +277,19 @@ pub async fn create_preview_token(
     created_by: String,
     expires_in_hours: Option<i32>,
 ) -> Result<PreviewToken, ServerFnError> {
-    use actix_web::{web::Data, HttpRequest};
-    use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
     use crate::server::extractors::auth::get_authenticated_user;
+    use actix_web::{web::Data, HttpRequest};
+    use leptos_actix::extract;
 
     // SECURITY: Extract authenticated user
     let req: HttpRequest = extract().await?;
     let auth_user = get_authenticated_user(&req)
         .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentRead)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let verified_creator = auth_user.id;
 
@@ -255,7 +297,8 @@ pub async fn create_preview_token(
 
     let hours = expires_in_hours.unwrap_or(24);
 
-    let token = factory.review_repository
+    let token = factory
+        .review_repository
         .create_preview_token(version_id, &verified_creator, hours)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -265,17 +308,16 @@ pub async fn create_preview_token(
 
 /// Get preview content by token
 #[server(GetPreviewContent, "/api")]
-pub async fn get_preview_content(
-    token: String,
-) -> Result<Option<ContentVersion>, ServerFnError> {
+pub async fn get_preview_content(token: String) -> Result<Option<ContentVersion>, ServerFnError> {
+    use crate::server::app::ServiceFactory;
     use actix_web::web::Data;
     use leptos_actix::extract;
-    use crate::server::app::ServiceFactory;
 
     let factory: Data<ServiceFactory> = extract().await?;
 
     // Validate the token
-    let preview_token = factory.review_repository
+    let preview_token = factory
+        .review_repository
         .validate_preview_token(&token)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -283,7 +325,8 @@ pub async fn get_preview_content(
     match preview_token {
         Some(pt) => {
             // Get the version content by version ID
-            let version = factory.content_service
+            let version = factory
+                .content_service
                 .get_version_by_id(pt.version_id)
                 .await
                 .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -304,15 +347,19 @@ pub async fn publish_direct(
     _published_by: String,
     commit_message: Option<String>,
 ) -> Result<PublishResult, ServerFnError> {
-    use actix_web::{web::Data, HttpRequest};
-    use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
     use crate::server::extractors::auth::get_authenticated_user;
+    use actix_web::{web::Data, HttpRequest};
+    use leptos_actix::extract;
 
     // SECURITY: Extract authenticated user
     let req: HttpRequest = extract().await?;
     let auth_user = get_authenticated_user(&req)
         .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentOverride)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let verified_publisher = auth_user.id;
     tracing::info!(
@@ -324,7 +371,8 @@ pub async fn publish_direct(
     let factory: Data<ServiceFactory> = extract().await?;
 
     // Get the content to verify it exists
-    let content = factory.content_service
+    let content = factory
+        .content_service
         .get_by_id(content_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -342,7 +390,8 @@ pub async fn publish_direct(
     }
 
     // Publish the content
-    factory.content_service
+    factory
+        .content_service
         .publish(content_id, Some(&verified_publisher))
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -350,7 +399,11 @@ pub async fn publish_direct(
     // If commit message provided, create a version note
     if let Some(_msg) = commit_message {
         // The publish already updates the version, so we just log it
-        tracing::info!("Direct publish of content {} by {}", content_id, verified_publisher);
+        tracing::info!(
+            "Direct publish of content {} by {}",
+            content_id,
+            verified_publisher
+        );
     }
 
     Ok(PublishResult {
@@ -370,15 +423,19 @@ pub async fn publish_approved(
     content_ids: Vec<i32>,
     _published_by: String,
 ) -> Result<PublishResult, ServerFnError> {
-    use actix_web::{web::Data, HttpRequest};
-    use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
     use crate::server::extractors::auth::get_authenticated_user;
+    use actix_web::{web::Data, HttpRequest};
+    use leptos_actix::extract;
 
     // SECURITY: Extract authenticated user
     let req: HttpRequest = extract().await?;
     let auth_user = get_authenticated_user(&req)
         .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentPublish)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let verified_publisher = auth_user.id;
     tracing::info!(
@@ -395,7 +452,8 @@ pub async fn publish_approved(
 
     for content_id in content_ids {
         // Get content to check status
-        let content = factory.content_service
+        let content = factory
+            .content_service
             .get_by_id(content_id)
             .await
             .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -403,16 +461,17 @@ pub async fn publish_approved(
         match content {
             Some(c) => {
                 // Check if approved or draft (direct publish allowed)
-                if c.status != "approved" && c.status != "draft" {
+                if c.status != "approved" {
                     errors.push(PublishError {
                         content_id,
-                        error: format!("Content status is '{}', expected 'approved' or 'draft'", c.status),
+                        error: format!("Content status is '{}', expected 'approved'", c.status),
                     });
                     failed_count += 1;
                     continue;
                 }
 
-                match factory.content_service
+                match factory
+                    .content_service
                     .publish(content_id, Some(&verified_publisher))
                     .await
                 {
@@ -451,20 +510,29 @@ pub async fn compare_versions(
     version_a: i32,
     version_b: i32,
 ) -> Result<VersionDiff, ServerFnError> {
+    use crate::server::app::ServiceFactory;
     use actix_web::web::Data;
     use leptos_actix::extract;
-    use crate::server::app::ServiceFactory;
+
+    let req: actix_web::HttpRequest = extract().await?;
+    let auth_user = crate::server::extractors::auth::get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentRead)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let factory: Data<ServiceFactory> = extract().await?;
 
     // Get both versions
-    let ver_a = factory.content_service
+    let ver_a = factory
+        .content_service
         .get_version(content_id, version_a)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
         .ok_or_else(|| ServerFnError::new(format!("Version {} not found", version_a)))?;
 
-    let ver_b = factory.content_service
+    let ver_b = factory
+        .content_service
         .get_version(content_id, version_b)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -583,13 +651,21 @@ pub async fn get_version_history(
     content_id: i32,
     limit: Option<i32>,
 ) -> Result<Vec<ContentVersion>, ServerFnError> {
+    use crate::server::app::ServiceFactory;
     use actix_web::web::Data;
     use leptos_actix::extract;
-    use crate::server::app::ServiceFactory;
+
+    let req: actix_web::HttpRequest = extract().await?;
+    let auth_user = crate::server::extractors::auth::get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentRead)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let factory: Data<ServiceFactory> = extract().await?;
 
-    let mut versions = factory.content_service
+    let mut versions = factory
+        .content_service
         .get_versions(content_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -612,15 +688,19 @@ pub async fn revert_to_version(
     version: i32,
     _reverted_by: String,
 ) -> Result<ContentVersion, ServerFnError> {
-    use actix_web::{web::Data, HttpRequest};
-    use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
     use crate::server::extractors::auth::get_authenticated_user;
+    use actix_web::{web::Data, HttpRequest};
+    use leptos_actix::extract;
 
     // SECURITY: Extract authenticated user
     let req: HttpRequest = extract().await?;
     let auth_user = get_authenticated_user(&req)
         .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    auth_user
+        .require(crate::server::extractors::auth::Permission::ContentWrite)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let verified_user = auth_user.id;
     tracing::info!(
@@ -632,17 +712,21 @@ pub async fn revert_to_version(
 
     let factory: Data<ServiceFactory> = extract().await?;
 
-    let _content = factory.content_service
+    let _content = factory
+        .content_service
         .revert_to_version(content_id, version, Some(&verified_user))
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     // Return the new version that was created
-    let versions = factory.content_service
+    let versions = factory
+        .content_service
         .get_versions(content_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    versions.first().cloned()
+    versions
+        .first()
+        .cloned()
         .ok_or_else(|| ServerFnError::new("Failed to get reverted version"))
 }

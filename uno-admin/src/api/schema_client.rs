@@ -64,11 +64,19 @@ mod ssr_impl {
             // Support both ADMIN_* and UNO_* env var names
             let client_id = std::env::var("ADMIN_CLIENT_ID")
                 .or_else(|_| std::env::var("UNO_CLIENT_ID"))
-                .map_err(|_| SchemaClientError::Config("ADMIN_CLIENT_ID or UNO_CLIENT_ID not set".to_string()))?;
+                .map_err(|_| {
+                    SchemaClientError::Config(
+                        "ADMIN_CLIENT_ID or UNO_CLIENT_ID not set".to_string(),
+                    )
+                })?;
 
             let secret_key = std::env::var("ADMIN_SECRET_KEY")
                 .or_else(|_| std::env::var("UNO_SECRET_KEY"))
-                .map_err(|_| SchemaClientError::Config("ADMIN_SECRET_KEY or UNO_SECRET_KEY not set".to_string()))?;
+                .map_err(|_| {
+                    SchemaClientError::Config(
+                        "ADMIN_SECRET_KEY or UNO_SECRET_KEY not set".to_string(),
+                    )
+                })?;
 
             Ok(Self {
                 http_client: reqwest::Client::new(),
@@ -79,15 +87,18 @@ mod ssr_impl {
         }
 
         /// Sign a request with HMAC-SHA256
-        fn sign<T: Serialize>(&self, payload: &T) -> Result<SignedRequest<T>, SchemaClientError>
-        where
-            T: Clone,
-        {
+        fn sign<T: Serialize + Clone>(
+            &self,
+            payload: &T,
+        ) -> Result<SignedRequest<T>, SchemaClientError> {
             let timestamp = Utc::now().timestamp();
             let nonce = Uuid::new_v4().to_string();
             let payload_json = serde_json::to_string(payload)?;
 
-            let message = format!("{}:{}:{}:{}", self.client_id, timestamp, nonce, payload_json);
+            let message = format!(
+                "{}:{}:{}:{}",
+                self.client_id, timestamp, nonce, payload_json
+            );
 
             let mut mac = HmacSha256::new_from_slice(&self.secret_key)
                 .map_err(|e| SchemaClientError::Config(format!("Invalid key: {}", e)))?;
@@ -218,7 +229,10 @@ mod ssr_impl {
 
             let response = self
                 .http_client
-                .post(format!("{}/api/v1/admin/schemas/{}/delete", self.base_url, id))
+                .post(format!(
+                    "{}/api/v1/admin/schemas/{}/delete",
+                    self.base_url, id
+                ))
                 .json(&signed)
                 .send()
                 .await?;
@@ -258,7 +272,10 @@ mod ssr_impl {
         }
 
         /// Get content item by ID
-        pub async fn get_item(&self, id: &str) -> Result<ContentItemDetailResponse, SchemaClientError> {
+        pub async fn get_item(
+            &self,
+            id: &str,
+        ) -> Result<ContentItemDetailResponse, SchemaClientError> {
             let signed = self.sign(&serde_json::json!({}))?;
 
             let response = self
@@ -327,7 +344,10 @@ mod ssr_impl {
 
             let response = self
                 .http_client
-                .post(format!("{}/api/v1/admin/items/{}/delete", self.base_url, id))
+                .post(format!(
+                    "{}/api/v1/admin/items/{}/delete",
+                    self.base_url, id
+                ))
                 .json(&signed)
                 .send()
                 .await?;
@@ -346,7 +366,10 @@ mod ssr_impl {
 
             let response = self
                 .http_client
-                .post(format!("{}/api/v1/admin/items/{}/publish", self.base_url, id))
+                .post(format!(
+                    "{}/api/v1/admin/items/{}/publish",
+                    self.base_url, id
+                ))
                 .json(&signed)
                 .send()
                 .await?;
@@ -365,7 +388,10 @@ mod ssr_impl {
 
             let response = self
                 .http_client
-                .post(format!("{}/api/v1/admin/items/{}/archive", self.base_url, id))
+                .post(format!(
+                    "{}/api/v1/admin/items/{}/archive",
+                    self.base_url, id
+                ))
                 .json(&signed)
                 .send()
                 .await?;
@@ -387,7 +413,10 @@ mod ssr_impl {
 
             let response = self
                 .http_client
-                .post(format!("{}/api/v1/admin/items/{}/versions", self.base_url, id))
+                .post(format!(
+                    "{}/api/v1/admin/items/{}/versions",
+                    self.base_url, id
+                ))
                 .json(&signed)
                 .send()
                 .await?;
@@ -415,7 +444,10 @@ mod ssr_impl {
 
             let response = self
                 .http_client
-                .post(format!("{}/api/v1/admin/items/{}/revert", self.base_url, id))
+                .post(format!(
+                    "{}/api/v1/admin/items/{}/revert",
+                    self.base_url, id
+                ))
                 .json(&signed)
                 .send()
                 .await?;
@@ -442,7 +474,10 @@ mod ssr_impl {
 
             let response = self
                 .http_client
-                .put(format!("{}/api/v1/admin/items/{}/schedule", self.base_url, id))
+                .put(format!(
+                    "{}/api/v1/admin/items/{}/schedule",
+                    self.base_url, id
+                ))
                 .json(&signed)
                 .send()
                 .await?;
@@ -471,7 +506,10 @@ mod ssr_impl {
 
             let response = self
                 .http_client
-                .put(format!("{}/api/v1/admin/items/{}/translations", self.base_url, id))
+                .put(format!(
+                    "{}/api/v1/admin/items/{}/translations",
+                    self.base_url, id
+                ))
                 .json(&signed)
                 .send()
                 .await?;
@@ -496,8 +534,7 @@ use server_fn::codec::PostUrl;
 /// Fetch all schemas
 #[server(GetSchemas, "/api", endpoint = "get_schemas")]
 pub async fn get_schemas() -> Result<Vec<ContentSchema>, ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     client
         .get_schemas()
@@ -508,8 +545,7 @@ pub async fn get_schemas() -> Result<Vec<ContentSchema>, ServerFnError> {
 /// Fetch a single schema by ID
 #[server(GetSchema, "/api", endpoint = "get_schema")]
 pub async fn get_schema(id: String) -> Result<ContentSchema, ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     client
         .get_schema(&id)
@@ -524,11 +560,10 @@ pub async fn create_schema(
     name: String,
     name_plural: String,
     description: Option<String>,
-    fields: String,  // JSON string of Vec<FieldDefinition>
-    settings: String,  // JSON string of SchemaSettings
+    fields: String,   // JSON string of Vec<FieldDefinition>
+    settings: String, // JSON string of SchemaSettings
 ) -> Result<SchemaOperationResponse, ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let fields_value: Vec<FieldDefinition> = serde_json::from_str(&fields)
         .map_err(|e| ServerFnError::new(format!("Invalid fields JSON: {}", e)))?;
@@ -545,7 +580,7 @@ pub async fn create_schema(
         icon: None,
         fields: fields_value,
         settings: settings_value,
-        version: 1,  // New schemas start at version 1
+        version: 1, // New schemas start at version 1
         is_system: false,
         created_at: now,
         updated_at: now,
@@ -564,14 +599,13 @@ pub async fn update_schema(
     name: String,
     name_plural: String,
     description: Option<String>,
-    fields: String,  // JSON string of Vec<FieldDefinition>
-    settings: String,  // JSON string of SchemaSettings
+    fields: String,   // JSON string of Vec<FieldDefinition>
+    settings: String, // JSON string of SchemaSettings
     version: i32,
     is_system: bool,
-    created_at: String,  // ISO 8601 string, will be parsed
+    created_at: String, // ISO 8601 string, will be parsed
 ) -> Result<SchemaOperationResponse, ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let fields_value: Vec<FieldDefinition> = serde_json::from_str(&fields)
         .map_err(|e| ServerFnError::new(format!("Invalid fields JSON: {}", e)))?;
@@ -579,7 +613,8 @@ pub async fn update_schema(
     let settings_value: SchemaSettings = serde_json::from_str(&settings)
         .map_err(|e| ServerFnError::new(format!("Invalid settings JSON: {}", e)))?;
 
-    let created_at_dt: chrono::DateTime<chrono::Utc> = created_at.parse()
+    let created_at_dt: chrono::DateTime<chrono::Utc> = created_at
+        .parse()
         .map_err(|e| ServerFnError::new(format!("Invalid created_at: {}", e)))?;
 
     let request = UpsertSchemaRequest {
@@ -605,8 +640,7 @@ pub async fn update_schema(
 /// Delete a schema
 #[server(DeleteSchema, "/api", endpoint = "delete_schema")]
 pub async fn delete_schema(id: String) -> Result<(), ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     client
         .delete_schema(&id)
@@ -623,8 +657,7 @@ pub async fn list_content_items(
     page: Option<i32>,
     per_page: Option<i32>,
 ) -> Result<ContentItemListResponse, ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let status_enum = status.and_then(|s| match s.as_str() {
         "draft" => Some(ContentItemStatus::Draft),
@@ -654,8 +687,7 @@ pub async fn list_content_items(
 /// Get a content item by ID with its schema
 #[server(GetContentItem, "/api", endpoint = "get_content_item")]
 pub async fn get_content_item(id: String) -> Result<ContentItemDetailResponse, ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     client
         .get_item(&id)
@@ -672,17 +704,16 @@ pub async fn save_content_item(
     id: Option<String>,
     schema_id: String,
     slug: Option<String>,
-    data: String,  // JSON string
-    translations: Option<String>,  // JSON string
+    data: String,                 // JSON string
+    translations: Option<String>, // JSON string
     is_featured: Option<bool>,
     display_order: Option<i32>,
     change_summary: Option<String>,
-    task_status: Option<String>,  // Task status for task-type content
+    task_status: Option<String>, // Task status for task-type content
 ) -> Result<String, ServerFnError> {
     use crate::utils::base64_converter::{contains_base64_data, convert_base64_to_gcs};
 
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let mut data_value: serde_json::Value = serde_json::from_str(&data)
         .map_err(|e| ServerFnError::new(format!("Invalid data JSON: {}", e)))?;
@@ -694,13 +725,12 @@ pub async fn save_content_item(
         let storage_client = file_storage::create_client_from_env()
             .map_err(|e| ServerFnError::new(format!("Failed to create storage client: {}", e)))?;
 
-        let converted_count = convert_base64_to_gcs(
-            &mut data_value,
-            &schema_id,
-            storage_client.as_ref(),
-        )
-        .await
-        .map_err(|e| ServerFnError::new(format!("Failed to convert base64 to GCS: {}", e)))?;
+        let converted_count =
+            convert_base64_to_gcs(&mut data_value, &schema_id, storage_client.as_ref())
+                .await
+                .map_err(|e| {
+                    ServerFnError::new(format!("Failed to convert base64 to GCS: {}", e))
+                })?;
 
         tracing::info!("Converted {} base64 images to GCS URLs", converted_count);
     }
@@ -734,8 +764,7 @@ pub async fn save_content_item(
 /// Delete a content item
 #[server(DeleteContentItem, "/api", endpoint = "delete_content_item")]
 pub async fn delete_content_item(id: String) -> Result<(), ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     client
         .delete_item(&id)
@@ -746,8 +775,7 @@ pub async fn delete_content_item(id: String) -> Result<(), ServerFnError> {
 /// Publish a content item
 #[server(PublishContentItem, "/api", endpoint = "publish_content_item")]
 pub async fn publish_content_item(id: String) -> Result<(), ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     client
         .publish_item(&id)
@@ -759,8 +787,7 @@ pub async fn publish_content_item(id: String) -> Result<(), ServerFnError> {
 /// Archive a content item
 #[server(ArchiveContentItem, "/api", endpoint = "archive_content_item")]
 pub async fn archive_content_item(id: String) -> Result<(), ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     client
         .archive_item(&id)
@@ -774,8 +801,7 @@ pub async fn archive_content_item(id: String) -> Result<(), ServerFnError> {
 pub async fn get_content_item_versions(
     id: String,
 ) -> Result<Vec<ContentItemVersion>, ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     client
         .get_item_versions(&id)
@@ -786,8 +812,7 @@ pub async fn get_content_item_versions(
 /// Revert to a specific version
 #[server(RevertContentItem, "/api", endpoint = "revert_content_item")]
 pub async fn revert_content_item(id: String, version: i32) -> Result<(), ServerFnError> {
-    let client = SchemaClient::from_env()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let client = SchemaClient::from_env().map_err(|e| ServerFnError::new(e.to_string()))?;
 
     client
         .revert_item(&id, version)
@@ -815,6 +840,9 @@ pub fn register_schema_server_fns() {
     println!("  DeleteContentItem: {}", DeleteContentItem::url());
     println!("  PublishContentItem: {}", PublishContentItem::url());
     println!("  ArchiveContentItem: {}", ArchiveContentItem::url());
-    println!("  GetContentItemVersions: {}", GetContentItemVersions::url());
+    println!(
+        "  GetContentItemVersions: {}",
+        GetContentItemVersions::url()
+    );
     println!("  RevertContentItem: {}", RevertContentItem::url());
 }

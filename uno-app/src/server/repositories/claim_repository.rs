@@ -31,7 +31,8 @@ pub struct ClaimedLicense {
 /// Reservation result returned by atomic_reserve
 #[derive(Debug, Clone)]
 pub struct ReservationResult {
-    pub license_id: Uuid,
+    /// License ID (can be UUID or blockchain hex format)
+    pub license_id: String,
     pub lease_code: String,
     pub session_token: String,
     pub expires_at: DateTime<Utc>,
@@ -42,7 +43,8 @@ pub struct ReservationResult {
 /// Claim result returned by atomic_confirm
 #[derive(Debug, Clone)]
 pub struct ClaimResult {
-    pub license_id: Uuid,
+    /// License ID (can be UUID or blockchain hex format)
+    pub license_id: String,
     pub lease_code: String,
     pub claimed_at: DateTime<Utc>,
     pub referral_id: Option<i32>,
@@ -90,7 +92,7 @@ pub trait ClaimRepository: Send + Sync {
     /// Referral attribution is immutable - once set, cannot be changed
     async fn atomic_confirm(
         &self,
-        license_id: Uuid,
+        license_id: &str,
         session_token: &str,
         device_id: Option<&str>,
         referral_id: Option<i32>,
@@ -99,7 +101,7 @@ pub trait ClaimRepository: Send + Sync {
     /// Release an expired or abandoned reservation
     async fn release_reservation(
         &self,
-        license_id: Uuid,
+        license_id: &str,
         session_token: &str,
     ) -> Result<(), AppError>;
 
@@ -108,7 +110,7 @@ pub trait ClaimRepository: Send + Sync {
     async fn cleanup_expired_reservations(&self) -> Result<u64, AppError>;
 
     /// Check if a license has an active (non-expired) reservation
-    async fn has_active_reservation(&self, license_id: Uuid) -> Result<bool, AppError>;
+    async fn has_active_reservation(&self, license_id: &str) -> Result<bool, AppError>;
 
     /// Get the current agreement version for referral attribution
     async fn get_current_agreement_version(&self) -> Result<i32, AppError>;
@@ -313,7 +315,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
             SET reserved_until = $2, reservation_token = $3
             WHERE id = $1
         "#)
-        .bind(license.id)
+        .bind(&license.id)
         .bind(expires_at)
         .bind(&session_token)
         .execute(&mut *tx)
@@ -326,7 +328,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
             ON CONFLICT (license_id) DO UPDATE
             SET session_token = $2, reserved_at = $3, expires_at = $4, status = 'active', released_at = NULL
         "#)
-        .bind(license.id.to_string())
+        .bind(&license.id)
         .bind(&session_token)
         .bind(now)
         .bind(expires_at)
@@ -349,7 +351,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
 
     async fn atomic_confirm(
         &self,
-        license_id: Uuid,
+        license_id: &str,
         session_token: &str,
         device_id: Option<&str>,
         referral_id: Option<i32>,
@@ -366,7 +368,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
             FROM license_reservations
             WHERE license_id = $1
         "#)
-        .bind(license_id.to_string())
+        .bind(license_id)
         .fetch_optional(&mut *tx)
         .await?;
 
@@ -486,7 +488,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
             SET status = 'claimed', claimed_at = $2
             WHERE license_id = $1 AND session_token = $3
         "#)
-        .bind(license_id.to_string())
+        .bind(license_id)
         .bind(now)
         .bind(session_token)
         .execute(&mut *tx)
@@ -517,7 +519,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
 
     async fn release_reservation(
         &self,
-        license_id: Uuid,
+        license_id: &str,
         session_token: &str,
     ) -> Result<(), AppError> {
         let now = Utc::now();
@@ -539,7 +541,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
             SET status = 'released', released_at = $3
             WHERE license_id = $1 AND session_token = $2
         "#)
-        .bind(license_id.to_string())
+        .bind(license_id)
         .bind(session_token)
         .bind(now)
         .execute(&self.db_pool)
@@ -576,7 +578,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
         Ok(cleared)
     }
 
-    async fn has_active_reservation(&self, license_id: Uuid) -> Result<bool, AppError> {
+    async fn has_active_reservation(&self, license_id: &str) -> Result<bool, AppError> {
         let now = Utc::now();
 
         let result: (bool,) = sqlx::query_as(r#"
@@ -612,7 +614,8 @@ impl ClaimRepository for ClaimRepositoryImpl {
 
 #[derive(Debug, sqlx::FromRow)]
 struct LicenseReserveRow {
-    id: Uuid,
+    // Use String for id to handle both UUID and blockchain hex formats
+    id: String,
     lease_code: String,
     split_type: String,
 }
@@ -634,7 +637,8 @@ struct LicenseCheckRow {
 
 #[derive(Debug, sqlx::FromRow)]
 struct ClaimResultRow {
-    id: Uuid,
+    // Use String for id to handle both UUID and blockchain hex formats
+    id: String,
     lease_code: String,
     claimed_at: Option<DateTime<Utc>>,
     referral_id: Option<i32>,

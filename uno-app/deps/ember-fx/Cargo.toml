@@ -70,7 +70,7 @@ serde_json = "1.0"
 log = "0.4"
 
 # Build dependencies
-lightningcss = "1.0.0-alpha.71"
+lightningcss = { version = "1.0.0-alpha.71", default-features = false }
 walkdir = "2.5"
 
 # Macro dependencies

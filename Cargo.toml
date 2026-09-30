@@ -1,0 +1,88 @@
+[workspace]
+resolver = "2"
+members = ["uno-app", "uno-admin", "uno-api", "file-storage"]
+exclude = ["deps/ember-multichain"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/polkanight/ember-fx"
+
+[workspace.dependencies]
+uno-api = { path = "uno-api", default-features = false }
+file-storage = { path = "file-storage", default-features = false, features = ["local"] }
+
+# Internal crates
+ember-fx-common = { path = "uno-app/deps/ember-fx/crates/common" }
+ember-fx-utils = { path = "uno-app/deps/ember-fx/crates/utils" }
+ember-fx-macros = { path = "uno-app/deps/ember-fx/crates/macros" }
+ember-fx-core = { path = "uno-app/deps/ember-fx/crates/core" }
+ember-fx-styles = { path = "uno-app/deps/ember-fx/crates/styles" }
+ember-fx-icons = { path = "uno-app/deps/ember-fx/crates/icons" }
+ember-fx-systems = { path = "uno-app/deps/ember-fx/crates/systems" }
+ember-fx-components = { path = "uno-app/deps/ember-fx/crates/components" }
+ember-fx-tools = { path = "uno-app/deps/ember-fx/crates/tools" }
+ember-fx-mobile = { path = "uno-app/deps/ember-fx/crates/mobile" }
+ember-fx-layouts = { path = "uno-app/deps/ember-fx/crates/layouts" }
+
+# External dependencies
+leptos = "0.8"
+leptos_router = "0.8"
+web-sys = { version = "0.3", features = [
+    "Document",
+    "Element",
+    "Event",
+    "EventTarget",
+    "HtmlElement",
+    "HtmlStyleElement",
+    "HtmlInputElement",
+    "Window",
+    "Navigator",
+    "Node",
+    "NodeList",
+    "CssStyleSheet",
+    "StyleSheetList",
+    "File",
+    "FileList",
+    "DataTransfer",
+    "DragEvent",
+    "DomRect",
+    "MouseEvent",
+    "TouchEvent",
+    "Touch",
+    "TouchList",
+] }
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+gloo-storage = "0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+
+# Build dependencies
+lightningcss = { version = "1.0.0-alpha.71", default-features = false }
+walkdir = "2.5"
+
+# Macro dependencies
+syn = "2.0"
+quote = "1.0"
+proc-macro2 = "1.0"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "deny"
+undocumented_unsafe_blocks = "deny"
+await_holding_lock = "deny"
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+panic = "abort"
+strip = true
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"

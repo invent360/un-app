@@ -1,7 +1,7 @@
 //! PostgreSQL connection pool using SQLx with ConnectionManager pattern
 
-use sqlx::{Pool, Postgres};
 use sqlx::postgres::PgPoolOptions;
+use sqlx::{Pool, Postgres};
 use std::env;
 use std::time::Duration;
 
@@ -29,7 +29,10 @@ impl ConnectionManager {
             .connect(connection_url)
             .await?;
 
-        println!("Database pool created with max {} connections", max_connections);
+        println!(
+            "Database pool created with max {} connections",
+            max_connections
+        );
 
         if run_migrations {
             println!("Running database migrations...");
@@ -46,7 +49,7 @@ impl ConnectionManager {
     /// Create pool from environment variable DATABASE_URL
     pub async fn from_env(run_migrations: bool) -> Result<ConnectionPool, sqlx::Error> {
         let database_url = env::var("DATABASE_URL")
-            .unwrap_or_else(|_| "postgres://user:password@localhost:5438/amba".to_string());
+            .map_err(|_| sqlx::Error::Configuration("DATABASE_URL is required".into()))?;
 
         Self::new_pool(&database_url, run_migrations).await
     }

@@ -1,86 +1,27 @@
-# UNO App Local Build Dockerfile
-# For building with local path dependencies
-
-# =============================================================================
-# Stage 1: Build Environment
-# =============================================================================
-FROM rustlang/rust:nightly-bookworm-slim AS builder
-
-# Install build dependencies (perl-modules and make needed for OpenSSL build)
-RUN apt-get update && apt-get install -y \
-    pkg-config \
-    libssl-dev \
-    curl \
-    perl \
-    libfindbin-libs-perl \
-    make \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install wasm target and cargo-leptos (latest version)
-RUN rustup target add wasm32-unknown-unknown
-RUN cargo install cargo-leptos --locked
-
-# Create app directory
-WORKDIR /app
-
-# Copy local dependencies FIRST (for better caching)
-COPY deps ./deps
-
-# Copy Cargo files
-COPY Cargo.toml Cargo.lock ./
+# Build from the repository root: docker build -f uno-app/Dockerfile .
+FROM rust:1.92.0-slim-bookworm AS builder
+ENV CARGO_BUILD_JOBS=1 CARGO_PROFILE_DEV_DEBUG=0
+RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev curl perl make ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY scripts/install_leptos_build_tools.sh /tmp/install_leptos_build_tools.sh
+RUN rustup target add wasm32-unknown-unknown && sh /tmp/install_leptos_build_tools.sh
+WORKDIR /workspace
+COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
 COPY .cargo ./.cargo
+COPY uno-api ./uno-api
+COPY file-storage ./file-storage
+COPY uno-app ./uno-app
+COPY uno-admin ./uno-admin
+RUN cargo leptos build --release --project uno-app --frontend-only --lib-cargo-args=--locked
+RUN CARGO_PROFILE_RELEASE_LTO=off CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 cargo leptos build --release --project uno-app --server-only --bin-cargo-args=--locked
 
-# Rewrite dependency paths for Docker build
-RUN sed -i 's|path = "../../../../Dev-x/polkanight/ember/ember-fx/crates/|path = "./deps/ember-fx/crates/|g' Cargo.toml && \
-    sed -i 's|path = "../uno-api"|path = "./deps/uno-api"|g' Cargo.toml && \
-    sed -i 's|path = "../file-storage"|path = "./deps/file-storage"|g' Cargo.toml
-
-# Copy actual source code
-COPY src ./src
-COPY assets ./assets
-COPY style ./style
-COPY end2end ./end2end
-COPY migrations ./migrations
-
-# Build the application
-RUN cargo leptos build --release
-
-# =============================================================================
-# Stage 2: Runtime Environment
-# =============================================================================
 FROM debian:bookworm-slim AS runtime
-
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    libssl3 \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && useradd -r -s /bin/false -u 1000 uno-app
-
-# Create app directories
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates libssl3 curl && rm -rf /var/lib/apt/lists/* && useradd -r -u 1000 -s /bin/false uno
 WORKDIR /app
-RUN mkdir -p /app/site /data && chown -R uno-app:uno-app /app /data
-
-# Copy built artifacts from builder
-COPY --from=builder --chown=uno-app:uno-app /app/target/release/uno-app /app/
-COPY --from=builder --chown=uno-app:uno-app /app/target/site /app/site
-
-# Set environment variables
-ENV LEPTOS_SITE_ROOT=/app/site
-ENV LEPTOS_ENV=PROD
-ENV RUST_LOG=info
-ENV RUST_BACKTRACE=1
-
-# Expose port
+COPY --from=builder --chown=uno:uno /workspace/target/release/uno-app /app/uno-app
+COPY --from=builder --chown=uno:uno /workspace/target/site/uno-app /app/site
+ENV LEPTOS_SITE_ROOT=/app/site LEPTOS_ENV=PROD RUST_ENV=production RUST_LOG=info FILE_STORAGE_BACKEND=local FILE_STORAGE_LOCAL_PATH=/var/lib/uno-app/media FILE_STORAGE_LOCAL_URL=/files
 EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:3000/api/v1/health || exit 1
-
-# Run as non-root user
-USER uno-app
-
-# Run the application
+# Provision and mount the media volume separately. Do not create /data/uploads here.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD curl -fsS http://localhost:3000/api/v1/ready || exit 1
+USER uno
 CMD ["./uno-app"]

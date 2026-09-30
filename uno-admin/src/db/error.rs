@@ -64,3 +64,9 @@ impl From<DbError> for String {
         err.to_string()
     }
 }
+
+impl From<sqlx::Error> for DbError {
+    fn from(err: sqlx::Error) -> Self {
+        DbError::Query(err.to_string())
+    }
+}

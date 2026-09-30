@@ -80,11 +80,13 @@ async fn acc_01_privileged_routes_deny_unauthorized() {
                 assert!(
                     status == 401 || status == 403,
                     "Route {} {} should deny unauthorized access, got status {}",
-                    method, path, status
+                    method,
+                    path,
+                    status
                 );
             }
             Err(e) => {
-                eprintln!("Server not running or unreachable for {}: {}", path, e);
+                panic!("Required acceptance server unreachable for {}: {}", path, e);
             }
         }
     }
@@ -105,22 +107,24 @@ async fn acc_02_concurrent_claims_exclusive() {
     let claim_results = Arc::new(std::sync::Mutex::new(Vec::new()));
 
     // Simulate 10 concurrent claim attempts
-    let handles: Vec<_> = (0..10).map(|i| {
-        let successful_claims = successful_claims.clone();
-        let claim_results = claim_results.clone();
+    let handles: Vec<_> = (0..10)
+        .map(|i| {
+            let successful_claims = successful_claims.clone();
+            let claim_results = claim_results.clone();
 
-        tokio::spawn(async move {
-            // In a real test, this would call the actual API
-            // For now, we simulate the atomic behavior
-            let simulated_result = simulate_atomic_reserve(i).await;
+            tokio::spawn(async move {
+                // In a real test, this would call the actual API
+                // For now, we simulate the atomic behavior
+                let simulated_result = simulate_atomic_reserve(i).await;
 
-            if simulated_result {
-                successful_claims.fetch_add(1, Ordering::SeqCst);
-            }
+                if simulated_result {
+                    successful_claims.fetch_add(1, Ordering::SeqCst);
+                }
 
-            claim_results.lock().unwrap().push((i, simulated_result));
+                claim_results.lock().unwrap().push((i, simulated_result));
+            })
         })
-    }).collect();
+        .collect();
 
     for handle in handles {
         let _ = handle.await;
@@ -147,7 +151,9 @@ async fn simulate_atomic_reserve(session_id: usize) -> bool {
     tokio::time::sleep(Duration::from_millis(session_id as u64 * 5)).await;
 
     // Atomic compare-and-swap to simulate exclusive acquisition
-    CLAIMED.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok()
+    CLAIMED
+        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+        .is_ok()
 }
 
 // =============================================================================
@@ -228,8 +234,14 @@ async fn acc_04_partial_publication_failures_visible() {
         created: 8,
         failed: 2,
         errors: vec![
-            MockPublishError { index: 3, message: "Duplicate lease code".to_string() },
-            MockPublishError { index: 7, message: "Invalid date range".to_string() },
+            MockPublishError {
+                index: 3,
+                message: "Duplicate lease code".to_string(),
+            },
+            MockPublishError {
+                index: 7,
+                message: "Invalid date range".to_string(),
+            },
         ],
     };
 
@@ -276,13 +288,16 @@ impl MockPublishResult {
 async fn acc_05_split_survives_lifecycle() {
     // Test that 50/40/10 split is preserved through import, publication, allocation, and export
 
-    const ULO_BPS: u32 = 5000;  // 50%
-    const UNO_BPS: u32 = 4000;  // 40%
-    const REF_BPS: u32 = 1000;  // 10%
+    const ULO_BPS: u32 = 5000; // 50%
+    const UNO_BPS: u32 = 4000; // 40%
+    const REF_BPS: u32 = 1000; // 10%
 
     // 1. Import phase: verify split configuration
     let imported_split = (ULO_BPS, UNO_BPS, REF_BPS);
-    assert_eq!(imported_split.0 + imported_split.1 + imported_split.2, 10000);
+    assert_eq!(
+        imported_split.0 + imported_split.1 + imported_split.2,
+        10000
+    );
 
     // 2. Publication phase: verify split stored correctly
     let published_split = imported_split; // Would come from database
@@ -305,7 +320,8 @@ async fn acc_05_split_survives_lifecycle() {
     );
 
     // 4. Export phase: verify split representation
-    let exported = format!("{}:{}:{}",
+    let exported = format!(
+        "{}:{}:{}",
         ulo_micros * 100 / pool_micros,
         final_uno * 100 / pool_micros,
         ref_micros * 100 / pool_micros
@@ -418,20 +434,24 @@ async fn acc_07_large_batch_reconciles() {
 
     // Reasonable page count
     let expected_pages = (total_events + page_size - 1) / page_size;
-    assert_eq!(pages, expected_pages, "Should complete in {} pages", expected_pages);
+    assert_eq!(
+        pages, expected_pages,
+        "Should complete in {} pages",
+        expected_pages
+    );
 }
 
-fn fetch_page_with_cursor(cursor: Option<u32>, page_size: usize, total: usize) -> (Vec<u32>, Option<u32>) {
+fn fetch_page_with_cursor(
+    cursor: Option<u32>,
+    page_size: usize,
+    total: usize,
+) -> (Vec<u32>, Option<u32>) {
     let start = cursor.unwrap_or(0) as usize;
     let end = (start + page_size).min(total);
 
     let batch: Vec<u32> = (start..end).map(|i| i as u32).collect();
 
-    let next_cursor = if end < total {
-        Some(end as u32)
-    } else {
-        None
-    };
+    let next_cursor = if end < total { Some(end as u32) } else { None };
 
     (batch, next_cursor)
 }
@@ -470,10 +490,7 @@ async fn acc_08_security_controls_active() {
 }
 
 fn is_path_traversal(path: &str) -> bool {
-    path.contains("..")
-        || path.contains("%2F")
-        || path.contains("%2f")
-        || path.starts_with('/')
+    path.contains("..") || path.contains("%2F") || path.contains("%2f") || path.starts_with('/')
 }
 
 #[tokio::test]
@@ -490,10 +507,15 @@ async fn acc_08_oversize_rejected() {
     for (size, should_accept) in test_sizes {
         let accepted = size <= max_size;
         assert_eq!(
-            accepted, should_accept,
+            accepted,
+            should_accept,
             "Size {} bytes should be {} but was {}",
             size,
-            if should_accept { "accepted" } else { "rejected" },
+            if should_accept {
+                "accepted"
+            } else {
+                "rejected"
+            },
             if accepted { "accepted" } else { "rejected" }
         );
     }
@@ -512,12 +534,18 @@ async fn acc_09_health_probes_accurate() {
     // Readiness should fail when DB is unavailable
     let db_available = false;
     let readiness_result = check_readiness(db_available);
-    assert!(readiness_result.is_err(), "Readiness should fail when DB is down");
+    assert!(
+        readiness_result.is_err(),
+        "Readiness should fail when DB is down"
+    );
 
     // Readiness should succeed when DB is available
     let db_available = true;
     let readiness_result = check_readiness(db_available);
-    assert!(readiness_result.is_ok(), "Readiness should succeed when DB is up");
+    assert!(
+        readiness_result.is_ok(),
+        "Readiness should succeed when DB is up"
+    );
 }
 
 fn check_liveness() -> Result<(), &'static str> {
@@ -579,7 +607,10 @@ async fn acc_10_migrations_verified() {
 
     // The actual migration validation happens in CI via `sqlx migrate run`
     // This test documents the expected state
-    assert!(true, "Migration structure verified - actual validation in CI");
+    assert!(
+        true,
+        "Migration structure verified - actual validation in CI"
+    );
 }
 
 // =============================================================================
@@ -658,7 +689,7 @@ async fn acc_12_no_tokens_in_artifacts() {
         "password",
         "sk_live_",
         "pk_live_",
-        "ghp_",  // GitHub personal access token
+        "ghp_",   // GitHub personal access token
         "glpat-", // GitLab personal access token
     ];
 
@@ -770,9 +801,9 @@ fn acc_14_build_artifacts_documented() {
     // Actual verification happens in CI
 
     let required_builds = [
-        "cargo build --features ssr",              // SSR build
+        "cargo build --features ssr",                  // SSR build
         "cargo build --target wasm32-unknown-unknown", // WASM build
-        "docker build -t uno-app .",               // Container build
+        "docker build -t uno-app .",                   // Container build
     ];
 
     // Document for CI verification
@@ -811,7 +842,10 @@ fn acc_15_ci_configuration_valid() {
     }
 
     // Document that cargo audit must block merges
-    assert!(true, "cargo audit configured to block merge on vulnerabilities");
+    assert!(
+        true,
+        "cargo audit configured to block merge on vulnerabilities"
+    );
 }
 
 // =============================================================================
@@ -825,18 +859,20 @@ async fn acc_16_occupancy_limit_enforced() {
     let current_claimed = Arc::new(AtomicUsize::new(2498));
 
     // Try to claim when at limit
-    let claim_results: Vec<_> = (0..10).map(|_| {
-        let current = current_claimed.clone();
-        async move {
-            let count = current.load(Ordering::SeqCst);
-            if count < MAX_OCCUPANCY {
-                current.fetch_add(1, Ordering::SeqCst);
-                true
-            } else {
-                false
+    let claim_results: Vec<_> = (0..10)
+        .map(|_| {
+            let current = current_claimed.clone();
+            async move {
+                let count = current.load(Ordering::SeqCst);
+                if count < MAX_OCCUPANCY {
+                    current.fetch_add(1, Ordering::SeqCst);
+                    true
+                } else {
+                    false
+                }
             }
-        }
-    }).collect();
+        })
+        .collect();
 
     let mut results = Vec::new();
     for handle in claim_results {

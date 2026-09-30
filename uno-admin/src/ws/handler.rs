@@ -1,7 +1,6 @@
 //! WebSocket connection handler for /ws/jobs
 //!
-//! SECURITY: WebSocket connections require authentication via query parameter.
-//! Use ?token=<API_KEY> to connect.
+//! Uses a verified same-origin session; credentials in query strings are rejected.
 
 use actix_web::{web, HttpRequest, HttpResponse};
 use actix_ws::Message;
@@ -13,50 +12,34 @@ use super::subscribe;
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(30);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 
-/// Query parameters for WebSocket authentication
-#[derive(Debug, serde::Deserialize)]
-pub struct WsAuthQuery {
-    /// Authentication token (API key or JWT)
-    pub token: Option<String>,
-}
-
-/// Verify the authentication token
-fn verify_token(token: &str) -> bool {
-    // Get expected API key from environment
-    let api_key = std::env::var("ADMIN_API_KEY")
-        .unwrap_or_else(|_| "dev-admin-key".to_string());
-
-    // Simple API key comparison for Phase 1
-    // TODO: Phase 2 - add JWT validation for user-specific auth
-    token == api_key
-}
-
 /// WebSocket endpoint handler for job updates
 ///
 /// # Authentication
-/// Requires `token` query parameter with valid API key.
-/// Example: ws://host/ws/jobs?token=<API_KEY>
+/// Requires a verified operator session and the configured Origin.
 pub async fn ws_jobs_handler(
     req: HttpRequest,
     stream: web::Payload,
-    query: web::Query<WsAuthQuery>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    // SECURITY: Verify authentication before establishing WebSocket connection
-    let is_authenticated = query.token
-        .as_ref()
-        .map(|t| verify_token(t))
-        .unwrap_or(false);
-
-    if !is_authenticated {
-        tracing::warn!(
-            peer = ?req.peer_addr(),
-            "WebSocket connection rejected: missing or invalid token"
-        );
-        return Ok(HttpResponse::Unauthorized()
-            .json(serde_json::json!({
-                "error": "Unauthorized",
-                "message": "Valid token required for WebSocket connection"
-            })));
+    let principal = match uno_api::auth::web::authenticate(&req) {
+        Ok(principal) => principal,
+        Err(_) => return Ok(HttpResponse::Unauthorized().finish()),
+    };
+    if principal
+        .require(uno_api::auth::session::Permission::Operator)
+        .is_err()
+    {
+        return Ok(HttpResponse::Forbidden().finish());
+    }
+    let verifier = req
+        .app_data::<web::Data<uno_api::auth::session::SessionVerifier>>()
+        .ok_or_else(|| actix_web::error::ErrorServiceUnavailable("Session verifier unavailable"))?;
+    if req
+        .headers()
+        .get(actix_web::http::header::ORIGIN)
+        .and_then(|value| value.to_str().ok())
+        != Some(verifier.origin.as_str())
+    {
+        return Ok(HttpResponse::Forbidden().finish());
     }
 
     let (response, mut session, mut msg_stream) = actix_ws::handle(&req, stream)?;
@@ -95,7 +78,7 @@ pub async fn ws_jobs_handler(
                         }
                         Ok(Message::Text(text)) => {
                             // Client can send commands if needed
-                            tracing::debug!("Received text from client: {}", text);
+                            let _ = text;
                         }
                         Ok(Message::Close(_)) => {
                             tracing::debug!("Client sent close frame");
@@ -132,7 +115,7 @@ pub async fn ws_jobs_handler(
                 }
                 // Send periodic pings
                 _ = interval.tick() => {
-                    if Instant::now().duration_since(last_heartbeat) > CLIENT_TIMEOUT {
+                    if chrono::Utc::now().timestamp() as u64 >= principal.exp || Instant::now().duration_since(last_heartbeat) > CLIENT_TIMEOUT {
                         tracing::debug!("WebSocket client timeout, closing");
                         break;
                     }

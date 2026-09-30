@@ -5,16 +5,19 @@
 // Increase recursion limit for Leptos view type complexity
 #![recursion_limit = "512"]
 
+#[cfg(all(feature = "debug-routes", not(debug_assertions)))]
+compile_error!("debug-routes must not be enabled in release artifacts");
+
 pub mod app;
-pub mod types;
 pub mod config;
 pub mod locales;
+pub mod types;
 
 // Client-side modules (WASM)
-pub mod routes;
 pub mod components;
-pub mod hooks;
 pub mod features;
+pub mod hooks;
+pub mod routes;
 
 // Server function wrappers (used by both client and server)
 pub mod api;

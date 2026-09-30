@@ -1,4 +1,12 @@
 {
+  "prime": [
+    "aura-dark",
+    "aura-light",
+    "lara-dark",
+    "lara-light",
+    "material-dark",
+    "material-light"
+  ],
   "ant": [
     "dark",
     "dark-blue",
@@ -10,13 +18,5 @@
     "skeumorph",
     "sky",
     "unity"
-  ],
-  "prime": [
-    "aura-dark",
-    "aura-light",
-    "lara-dark",
-    "lara-light",
-    "material-dark",
-    "material-light"
   ]
 }

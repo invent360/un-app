@@ -4,10 +4,10 @@
 //! For local storage, files are served directly with proper security headers.
 //! For cloud storage, files are redirected to signed URLs.
 
-use actix_web::{HttpResponse, web, http::header};
+use crate::server::middleware::AdminAuth;
+use actix_web::{http::header, web, HttpResponse};
 use file_storage::{create_client_from_env, FileStorageClient};
 use uuid::Uuid;
-use crate::server::middleware::AdminAuth;
 
 /// MIME type mapping for file extensions
 fn mime_from_extension(path: &str) -> &'static str {
@@ -41,14 +41,15 @@ fn mime_from_extension(path: &str) -> &'static str {
 
 /// GET /files/{resource_id}/{filename}
 /// Serves local files directly with security headers
-pub async fn serve_local_file(
-    path: web::Path<(String, String)>,
-) -> HttpResponse {
+pub async fn serve_local_file(path: web::Path<(String, String)>) -> HttpResponse {
     let (resource_id, filename) = path.into_inner();
 
     // Basic path validation (additional checks in file-storage)
-    if resource_id.contains("..") || filename.contains("..")
-        || resource_id.contains('/') || resource_id.contains('\\') {
+    if resource_id.contains("..")
+        || filename.contains("..")
+        || resource_id.contains('/')
+        || resource_id.contains('\\')
+    {
         return HttpResponse::Forbidden().json(serde_json::json!({
             "error": "Path traversal rejected",
             "code": "FORBIDDEN"
@@ -66,13 +67,7 @@ pub async fn serve_local_file(
         }
     };
 
-    // Get base path from environment
-    let base_path = std::env::var("FILE_STORAGE_LOCAL_PATH")
-        .unwrap_or_else(|_| "/data/uploads".to_string());
-
-    // Construct the storage URL for the file (file://{base_path}/{relative_path})
-    let relative_path = format!("{}/{}", resource_id, filename);
-    let storage_url = format!("file://{}/{}", base_path, relative_path);
+    let storage_url = format!("local://{resource_id}/{filename}");
 
     // Get file content from storage
     match client.get_file(&storage_url).await {
@@ -84,7 +79,10 @@ pub async fn serve_local_file(
                 .insert_header((header::CACHE_CONTROL, "public, max-age=31536000, immutable"))
                 .insert_header((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
                 // Prevent XSS via uploaded content
-                .insert_header((header::CONTENT_SECURITY_POLICY, "default-src 'none'; style-src 'unsafe-inline'"))
+                .insert_header((
+                    header::CONTENT_SECURITY_POLICY,
+                    "default-src 'none'; style-src 'unsafe-inline'",
+                ))
                 // Prevent files from being framed
                 .insert_header((header::X_FRAME_OPTIONS, "DENY"))
                 .body(data)
@@ -115,9 +113,7 @@ pub async fn serve_local_file(
 /// GET /api/files/{storage_url}
 /// Redirects to a signed display URL for the file (cloud storage)
 /// or serves directly for local storage
-pub async fn get_file(
-    path: web::Path<String>,
-) -> HttpResponse {
+pub async fn get_file(path: web::Path<String>) -> HttpResponse {
     let storage_url = path.into_inner();
 
     // Decode URL-encoded storage URL (e.g., gcs%3A%2F%2Fbucket%2Fpath -> gcs://bucket/path)
@@ -138,7 +134,7 @@ pub async fn get_file(
     };
 
     // For local files, serve directly instead of redirecting
-    if storage_url.starts_with("file://") {
+    if storage_url.starts_with("local://") {
         match client.get_file(&storage_url).await {
             Ok(data) => {
                 let mime_type = mime_from_extension(&storage_url);
@@ -160,6 +156,9 @@ pub async fn get_file(
 
     // For cloud storage, redirect to display URL
     let display_url = client.storage_to_display_url(&storage_url);
+    if display_url.is_empty() {
+        return HttpResponse::BadRequest().finish();
+    }
 
     HttpResponse::TemporaryRedirect()
         .insert_header((header::LOCATION, display_url))
@@ -181,9 +180,7 @@ pub struct DisplayUrlResponse {
 
 /// GET /api/files/display-url?storage_url=gcs://...
 /// Converts a storage URL to a browser-loadable signed URL
-pub async fn get_display_url(
-    query: web::Query<DisplayUrlQuery>,
-) -> HttpResponse {
+pub async fn get_display_url(query: web::Query<DisplayUrlQuery>) -> HttpResponse {
     let client = match create_client_from_env() {
         Ok(c) => c,
         Err(e) => {
@@ -214,9 +211,7 @@ pub struct BatchDisplayUrlResponse {
 
 /// POST /api/files/display-urls
 /// Converts multiple storage URLs to display URLs
-pub async fn batch_display_urls(
-    body: web::Json<BatchDisplayUrlRequest>,
-) -> HttpResponse {
+pub async fn batch_display_urls(body: web::Json<BatchDisplayUrlRequest>) -> HttpResponse {
     let client = match create_client_from_env() {
         Ok(c) => c,
         Err(e) => {
@@ -244,9 +239,7 @@ pub struct FileUploadResponse {
 
 /// POST /api/admin/files/upload
 /// Upload files to cloud storage
-pub async fn upload_files(
-    mut payload: actix_multipart::Multipart,
-) -> HttpResponse {
+pub async fn upload_files(mut payload: actix_multipart::Multipart) -> HttpResponse {
     use futures_util::StreamExt;
 
     let client = match create_client_from_env() {
@@ -263,13 +256,20 @@ pub async fn upload_files(
     let mut resource_id: Option<String> = None;
     let mut files: Vec<(Vec<u8>, String, String)> = Vec::new();
 
-    // Process multipart fields
+    let mut total_bytes = 0usize;
+    let mut field_count = 0usize;
+
+    // Enforce limits before extending buffers, including resource-id fields.
     while let Some(item) = payload.next().await {
+        field_count += 1;
+        if field_count > 16 {
+            return HttpResponse::PayloadTooLarge().finish();
+        }
         let mut field = match item {
             Ok(f) => f,
             Err(e) => {
                 tracing::error!("Failed to read multipart field: {}", e);
-                continue;
+                return HttpResponse::BadRequest().finish();
             }
         };
 
@@ -279,28 +279,53 @@ pub async fn upload_files(
             "resource_id" => {
                 let mut data = Vec::new();
                 while let Some(chunk) = field.next().await {
-                    if let Ok(bytes) = chunk {
-                        data.extend_from_slice(&bytes);
+                    let bytes = match chunk {
+                        Ok(bytes) => bytes,
+                        Err(_) => return HttpResponse::BadRequest().finish(),
+                    };
+                    if bytes.len() > 128 - data.len()
+                        || bytes.len() > 20 * 1024 * 1024 - total_bytes
+                    {
+                        return HttpResponse::PayloadTooLarge().finish();
                     }
+                    total_bytes += bytes.len();
+                    data.extend_from_slice(&bytes);
                 }
-                if let Ok(id) = String::from_utf8(data) {
-                    resource_id = Some(id.trim().to_string());
+                if resource_id.is_some() {
+                    return HttpResponse::BadRequest().finish();
+                }
+                match String::from_utf8(data) {
+                    Ok(id) => resource_id = Some(id.trim().to_string()),
+                    Err(_) => return HttpResponse::BadRequest().finish(),
                 }
             }
             "file" | "files" => {
-                let filename = field.content_disposition()
+                if files.len() >= 8 {
+                    return HttpResponse::PayloadTooLarge().finish();
+                }
+                let filename = field
+                    .content_disposition()
                     .and_then(|cd| cd.get_filename().map(|s| s.to_string()))
                     .unwrap_or_else(|| "unknown".to_string());
 
-                let content_type = field.content_type()
+                let content_type = field
+                    .content_type()
                     .map(|m| m.to_string())
                     .unwrap_or_else(|| "application/octet-stream".to_string());
 
                 let mut data = Vec::new();
                 while let Some(chunk) = field.next().await {
-                    if let Ok(bytes) = chunk {
-                        data.extend_from_slice(&bytes);
+                    let bytes = match chunk {
+                        Ok(bytes) => bytes,
+                        Err(_) => return HttpResponse::BadRequest().finish(),
+                    };
+                    if bytes.len() > 10 * 1024 * 1024 - data.len()
+                        || bytes.len() > 20 * 1024 * 1024 - total_bytes
+                    {
+                        return HttpResponse::PayloadTooLarge().finish();
                     }
+                    total_bytes += bytes.len();
+                    data.extend_from_slice(&bytes);
                 }
 
                 if !data.is_empty() {
@@ -308,7 +333,7 @@ pub async fn upload_files(
                 }
             }
             _ => {
-                while field.next().await.is_some() {}
+                return HttpResponse::BadRequest().finish();
             }
         }
     }
@@ -323,13 +348,18 @@ pub async fn upload_files(
         }));
     }
 
-    tracing::info!("Uploading {} files for resource {}", files.len(), resource_id);
+    tracing::info!(
+        "Uploading {} files for resource {}",
+        files.len(),
+        resource_id
+    );
 
     match client.upload_files(&resource_id, files, None).await {
         Ok(result) => {
             tracing::info!(
                 "Upload complete: {} files, {} bytes",
-                result.uploaded_count, result.total_bytes
+                result.uploaded_count,
+                result.total_bytes
             );
 
             HttpResponse::Created().json(FileUploadResponse {
@@ -351,9 +381,7 @@ pub async fn upload_files(
 
 /// DELETE /api/admin/files/{resource_id}
 /// Delete all files for a resource from cloud storage
-pub async fn delete_files(
-    path: web::Path<String>,
-) -> HttpResponse {
+pub async fn delete_files(path: web::Path<String>) -> HttpResponse {
     let resource_id = path.into_inner();
 
     let client = match create_client_from_env() {
@@ -386,24 +414,24 @@ pub async fn delete_files(
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     // Public file serving for local storage
     // GET /files/{resource_id}/{filename}
-    cfg.service(
-        web::scope("/files")
-            .route("/{resource_id}/{filename:.*}", web::get().to(serve_local_file))
-    );
+    cfg.service(web::scope("/files").route(
+        "/{resource_id}/{filename:.*}",
+        web::get().to(serve_local_file),
+    ));
 
     // API routes for storage URL management
     cfg.service(
         web::scope("/api/files")
             .route("/display-url", web::get().to(get_display_url))
             .route("/display-urls", web::post().to(batch_display_urls))
-            .route("/serve/{storage_url:.*}", web::get().to(get_file))
+            .route("/serve/{storage_url:.*}", web::get().to(get_file)),
     );
 
     // Admin file routes - protected by AdminAuth
     cfg.service(
         web::scope("/api/admin/files")
-            .wrap(AdminAuth::from_env())
+            .wrap(AdminAuth::from_env().expect("ADMIN_API_KEY validated at startup"))
             .route("/upload", web::post().to(upload_files))
-            .route("/{resource_id}", web::delete().to(delete_files))
+            .route("/{resource_id}", web::delete().to(delete_files)),
     );
 }

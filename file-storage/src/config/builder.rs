@@ -7,13 +7,13 @@ use std::time::Duration;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum StorageBackend {
     /// Google Cloud Storage
-    #[default]
     Gcs,
     /// AWS S3
     S3,
     /// Azure Blob Storage
     Azure,
-    /// Local filesystem (for development)
+    /// Host-local persistent filesystem.
+    #[default]
     Local,
 }
 
@@ -68,7 +68,7 @@ impl Default for StorageConfigBuilder {
             local_base_path: None,
             local_base_url: None,
             signed_url_expiration: Duration::from_secs(7 * 24 * 60 * 60), // 7 days
-            max_file_size: 10 * 1024 * 1024, // 10MB
+            max_file_size: 10 * 1024 * 1024,                              // 10MB
             allowed_mime_types: default_allowed_mime_types(),
             connection_timeout: Duration::from_secs(30),
             request_timeout: Duration::from_secs(120),
@@ -256,7 +256,9 @@ impl StorageConfigBuilder {
     /// Build the local storage configuration
     pub fn build_local_config(&self) -> Result<LocalConfig> {
         let base_path = self.local_base_path.clone().ok_or_else(|| {
-            StorageError::ConfigError("Local storage base path required (FILE_STORAGE_LOCAL_PATH)".into())
+            StorageError::ConfigError(
+                "Local storage base path required (FILE_STORAGE_LOCAL_PATH)".into(),
+            )
         })?;
 
         let base_url = self

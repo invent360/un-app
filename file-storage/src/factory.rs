@@ -73,19 +73,9 @@ pub fn detect_configured_backend() -> Option<StorageBackend> {
         return StorageBackend::from_str(&backend_str);
     }
 
-    // Auto-detect based on available configuration
-    if is_backend_configured(StorageBackend::Gcs) {
-        return Some(StorageBackend::Gcs);
-    }
+    // Local is the sole implicit backend. Ambient cloud credentials never select it.
     if is_backend_configured(StorageBackend::Local) {
         return Some(StorageBackend::Local);
     }
-    if is_backend_configured(StorageBackend::S3) {
-        return Some(StorageBackend::S3);
-    }
-    if is_backend_configured(StorageBackend::Azure) {
-        return Some(StorageBackend::Azure);
-    }
-
     None
 }

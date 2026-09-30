@@ -3,7 +3,7 @@
 use std::time::Duration;
 
 /// Configuration for the UNO API client.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ClientConfig {
     /// Base URL of the uno-app API (e.g., "https://api.example.com").
     pub base_url: String,
@@ -11,6 +11,8 @@ pub struct ClientConfig {
     pub client_id: String,
     /// Secret key for HMAC signing.
     pub secret_key: Vec<u8>,
+    /// Server-only bearer credential required by the portal's machine boundary.
+    pub api_key: Option<String>,
     /// Request timeout duration.
     pub timeout: Duration,
     /// Maximum request age in seconds (for replay protection).
@@ -27,15 +29,25 @@ impl ClientConfig {
     /// * `base_url` - Base URL of the API server
     /// * `client_id` - Client identifier
     /// * `secret_key` - Secret key for request signing
-    pub fn new(base_url: impl Into<String>, client_id: impl Into<String>, secret_key: &[u8]) -> Self {
+    pub fn new(
+        base_url: impl Into<String>,
+        client_id: impl Into<String>,
+        secret_key: &[u8],
+    ) -> Self {
         Self {
             base_url: base_url.into().trim_end_matches('/').to_string(),
             client_id: client_id.into(),
             secret_key: secret_key.to_vec(),
+            api_key: None,
             timeout: Duration::from_secs(30),
             max_request_age_secs: 300, // 5 minutes
             api_prefix: "/api/v1/admin".to_string(),
         }
+    }
+
+    pub fn with_api_key(mut self, api_key: impl Into<String>) -> Self {
+        self.api_key = Some(api_key.into());
+        self
     }
 
     /// Set the request timeout.
@@ -77,6 +89,7 @@ impl Default for ClientConfig {
             base_url: "http://localhost:3000".to_string(),
             client_id: String::new(),
             secret_key: Vec::new(),
+            api_key: None,
             timeout: Duration::from_secs(30),
             max_request_age_secs: 300,
             api_prefix: "/api/v1/admin".to_string(),

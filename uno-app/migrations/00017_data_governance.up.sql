@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS user_journey (
     id SERIAL PRIMARY KEY,
     session_id VARCHAR(64) NOT NULL,
     visitor_id INT REFERENCES visitors(id),
-    license_id UUID REFERENCES licenses(id),
+    license_id VARCHAR(66) REFERENCES licenses(id),
     stage_id INT NOT NULL REFERENCES funnel_stages(id),
     measured_at TIMESTAMPTZ DEFAULT NOW(),
     metadata JSONB,

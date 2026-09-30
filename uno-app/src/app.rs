@@ -1,34 +1,27 @@
 //! Main application component and router configuration
 
 use leptos::prelude::*;
-use leptos_meta::{provide_meta_context, Stylesheet, Title, Meta, Link};
+use leptos_meta::{provide_meta_context, Link, Meta, Stylesheet, Title};
 use leptos_router::{
     components::{Route, Router, Routes},
-    StaticSegment, ParamSegment, WildcardSegment,
+    ParamSegment, StaticSegment, WildcardSegment,
 };
 
 use crate::routes::{
-    HomePage,
-    ClaimPage,
-    TasksPage,
-    GuidesPage,
-    FaqPage,
-    ContactPage,
-    ReferralsPage,
-    PreviewPage,
+    ClaimPage, ContactPage, FaqPage, GuidesPage, HomePage, PreviewPage, ReferralsPage, TasksPage,
 };
 
-#[cfg(feature = "debug-routes")]
-use crate::routes::DebugPage;
-use crate::components::layout::{Header, Footer};
+use crate::api::get_variants;
 use crate::components::chatbot::ChatWidget;
 use crate::components::common::LocalePopup;
-use crate::components::wizard::{ClaimWizard, provide_wizard_context};
-use crate::api::get_variants;
+use crate::components::layout::{Footer, Header};
+use crate::components::wizard::{provide_wizard_context, ClaimWizard};
 use crate::hooks::{provide_locale_context, provide_theme_context, t};
+#[cfg(feature = "debug-routes")]
+use crate::routes::DebugPage;
 
 #[cfg(any(feature = "csr", feature = "hydrate", feature = "ssr"))]
-use ember_fx_components::{ToastProvider, ToastPlacement, ThemeProvider, DesignSystem};
+use ember_fx_components::{DesignSystem, ThemeProvider, ToastPlacement, ToastProvider};
 
 /// Main application component
 #[component]
@@ -94,25 +87,7 @@ fn AppRouter() -> impl IntoView {
             <div class="app-wrapper">
                 <Header />
                 <main class="app-container">
-                    <Routes fallback=move || view! { <NotFound/> }>
-                        <Route path=StaticSegment("") view=HomePage/>
-                        <Route path=(StaticSegment("claim"), ParamSegment("id")) view=ClaimPage/>
-                        <Route path=StaticSegment("tasks") view=TasksPage/>
-                        <Route path=StaticSegment("guides") view=GuidesPage/>
-                        <Route path=StaticSegment("faq") view=FaqPage/>
-                        <Route path=StaticSegment("contact") view=ContactPage/>
-                        <Route path=StaticSegment("referrals") view=ReferralsPage/>
-                        <Route path=StaticSegment("preview") view=PreviewPage/>
-                        // Debug route only available when debug-routes feature is enabled
-                        // WARNING: Never enable in production
-                        {
-                            #[cfg(feature = "debug-routes")]
-                            {
-                                view! { <Route path=StaticSegment("debug") view=DebugPage/> }
-                            }
-                        }
-                        <Route path=WildcardSegment("any") view=NotFound/>
-                    </Routes>
+                    <ApplicationRoutes/>
                 </main>
                 <Footer />
                 <ChatWidget />
@@ -122,6 +97,39 @@ fn AppRouter() -> impl IntoView {
                 <ClaimWizard state=wizard_state.clone() />
             </div>
         </Router>
+    }
+}
+
+/// Keep compile-time optional route definitions inside the same view macro.
+/// A nested view expression becomes AnyView in Cargo Leptos development builds,
+/// while Routes requires route definitions (AnyNestedRoute).
+#[component]
+fn ApplicationRoutes() -> impl IntoView {
+    macro_rules! routes {
+        ($($debug:tt)*) => {
+            view! {
+                    <Routes fallback=move || view! { <NotFound/> }>
+                        <Route path=StaticSegment("") view=HomePage/>
+                        <Route path=(StaticSegment("claim"), ParamSegment("id")) view=ClaimPage/>
+                        <Route path=StaticSegment("tasks") view=TasksPage/>
+                        <Route path=StaticSegment("guides") view=GuidesPage/>
+                        <Route path=StaticSegment("faq") view=FaqPage/>
+                        <Route path=StaticSegment("contact") view=ContactPage/>
+                        <Route path=StaticSegment("referrals") view=ReferralsPage/>
+                        <Route path=StaticSegment("preview") view=PreviewPage/>
+                        $($debug)*
+                        <Route path=WildcardSegment("any") view=NotFound/>
+                    </Routes>
+            }
+        };
+    }
+    #[cfg(feature = "debug-routes")]
+    {
+        routes!(<Route path=StaticSegment("debug") view=DebugPage/> )
+    }
+    #[cfg(not(feature = "debug-routes"))]
+    {
+        routes!()
     }
 }
 

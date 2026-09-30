@@ -42,7 +42,10 @@ mod client_registry;
 mod hmac;
 mod nonce_registry;
 mod preview_token;
+pub mod session;
 mod signed_request;
+#[cfg(feature = "web-auth")]
+pub mod web;
 
 pub use client_registry::{ClientCredentials, ClientRegistry};
 pub use hmac::{sign_payload, verify_signature, verify_with_replay_protection};

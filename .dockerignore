@@ -1,0 +1,11 @@
+**/target
+**/node_modules
+.git
+**/.env
+**/.env.*
+**/secrets
+**/*.json.key
+**/*.log
+deps/ember-multichain
+uno-app/deps/uno-api
+uno-app/deps/file-storage

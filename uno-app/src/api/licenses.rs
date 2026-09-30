@@ -87,6 +87,7 @@ pub async fn claim_license(
     let request = ClaimRequest {
         lease_code,
         device_id,
+        user_id: None,
     };
 
     factory.license_service.claim_license(request)

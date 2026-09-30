@@ -19,16 +19,18 @@ pub struct ParsedCsv {
 /// Parse CSV data into license inputs.
 ///
 /// Expected columns (with header):
-/// - lease_code (optional)
+/// - lease_code (required)
 /// - valid_from (required, format: YYYY-MM-DD)
 /// - valid_to (required, format: YYYY-MM-DD)
 /// - split_type (required, format: "50:50", "55:45", or "60:40")
 ///
-/// Or without header, columns in order: valid_from, valid_to, split_type
+/// Or without header: lease_code, valid_from, valid_to, split_type.
+/// Date-only values use ISO YYYY-MM-DD. RFC3339 timestamps preserve their offset.
+/// This is the legacy split import contract; it does not create v2 agreements.
 pub fn parse_csv(csv_data: &str, has_header: bool) -> Result<ParsedCsv, ApiError> {
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(has_header)
-        .flexible(true)
+        .flexible(false)
         .trim(csv::Trim::All)
         .from_reader(csv_data.as_bytes());
 
@@ -113,13 +115,19 @@ fn parse_record(
         if let Some(indices) = col_indices {
             (
                 indices.lease_code,
-                indices.valid_from.unwrap_or(0),
-                indices.valid_to.unwrap_or(1),
-                indices.split_type.unwrap_or(2),
+                indices
+                    .valid_from
+                    .ok_or_else(|| ImportError::new(row_num, "Missing valid_from header"))?,
+                indices
+                    .valid_to
+                    .ok_or_else(|| ImportError::new(row_num, "Missing valid_to header"))?,
+                indices
+                    .split_type
+                    .ok_or_else(|| ImportError::new(row_num, "Missing split_type header"))?,
             )
         } else {
-            // Default positional: valid_from, valid_to, split_type
-            (None, 0, 1, 2)
+            // Headerless records require a real credential in the first column.
+            (Some(0), 1, 2, 3)
         };
 
     // Parse valid_from
@@ -129,8 +137,11 @@ fn parse_record(
         .trim();
 
     let valid_from = parse_date(valid_from_str).map_err(|_| {
-        ImportError::new(row_num, format!("Invalid valid_from date: {}", valid_from_str))
-            .with_column("valid_from")
+        ImportError::new(
+            row_num,
+            format!("Invalid valid_from date: {}", valid_from_str),
+        )
+        .with_column("valid_from")
     })?;
 
     // Parse valid_to
@@ -192,14 +203,8 @@ fn parse_date(s: &str) -> Result<DateTime<Utc>, ()> {
         return Ok(date.and_hms_opt(0, 0, 0).unwrap().and_utc());
     }
 
-    // Try DD/MM/YYYY
-    if let Ok(date) = NaiveDate::parse_from_str(s, "%d/%m/%Y") {
-        return Ok(date.and_hms_opt(0, 0, 0).unwrap().and_utc());
-    }
-
-    // Try MM/DD/YYYY
-    if let Ok(date) = NaiveDate::parse_from_str(s, "%m/%d/%Y") {
-        return Ok(date.and_hms_opt(0, 0, 0).unwrap().and_utc());
+    if let Ok(timestamp) = DateTime::parse_from_rfc3339(s) {
+        return Ok(timestamp.with_timezone(&Utc));
     }
 
     Err(())
@@ -211,7 +216,7 @@ mod tests {
 
     #[test]
     fn test_parse_csv_with_header() {
-        let csv = "valid_from,valid_to,split_type\n2024-01-01,2024-12-31,50:50\n2024-06-01,2025-06-01,60:40";
+        let csv = "lease_code,valid_from,valid_to,split_type\nreal-code-a,2024-01-01,2024-12-31,50:50\nreal-code-b,2024-06-01,2025-06-01,60:40";
         let result = parse_csv(csv, true).unwrap();
 
         assert_eq!(result.licenses.len(), 2);
@@ -222,7 +227,8 @@ mod tests {
 
     #[test]
     fn test_parse_csv_without_header() {
-        let csv = "2024-01-01,2024-12-31,50:50\n2024-06-01,2025-06-01,55:45";
+        let csv =
+            "real-code-a,2024-01-01,2024-12-31,50:50\nreal-code-b,2024-06-01,2025-06-01,55:45";
         let result = parse_csv(csv, false).unwrap();
 
         assert_eq!(result.licenses.len(), 2);

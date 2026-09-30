@@ -1,6 +1,6 @@
 //! GeoIP lookup service using MaxMind GeoLite2 database
 
-use maxminddb::{geoip2, Reader};
+use maxminddb::{PathElement, Reader};
 use std::net::IpAddr;
 use std::path::Path;
 use std::sync::Arc;
@@ -14,7 +14,7 @@ pub struct GeoIpService {
 
 impl GeoIpService {
     /// Create a new GeoIP service from a database file path
-    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, maxminddb::MaxMindDBError> {
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, maxminddb::MaxMindDbError> {
         let reader = Reader::open_readfile(path)?;
         info!("GeoIP database loaded successfully");
         Ok(Self {
@@ -30,18 +30,16 @@ impl GeoIpService {
             Ok(addr) => addr,
             Err(_) => {
                 // Try to extract IP from socket address (e.g., "192.168.1.1:12345")
-                ip.split(':')
-                    .next()
-                    .and_then(|s| s.parse().ok())?
+                ip.split(':').next().and_then(|s| s.parse().ok())?
             }
         };
 
         // Look up the country
-        match self.reader.lookup::<geoip2::Country>(ip_addr) {
-            Ok(country) => country
-                .country
-                .and_then(|c| c.iso_code)
-                .map(|s| s.to_string()),
+        match self.reader.lookup(ip_addr) {
+            Ok(result) => result
+                .decode_path(&[PathElement::Key("country"), PathElement::Key("iso_code")])
+                .ok()
+                .flatten(),
             Err(_) => None,
         }
     }
@@ -55,18 +53,16 @@ impl OptionalGeoIp {
     /// Create from environment variable GEOIP_DATABASE_PATH
     pub fn from_env() -> Self {
         match std::env::var("GEOIP_DATABASE_PATH") {
-            Ok(path) => {
-                match GeoIpService::new(&path) {
-                    Ok(service) => {
-                        info!(path = %path, "GeoIP service initialized");
-                        Self(Some(service))
-                    }
-                    Err(e) => {
-                        warn!(error = %e, path = %path, "Failed to load GeoIP database");
-                        Self(None)
-                    }
+            Ok(path) => match GeoIpService::new(&path) {
+                Ok(service) => {
+                    info!(path = %path, "GeoIP service initialized");
+                    Self(Some(service))
                 }
-            }
+                Err(e) => {
+                    warn!(error = %e, path = %path, "Failed to load GeoIP database");
+                    Self(None)
+                }
+            },
             Err(_) => {
                 info!("GEOIP_DATABASE_PATH not set - country detection disabled");
                 Self(None)
