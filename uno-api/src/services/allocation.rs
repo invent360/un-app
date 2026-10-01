@@ -8,8 +8,31 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-/// Break-even threshold in micros ($5.60 = 5,600,000 micros).
+/// Default break-even threshold in micros ($5.60 = 5,600,000 micros).
+/// R5-07: This is now a fallback; use AlertPolicy for configurable thresholds.
+#[deprecated(since = "0.2.0", note = "Use AlertPolicy from database instead")]
 pub const BREAK_EVEN_THRESHOLD_MICROS: i64 = 5_600_000;
+
+/// Default break-even threshold (fallback when policy not loaded).
+const DEFAULT_BREAK_EVEN_MICROS: i64 = 5_600_000;
+
+/// Alert policy configuration loaded from database.
+/// R5-07: Replaces hardcoded thresholds with configurable policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlertPolicy {
+    /// Policy identifier code (e.g., "license_break_even").
+    pub policy_code: String,
+    /// Human-readable policy name.
+    pub policy_name: String,
+    /// Threshold value in micros.
+    pub threshold_micros: i64,
+    /// Period type for threshold evaluation.
+    pub period_type: Option<String>,
+    /// What the threshold measures.
+    pub basis: Option<String>,
+    /// Whether this policy is active.
+    pub is_active: bool,
+}
 
 /// Request to record an allocation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,6 +62,10 @@ pub struct AllocationRequest {
     /// R3-08: Unique event ID from provider for duplicate prevention
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reward_event_id: Option<String>,
+    /// R5-07: Referral agent ID (if license was referred).
+    /// When None, allocation uses allocate_without_referral() and share goes to reserve.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub referral_agent_id: Option<Uuid>,
 }
 
 fn default_currency() -> String {
@@ -85,6 +112,7 @@ pub struct AllocationEntry {
 
 impl AllocationEntry {
     /// Create from request and allocation result.
+    /// R5-07: Uses referral_agent_id from request for proper attribution.
     pub fn from_request(request: &AllocationRequest, allocation: &Allocation) -> Self {
         Self {
             id: Uuid::new_v4(),
@@ -106,7 +134,7 @@ impl AllocationEntry {
             external_ref: request.external_ref.clone(),
             provider_id: request.provider_id.clone(),
             reward_event_id: request.reward_event_id.clone(),
-            referral_agent_id: None, // Set later when referral context is known
+            referral_agent_id: request.referral_agent_id, // R5-07: Use from request
             allocated_at: Utc::now(),
         }
     }
@@ -138,15 +166,25 @@ pub struct PoolBalanceSummary {
     pub total_credit_expenditure_micros: i64,
     pub net_uno_contribution_micros: i64,
     pub below_break_even_threshold: bool,
+    /// R5-07: The threshold used for break-even calculation.
+    #[serde(default)]
+    pub break_even_threshold_micros: i64,
 }
 
 impl PoolBalanceSummary {
-    /// Calculate the net UNO contribution.
+    /// Calculate the net UNO contribution using default threshold.
+    #[deprecated(since = "0.2.0", note = "Use calculate_net_contribution_with_threshold instead")]
     pub fn calculate_net_contribution(&mut self) {
+        self.calculate_net_contribution_with_threshold(DEFAULT_BREAK_EVEN_MICROS);
+    }
+
+    /// R5-07: Calculate the net UNO contribution using configurable threshold.
+    pub fn calculate_net_contribution_with_threshold(&mut self, threshold_micros: i64) {
         self.net_uno_contribution_micros =
             self.total_uno_allocated_micros - self.total_credit_expenditure_micros;
+        self.break_even_threshold_micros = threshold_micros;
         self.below_break_even_threshold =
-            self.net_uno_contribution_micros < BREAK_EVEN_THRESHOLD_MICROS;
+            self.net_uno_contribution_micros < threshold_micros;
     }
 
     /// Get the net contribution in dollars.
@@ -157,6 +195,15 @@ impl PoolBalanceSummary {
     /// Check if at break-even or above.
     pub fn is_sustainable(&self) -> bool {
         !self.below_break_even_threshold
+    }
+
+    /// R5-07: Get threshold gap (how much more needed to reach break-even).
+    pub fn threshold_gap_micros(&self) -> i64 {
+        if self.below_break_even_threshold {
+            self.break_even_threshold_micros - self.net_uno_contribution_micros
+        } else {
+            0
+        }
     }
 }
 
@@ -171,6 +218,8 @@ pub struct AllocationService {
     default_version: i32,
     /// Cached agreement versions.
     versions: Vec<AgreementVersion>,
+    /// R5-07: Cached alert policies for threshold lookups.
+    policies: Vec<AlertPolicy>,
 }
 
 impl Default for AllocationService {
@@ -185,6 +234,7 @@ impl AllocationService {
         Self {
             default_version: 1,
             versions: vec![],
+            policies: vec![],
         }
     }
 
@@ -199,7 +249,45 @@ impl AllocationService {
         Self {
             default_version,
             versions,
+            policies: vec![],
         }
+    }
+
+    /// R5-07: Create with agreement versions and alert policies.
+    pub fn with_versions_and_policies(
+        versions: Vec<AgreementVersion>,
+        policies: Vec<AlertPolicy>,
+    ) -> Self {
+        let default_version = versions
+            .iter()
+            .find(|v| v.is_active)
+            .map(|v| v.version)
+            .unwrap_or(1);
+
+        Self {
+            default_version,
+            versions,
+            policies,
+        }
+    }
+
+    /// R5-07: Set alert policies.
+    pub fn set_policies(&mut self, policies: Vec<AlertPolicy>) {
+        self.policies = policies;
+    }
+
+    /// R5-07: Get an alert policy by code.
+    pub fn get_policy(&self, policy_code: &str) -> Option<&AlertPolicy> {
+        self.policies
+            .iter()
+            .find(|p| p.policy_code == policy_code && p.is_active)
+    }
+
+    /// R5-07: Get the break-even threshold from policy or use default.
+    pub fn get_break_even_threshold(&self) -> i64 {
+        self.get_policy("license_break_even")
+            .map(|p| p.threshold_micros)
+            .unwrap_or(DEFAULT_BREAK_EVEN_MICROS)
     }
 
     /// Get the default revenue split (50/40/10).
@@ -233,6 +321,10 @@ impl AllocationService {
     }
 
     /// Create an allocation entry from a request.
+    ///
+    /// R5-07: Checks for referral_agent_id in the request:
+    /// - If present: Uses standard allocate() with referral_micros going to agent
+    /// - If absent: Uses allocate_without_referral() with reserve_micros going to reserve
     pub fn create_entry(
         &self,
         request: &AllocationRequest,
@@ -241,7 +333,15 @@ impl AllocationService {
             .get_split(request.agreement_version)
             .unwrap_or_else(|| self.default_split());
 
-        let allocation = split.allocate(request.pool_micros)?;
+        // R5-07: Use appropriate allocation based on referral presence
+        let allocation = if request.referral_agent_id.is_some() {
+            // Has referral agent: standard allocation with referral_micros
+            split.allocate(request.pool_micros)?
+        } else {
+            // No referral agent: referral share goes to reserve
+            split.allocate_without_referral(request.pool_micros)?
+        };
+
         Ok(AllocationEntry::from_request(request, &allocation))
     }
 
@@ -254,14 +354,26 @@ impl AllocationService {
         total_uno_allocated - total_credit_expenditure
     }
 
-    /// Check if a license is below break-even threshold.
+    /// Check if a license is below break-even threshold (using configured policy).
+    /// R5-07: Uses policy-configured threshold instead of hardcoded value.
     pub fn is_below_break_even(&self, net_contribution_micros: i64) -> bool {
-        net_contribution_micros < BREAK_EVEN_THRESHOLD_MICROS
+        net_contribution_micros < self.get_break_even_threshold()
     }
 
-    /// Get break-even threshold in dollars.
-    pub fn break_even_threshold_dollars() -> f64 {
-        BREAK_EVEN_THRESHOLD_MICROS as f64 / 1_000_000.0
+    /// R5-07: Check against a specific threshold (for testing or custom policies).
+    pub fn is_below_threshold(&self, net_contribution_micros: i64, threshold_micros: i64) -> bool {
+        net_contribution_micros < threshold_micros
+    }
+
+    /// Get break-even threshold in dollars (using configured policy).
+    /// R5-07: Uses policy-configured threshold instead of hardcoded value.
+    pub fn break_even_threshold_dollars(&self) -> f64 {
+        self.get_break_even_threshold() as f64 / 1_000_000.0
+    }
+
+    /// R5-07: Get default break-even threshold in dollars (static fallback).
+    pub fn default_break_even_dollars() -> f64 {
+        DEFAULT_BREAK_EVEN_MICROS as f64 / 1_000_000.0
     }
 }
 
@@ -281,8 +393,10 @@ mod tests {
     }
 
     #[test]
-    fn test_allocation_entry_creation() {
+    fn test_allocation_entry_with_referral() {
+        // R5-07: Test allocation with referral agent (standard path)
         let service = AllocationService::new();
+        let referral_agent = Uuid::new_v4();
         let request = AllocationRequest {
             license_id: "test-license-123".to_string(),
             pool_micros: 1_000_000,
@@ -294,6 +408,7 @@ mod tests {
             external_ref: None,
             provider_id: None,
             reward_event_id: None,
+            referral_agent_id: Some(referral_agent),
         };
 
         let entry = service.create_entry(&request).unwrap();
@@ -302,8 +417,38 @@ mod tests {
         assert_eq!(entry.pool_micros, 1_000_000);
         assert_eq!(entry.ulo_micros, 500_000);
         assert_eq!(entry.uno_micros, 400_000);
-        assert_eq!(entry.referral_micros, 100_000);
-        assert_eq!(entry.reserve_micros, 0); // No reserve in standard allocation
+        assert_eq!(entry.referral_micros, 100_000); // Has referral
+        assert_eq!(entry.reserve_micros, 0);         // No reserve
+        assert_eq!(entry.referral_agent_id, Some(referral_agent));
+    }
+
+    #[test]
+    fn test_allocation_entry_without_referral() {
+        // R5-07: Test allocation without referral agent (reserve path)
+        let service = AllocationService::new();
+        let request = AllocationRequest {
+            license_id: "test-license-456".to_string(),
+            pool_micros: 1_000_000,
+            currency: "USD".to_string(),
+            agreement_version: 1,
+            period_start: Utc::now(),
+            period_end: Utc::now(),
+            source: "test".to_string(),
+            external_ref: None,
+            provider_id: None,
+            reward_event_id: None,
+            referral_agent_id: None, // No referral
+        };
+
+        let entry = service.create_entry(&request).unwrap();
+
+        assert_eq!(entry.license_id, "test-license-456");
+        assert_eq!(entry.pool_micros, 1_000_000);
+        assert_eq!(entry.ulo_micros, 500_000);
+        assert_eq!(entry.uno_micros, 400_000);
+        assert_eq!(entry.referral_micros, 0);        // No referral
+        assert_eq!(entry.reserve_micros, 100_000);   // R5-07: Goes to reserve
+        assert_eq!(entry.referral_agent_id, None);
     }
 
     #[test]
@@ -313,8 +458,9 @@ mod tests {
         let net = service.calculate_net_contribution(400_000, 100_000);
         assert_eq!(net, 300_000);
 
+        // R5-07: Test with default threshold (fallback when no policy loaded)
         assert!(service.is_below_break_even(net));
-        assert!(!service.is_below_break_even(BREAK_EVEN_THRESHOLD_MICROS));
+        assert!(!service.is_below_break_even(DEFAULT_BREAK_EVEN_MICROS));
     }
 
     #[test]
@@ -328,17 +474,75 @@ mod tests {
             total_credit_expenditure_micros: 500_000,
             net_uno_contribution_micros: 0,
             below_break_even_threshold: false,
+            break_even_threshold_micros: 0,
         };
 
-        summary.calculate_net_contribution();
+        // R5-07: Use configurable threshold
+        summary.calculate_net_contribution_with_threshold(DEFAULT_BREAK_EVEN_MICROS);
 
         assert_eq!(summary.net_uno_contribution_micros, 3_500_000);
         assert!(summary.below_break_even_threshold); // 3.5M < 5.6M threshold
         assert!(!summary.is_sustainable());
+        assert_eq!(summary.threshold_gap_micros(), 2_100_000); // 5.6M - 3.5M
     }
 
     #[test]
-    fn test_break_even_threshold() {
-        assert_eq!(AllocationService::break_even_threshold_dollars(), 5.60);
+    fn test_break_even_threshold_default() {
+        // R5-07: Test default threshold (static fallback)
+        assert_eq!(AllocationService::default_break_even_dollars(), 5.60);
+    }
+
+    #[test]
+    fn test_break_even_with_policy() {
+        // R5-07: Test with custom policy threshold
+        let policy = AlertPolicy {
+            policy_code: "license_break_even".to_string(),
+            policy_name: "License Break-Even Alert".to_string(),
+            threshold_micros: 7_000_000, // $7.00 instead of $5.60
+            period_type: Some("monthly".to_string()),
+            basis: Some("uno_net".to_string()),
+            is_active: true,
+        };
+
+        let service = AllocationService::with_versions_and_policies(vec![], vec![policy]);
+
+        assert_eq!(service.get_break_even_threshold(), 7_000_000);
+        assert_eq!(service.break_even_threshold_dollars(), 7.0);
+
+        // 6M is below 7M threshold
+        assert!(service.is_below_break_even(6_000_000));
+        // 7M meets threshold
+        assert!(!service.is_below_break_even(7_000_000));
+    }
+
+    #[test]
+    fn test_get_policy() {
+        let policies = vec![
+            AlertPolicy {
+                policy_code: "license_break_even".to_string(),
+                policy_name: "Break-Even".to_string(),
+                threshold_micros: 5_600_000,
+                period_type: None,
+                basis: None,
+                is_active: true,
+            },
+            AlertPolicy {
+                policy_code: "inactive_policy".to_string(),
+                policy_name: "Inactive".to_string(),
+                threshold_micros: 1_000_000,
+                period_type: None,
+                basis: None,
+                is_active: false,
+            },
+        ];
+
+        let service = AllocationService::with_versions_and_policies(vec![], policies);
+
+        // Active policy found
+        assert!(service.get_policy("license_break_even").is_some());
+        // Inactive policy not returned
+        assert!(service.get_policy("inactive_policy").is_none());
+        // Unknown policy not found
+        assert!(service.get_policy("unknown").is_none());
     }
 }

@@ -413,6 +413,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.activate.step2" => "Activez l'execution en arriere-plan pour des gains maximaux",
     "wizard.activate.step3_title" => "3. Gagner",
     "wizard.activate.step3" => "Gardez l'app en marche et regardez vos gains augmenter!",
+    "wizard.activate.completion_message" => "Felicitations ! Vous etes pret a commencer a gagner.",
+
+    // Wizard - Reserve Stage
+    "wizard.reserve.title" => "Reservation de Votre Licence",
+    "wizard.reserve.subtitle" => "Veuillez patienter pendant que nous securisons votre licence...",
+    "wizard.reserve.step_locking" => "Verrouillage de la licence...",
+    "wizard.reserve.step_verifying" => "Verification de l'eligibilite...",
+    "wizard.reserve.step_securing" => "Securisation de la reservation...",
+    "wizard.reserve.security_notice" => "Votre licence est reservee exclusivement pour vous",
+    "wizard.reserve.error_title" => "Echec de la Reservation",
+    "wizard.reserve.try_again" => "Reessayer",
 
     // Wizard - What Next Stage
     "wizard.what_next.title" => "Et Maintenant?",
@@ -475,7 +486,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Installation Guide
     "install.title" => "Guide d'Installation",
     "install.android.title" => "Android",
-    "install.android.step1" => "Telechargez l'APK depuis le Google Play Store",
+    "install.android.step1" => "Telechargez l'application depuis le Google Play Store",
     "install.android.step2" => "Ouvrez le fichier telecharge pour installer",
     "install.android.step3" => "Autorisez l'installation depuis des sources inconnues si demande",
     "install.android.step4" => "Entrez votre cle de licence quand demande",
@@ -558,10 +569,10 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.platform_title" => "Plateforme",
     "wizard.economics.platform_desc" => "Couvre les couts d'infrastructure, de developpement et de support.",
     "wizard.economics.referrer_title" => "Referent",
-    "wizard.economics.referrer_desc" => "Va a celui qui vous a refere, ou a la plateforme s'il n'y a pas de referent.",
+    "wizard.economics.referrer_desc" => "Destine a votre parrain. Si vous n'avez pas de parrain, ceci est conserve dans une reserve de support.",
     "wizard.economics.important_title" => "Informations Importantes",
-    "wizard.economics.disclosure_small_rewards" => "Les recompenses individuelles des taches sont petites ($0.001 - $0.05). Les gains s'accumulent avec le temps.",
-    "wizard.economics.disclosure_credit_cost" => "UNO fonctionne presque a l'equilibre. Nous finançons vos credits depuis notre part.",
+    "wizard.economics.disclosure_small_rewards" => "Les recompenses de taches individuelles sont faibles. Les gains s'accumulent au fil du temps en fonction de la disponibilite des taches et du temps de fonctionnement de l'appareil.",
+    "wizard.economics.disclosure_credit_cost" => "Vos credits initiaux sont finances par les ressources de la plateforme pour vous aider a demarrer.",
     "wizard.economics.disclosure_device_requirement" => "Vous avez besoin d'un appareil connecte a internet avec l'app en cours d'execution.",
     "wizard.economics.disclosure_uptime" => "Une disponibilite plus elevee signifie plus d'opportunites de taches et des gains plus eleves.",
     "wizard.economics.who_should_not_title" => "Qui Ne Devrait PAS Rejoindre",

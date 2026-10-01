@@ -30,9 +30,23 @@ impl UnoApiClient {
         Self { config, http }
     }
 
-    /// Create a signed request for a payload.
-    fn sign<T: Serialize + Clone>(&self, payload: T) -> SignedRequest<T> {
-        sign_request(&self.config.client_id, &self.config.secret_key, &payload)
+    /// Create a signed request for a payload with method/path binding.
+    ///
+    /// R5-04: Signatures are now bound to HTTP method and path to prevent
+    /// replay attacks to different endpoints.
+    fn sign<T: Serialize + Clone>(
+        &self,
+        method: &str,
+        endpoint: &str,
+        payload: T,
+    ) -> SignedRequest<T> {
+        sign_request(
+            &self.config.client_id,
+            &self.config.secret_key,
+            method,
+            endpoint,
+            &payload,
+        )
     }
 
     /// Send a POST request with a signed payload.
@@ -42,7 +56,8 @@ impl UnoApiClient {
         payload: T,
     ) -> Result<R, ApiError> {
         let url = self.config.url(endpoint);
-        let signed = self.sign(payload);
+        // R5-04: Sign with method and path
+        let signed = self.sign("POST", endpoint, payload);
 
         let response = self
             .http
@@ -60,8 +75,8 @@ impl UnoApiClient {
     async fn get<R: DeserializeOwned>(&self, endpoint: &str) -> Result<R, ApiError> {
         let url = self.config.url(endpoint);
 
-        // For GET requests, sign an empty payload
-        let signed = self.sign(serde_json::Value::Null);
+        // R5-04: Sign GET requests with method and path
+        let signed = self.sign("GET", endpoint, serde_json::Value::Null);
 
         let response = self
             .http
@@ -71,6 +86,9 @@ impl UnoApiClient {
             .header("X-Timestamp", signed.timestamp.to_string())
             .header("X-Nonce", &signed.nonce)
             .header("X-Signature", &signed.signature)
+            // R5-04: Include method/path in headers for verification
+            .header("X-Method", &signed.method)
+            .header("X-Path", &signed.path)
             .send()
             .await
             .map_err(|e| ApiError::Http(e.to_string()))?;
@@ -85,7 +103,8 @@ impl UnoApiClient {
         payload: T,
     ) -> Result<R, ApiError> {
         let url = self.config.url(endpoint);
-        let signed = self.sign(payload);
+        // R5-04: Sign with method and path
+        let signed = self.sign("DELETE", endpoint, payload);
 
         let response = self
             .http

@@ -166,6 +166,73 @@ pub struct LicensePendingExpiry {
 }
 
 // ============================================
+// R5-05: RELEASE WORKFLOW TYPES
+// ============================================
+
+/// R5-05: Release status for upstream workflow
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ReleaseStatus {
+    None,
+    Requested,
+    PendingUpstream,
+    Confirmed,
+    Cooldown,
+    Available,
+}
+
+impl ReleaseStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::Requested => "requested",
+            Self::PendingUpstream => "pending_upstream",
+            Self::Confirmed => "confirmed",
+            Self::Cooldown => "cooldown",
+            Self::Available => "available",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "none" => Some(Self::None),
+            "requested" => Some(Self::Requested),
+            "pending_upstream" => Some(Self::PendingUpstream),
+            "confirmed" => Some(Self::Confirmed),
+            "cooldown" => Some(Self::Cooldown),
+            "available" => Some(Self::Available),
+            _ => None,
+        }
+    }
+}
+
+/// R5-05: Input for requesting release
+#[derive(Debug, Clone)]
+pub struct RequestReleaseInput {
+    pub license_id: String,
+    pub user_id: String,
+    pub reason: Option<String>,
+}
+
+/// R5-05: Result of requesting release
+#[derive(Debug, Clone, Serialize)]
+pub struct RequestReleaseResult {
+    pub success: bool,
+    pub release_status: ReleaseStatus,
+    pub cooldown_until: Option<DateTime<Utc>>,
+    pub error_code: Option<String>,
+    pub error_message: Option<String>,
+}
+
+/// R5-05: Input for confirming upstream release
+#[derive(Debug, Clone)]
+pub struct ConfirmUpstreamReleaseInput {
+    pub license_id: String,
+    pub admin_id: String,
+    pub upstream_ref: Option<String>,
+}
+
+// ============================================
 // SERVICE TRAIT
 // ============================================
 
@@ -206,6 +273,19 @@ pub trait LifecycleService: Send + Sync {
         actor_id: Option<&str>,
         reason: Option<&str>,
     ) -> Result<i64, AppError>;
+
+    // R5-05: Upstream release workflow
+    /// Request release with upstream tracking
+    async fn request_release(&self, input: RequestReleaseInput) -> Result<RequestReleaseResult, AppError>;
+
+    /// Admin confirms upstream release
+    async fn confirm_upstream_release(&self, input: ConfirmUpstreamReleaseInput) -> Result<bool, AppError>;
+
+    /// Complete release after cooldown (called by scheduler)
+    async fn complete_pending_releases(&self) -> Result<i32, AppError>;
+
+    /// Get release status for a license
+    async fn get_release_status(&self, license_id: &str) -> Result<ReleaseStatus, AppError>;
 }
 
 // ============================================
@@ -525,6 +605,126 @@ impl LifecycleService for LifecycleServiceImpl {
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         Ok(result.0)
+    }
+
+    // R5-05: Upstream release workflow implementation
+
+    async fn request_release(&self, input: RequestReleaseInput) -> Result<RequestReleaseResult, AppError> {
+        // Call the database function for atomic release request
+        let row: Option<(bool, String, Option<DateTime<Utc>>, Option<String>, Option<String>)> = sqlx::query_as(
+            r#"
+            SELECT success, release_status::text, cooldown_until, error_code, error_message
+            FROM request_license_release($1, $2, $3)
+            "#,
+        )
+        .bind(&input.license_id)
+        .bind(&input.user_id)
+        .bind(input.reason.as_deref())
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        match row {
+            Some((success, status_str, cooldown, err_code, err_msg)) => {
+                let status = ReleaseStatus::from_str(&status_str).unwrap_or(ReleaseStatus::None);
+
+                if success {
+                    tracing::info!(
+                        license_id = %input.license_id,
+                        user_id = %input.user_id,
+                        status = %status_str,
+                        "Release requested"
+                    );
+                }
+
+                Ok(RequestReleaseResult {
+                    success,
+                    release_status: status,
+                    cooldown_until: cooldown,
+                    error_code: err_code,
+                    error_message: err_msg,
+                })
+            }
+            None => Err(AppError::DatabaseError("Release request failed".into())),
+        }
+    }
+
+    async fn confirm_upstream_release(&self, input: ConfirmUpstreamReleaseInput) -> Result<bool, AppError> {
+        let result: (bool,) = sqlx::query_as(
+            "SELECT confirm_upstream_release($1, $2, $3)"
+        )
+        .bind(&input.license_id)
+        .bind(&input.admin_id)
+        .bind(input.upstream_ref.as_deref())
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        if result.0 {
+            tracing::info!(
+                license_id = %input.license_id,
+                admin_id = %input.admin_id,
+                upstream_ref = ?input.upstream_ref,
+                "Upstream release confirmed"
+            );
+        }
+
+        Ok(result.0)
+    }
+
+    async fn complete_pending_releases(&self) -> Result<i32, AppError> {
+        // Find all licenses in cooldown that have passed their cooldown_until
+        let now = chrono::Utc::now();
+        let licenses: Vec<(String,)> = sqlx::query_as(
+            r#"
+            SELECT id FROM licenses
+            WHERE release_status = 'cooldown'
+              AND cooldown_until <= $1
+            "#,
+        )
+        .bind(now)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        let mut completed = 0;
+        for (license_id,) in licenses {
+            let result: (bool,) = sqlx::query_as(
+                "SELECT complete_license_release($1)"
+            )
+            .bind(&license_id)
+            .fetch_one(&self.pool)
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+            if result.0 {
+                completed += 1;
+                tracing::info!(license_id = %license_id, "Release completed after cooldown");
+            }
+        }
+
+        if completed > 0 {
+            tracing::info!(count = completed, "Completed pending releases");
+        }
+
+        Ok(completed)
+    }
+
+    async fn get_release_status(&self, license_id: &str) -> Result<ReleaseStatus, AppError> {
+        let row: Option<(String,)> = sqlx::query_as(
+            "SELECT COALESCE(release_status::text, 'none') FROM licenses WHERE id = $1"
+        )
+        .bind(license_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        match row {
+            Some((status_str,)) => {
+                Ok(ReleaseStatus::from_str(&status_str).unwrap_or(ReleaseStatus::None))
+            }
+            None => Err(AppError::NotFound("License not found".into())),
+        }
     }
 }
 

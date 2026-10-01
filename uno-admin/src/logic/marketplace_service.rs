@@ -60,27 +60,69 @@ impl MarketplaceService {
                         Some(code) if !code.is_empty() => code.clone(),
                         _ => {
                             // Missing lease code is an error, not auto-generated
-                            warn!("License {} missing required lease_code", license_id);
-                            errors.push(format!("License {} missing required lease_code", license_id));
+                            warn!("R5-06: License {} missing required lease_code - quarantining", license_id);
+                            errors.push(format!("License {} missing required lease_code (quarantined)", license_id));
                             continue;
                         }
                     };
 
-                    // Create LicenseInput for uno-app
-                    let valid_from = Utc::now();
-                    let valid_to = valid_from + Duration::days(365); // 1 year validity
+                    // R5-06: Use truthful validity dates from source, not fabricated
+                    let valid_from = match &license.lease_from {
+                        Some(date_str) if !date_str.is_empty() => {
+                            match chrono::DateTime::parse_from_rfc3339(date_str) {
+                                Ok(dt) => dt.with_timezone(&Utc),
+                                Err(_) => {
+                                    warn!("R5-06: License {} has invalid lease_from date '{}' - quarantining", license_id, date_str);
+                                    errors.push(format!("License {} has invalid lease_from date (quarantined)", license_id));
+                                    continue;
+                                }
+                            }
+                        }
+                        _ => {
+                            // R5-06: Missing validity dates should quarantine, not fabricate
+                            warn!("R5-06: License {} missing lease_from date - quarantining", license_id);
+                            errors.push(format!("License {} missing validity dates (quarantined)", license_id));
+                            continue;
+                        }
+                    };
 
-                    // Determine split type based on uno_share
-                    let split_type = if license.uno_share >= 60.0 {
+                    let valid_to = match &license.lease_to {
+                        Some(date_str) if !date_str.is_empty() => {
+                            match chrono::DateTime::parse_from_rfc3339(date_str) {
+                                Ok(dt) => dt.with_timezone(&Utc),
+                                Err(_) => {
+                                    warn!("R5-06: License {} has invalid lease_to date '{}' - quarantining", license_id, date_str);
+                                    errors.push(format!("License {} has invalid lease_to date (quarantined)", license_id));
+                                    continue;
+                                }
+                            }
+                        }
+                        _ => {
+                            warn!("R5-06: License {} missing lease_to date - quarantining", license_id);
+                            errors.push(format!("License {} missing validity dates (quarantined)", license_id));
+                            continue;
+                        }
+                    };
+
+                    // R5-06: Determine categorical split type from exact shares
+                    // Use closest match, but preserve exact percentages
+                    let split_type = if license.uno_share >= 57.5 {
                         SplitType::Split6040
-                    } else if license.uno_share >= 55.0 {
+                    } else if license.uno_share >= 52.5 {
                         SplitType::Split5545
                     } else {
                         SplitType::Split5050
                     };
 
+                    // R5-06: Build input with exact shares and provenance
                     let input = LicenseInput::new(lease_code, valid_from, valid_to, split_type)
-                        .with_id(license.license_id.clone());
+                        .with_id(license.license_id.clone())
+                        .with_exact_shares(license.uno_share, license.ulo_share, license.agent_share)
+                        .with_provenance(
+                            "unetwork",
+                            license.synced_at.clone(),
+                            Some(license.license_id.clone()),
+                        );
 
                     license_inputs.push(input);
                     successful_ids.push(license_id.clone());
@@ -196,30 +238,13 @@ impl MarketplaceService {
         self.license_repo.get_marketplace_licenses().await
     }
 
-    /// Convert a hex license_id (0x...) to UUID format for matching with uno-app.
+    /// Normalize license ID for matching.
     ///
-    /// uno-app stores licenses using a UUID derived from the first 32 hex chars of the license_id.
-    /// Example: "0x0111e1758d35de5306c4feec2e87db6fcf593d055b22a32a4d49e1c1d1cb9281"
-    ///       -> "0111e175-8d35-de53-06c4-feec2e87db6f"
-    fn hex_to_uuid(hex_license_id: &str) -> Option<String> {
-        // Strip "0x" prefix if present
-        let hex_str = hex_license_id.strip_prefix("0x").unwrap_or(hex_license_id);
-
-        // Need at least 32 hex chars to form a UUID
-        if hex_str.len() >= 32 {
-            let uuid_hex = &hex_str[..32];
-            // Format as UUID: 8-4-4-4-12
-            Some(format!(
-                "{}-{}-{}-{}-{}",
-                &uuid_hex[0..8],
-                &uuid_hex[8..12],
-                &uuid_hex[12..16],
-                &uuid_hex[16..20],
-                &uuid_hex[20..32]
-            ))
-        } else {
-            None
-        }
+    /// R5-06: Use full license IDs, not substring-derived UUIDs.
+    /// Both uno-admin and uno-app now store the full license ID.
+    /// Normalization handles case differences for reliable matching.
+    fn normalize_license_id(license_id: &str) -> String {
+        license_id.to_lowercase()
     }
 
     /// Sync claim statuses from uno-app and return enriched licenses.
@@ -253,28 +278,22 @@ impl MarketplaceService {
             }
         };
 
-        // 3. Build lookup map: uuid_license_id -> (status, referral_code)
-        // uno-app returns license_id in UUID format
+        // 3. Build lookup map: normalized license_id -> (status, referral_code)
+        // R5-06: Use full license IDs, not substring-derived UUIDs
         let claimed_map: HashMap<String, (String, Option<String>)> = claimed_response.licenses
             .into_iter()
-            .map(|c| (c.license_id.to_lowercase(), ("claimed".to_string(), c.referral_code)))
+            .map(|c| (Self::normalize_license_id(&c.license_id), ("claimed".to_string(), c.referral_code)))
             .collect();
 
         // 4. Update each license status and persist to DB
         for license in &mut licenses {
-            // Convert hex license_id to UUID format for matching
-            let uuid_key = Self::hex_to_uuid(&license.license_id)
-                .map(|u| u.to_lowercase());
+            // R5-06: Use normalized full ID for matching (no truncation)
+            let normalized_id = Self::normalize_license_id(&license.license_id);
 
-            let is_claimed = uuid_key
-                .as_ref()
-                .and_then(|key| claimed_map.get(key))
-                .is_some();
+            let is_claimed = claimed_map.get(&normalized_id).is_some();
 
             if is_claimed {
-                let referral = uuid_key
-                    .as_ref()
-                    .and_then(|key| claimed_map.get(key))
+                let referral = claimed_map.get(&normalized_id)
                     .and_then(|(_, r)| r.clone());
 
                 // License is claimed
@@ -291,7 +310,7 @@ impl MarketplaceService {
                 }
                 license.marketplace_status = Some("claimed".to_string());
                 license.marketplace_referral_code = referral;
-                debug!("Matched claimed license: {} -> {:?}", license.license_id, uuid_key);
+                debug!("R5-06: Matched claimed license: {}", license.license_id);
             } else {
                 // Not in claimed list - set to unclaimed if currently not set
                 if license.marketplace_status.is_none() {

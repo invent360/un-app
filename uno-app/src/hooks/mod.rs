@@ -6,6 +6,7 @@ mod use_debounce;
 mod use_lazy_load;
 mod use_locale;
 mod use_theme;
+mod use_user;
 
 #[cfg(any(feature = "csr", feature = "hydrate", feature = "ssr"))]
 mod use_validation;
@@ -58,4 +59,10 @@ pub use ember_fx_components::{
 pub use use_validation::{
     email_rules, license_key_rules, username_rules, password_rules,
     use_form_validation, use_form_validation_all, FormState,
+};
+
+// R5-13: User session context
+pub use use_user::{
+    provide_user_context, use_user, is_authenticated, current_user, user_role,
+    UserContext, UserProfile, UserLoadState, LicenseStatus, CohortStatus,
 };

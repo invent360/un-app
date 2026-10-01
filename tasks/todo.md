@@ -106,6 +106,48 @@ Phase 9 (Release Validation) adds infrastructure for the review-based fixes:
 
 ---
 
+## V3 Review Fixes (R5-xx) — COMPLETED 30 September 2026
+
+Following the v3 review (UNO_APP_V2_RELAUNCH_REQUIREMENTS-v3.md), the following critical defects were fixed:
+
+| Ticket | Description | Status |
+|--------|-------------|--------|
+| R5-01 | Actix Data<T> type registration mismatch | `completed` - Changed `Data::from()` to `Data::new()` |
+| R5-02 | Unauthenticated onboarding endpoints | `completed` - All onboarding handlers now require auth, user_id from principal |
+| R5-03 | Migration 00051 generated column writes | `completed` - Repository writes to `data_shared_bytes` (source column) |
+| R5-08 | SettlementItemRepository not wired | `completed` - Factory uses `with_settlement_items()` constructor |
+| R5-10 | Media privacy query param trust | `completed` - Identity from auth, untracked=private, proper cache headers |
+| R5-11 | Backup manifest-only (no bytes) | `completed` - Backup/restore/verify now use actual file copy |
+| R5-15 | CI worker-compile wrong binary | `completed` - Now builds `--bin worker`, phase4-9 tests enabled |
+
+**Key Changes:**
+
+1. **main.rs (R5-01):** Changed all `Data::from(factory.xxx.clone())` to `Data::new(factory.xxx.clone())` to match handler `Data<DynXxx>` expectations.
+
+2. **onboarding_handler.rs (R5-02):** All handlers now require authentication via `get_authenticated_user()`. User identity derived from JWT principal, not body/query params. Removed client-authoritative `device_verified` - must be verified server-side.
+
+3. **cohort_repository.rs (R5-03):** Changed INSERT column from `data_collected_bytes` (generated) to `data_shared_bytes` (source column).
+
+4. **service_factory.rs (R5-08):** Created `SettlementItemRepository` and wired it via `SettlementService::with_settlement_items()` instead of `new()`.
+
+5. **file_handler.rs (R5-10):**
+   - Removed `accessor_id`/`is_owner` query params
+   - Identity derived from authenticated principal
+   - Untracked assets default to private (404), not public
+   - Private files get `no-store, no-cache` headers
+   - Legacy `/files/` route now delegates to visibility-checked handler
+
+6. **media_backup_service.rs (R5-11):**
+   - `create_backup()` copies actual bytes to `{destination}/{backup_id}/`
+   - `restore_backup()` reads from backup location, writes to original/specified path
+   - `verify_backup()` checks backup location files
+
+7. **ci.yml (R5-15):**
+   - `worker-compile` now builds `--bin worker` instead of `--bin uno-app`
+   - Added phase4-9 integration tests with `--include-ignored` flag
+
+---
+
 ## Current Phase: 4 — Inventory, Publication, Referrals and Secure Claims
 
 **Exit Gate G3:** Two workers competing for the same job never duplicate its effects; a process kill in mid-job does not lose the command; duplicate inbound events do not duplicate business effects; a 3000-event month reconciles automatically. Tampered or replayed machine-calls are rejected.

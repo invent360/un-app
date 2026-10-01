@@ -3,12 +3,16 @@
 //! Provides endpoints for uploading files and serving them.
 //! For local storage, files are served directly with proper security headers.
 //! For cloud storage, files are redirected to signed URLs.
+//!
+//! R5-10: All visibility checks derive identity from authenticated principal,
+//! never from query parameters. Untracked assets default to private.
 
+use crate::server::extractors::auth::get_authenticated_user;
 use crate::server::middleware::AdminAuth;
 use crate::server::services::{
     DynMediaAssetService, UploadRequest as MediaUploadRequest,
 };
-use actix_web::{http::header, web, HttpResponse};
+use actix_web::{http::header, web, HttpRequest, HttpResponse};
 use file_storage::create_client_from_env;
 use uuid::Uuid;
 
@@ -43,131 +47,27 @@ fn mime_from_extension(path: &str) -> &'static str {
 }
 
 /// GET /files/{resource_id}/{filename}
-/// Serves local files directly with security headers
-pub async fn serve_local_file(path: web::Path<(String, String)>) -> HttpResponse {
-    let (resource_id, filename) = path.into_inner();
-
-    // Basic path validation (additional checks in file-storage)
-    if resource_id.contains("..")
-        || filename.contains("..")
-        || resource_id.contains('/')
-        || resource_id.contains('\\')
-    {
-        return HttpResponse::Forbidden().json(serde_json::json!({
-            "error": "Path traversal rejected",
-            "code": "FORBIDDEN"
-        }));
-    }
-
-    let client = match create_client_from_env() {
-        Ok(c) => c,
-        Err(e) => {
-            tracing::error!("Failed to create storage client: {}", e);
-            return HttpResponse::ServiceUnavailable().json(serde_json::json!({
-                "error": "Storage service unavailable",
-                "code": "SERVICE_UNAVAILABLE"
-            }));
-        }
-    };
-
-    let storage_url = format!("local://{resource_id}/{filename}");
-
-    // Get file content from storage
-    match client.get_file(&storage_url).await {
-        Ok(data) => {
-            let mime_type = mime_from_extension(&filename);
-
-            HttpResponse::Ok()
-                .insert_header((header::CONTENT_TYPE, mime_type))
-                .insert_header((header::CACHE_CONTROL, "public, max-age=31536000, immutable"))
-                .insert_header((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
-                // Prevent XSS via uploaded content
-                .insert_header((
-                    header::CONTENT_SECURITY_POLICY,
-                    "default-src 'none'; style-src 'unsafe-inline'",
-                ))
-                // Prevent files from being framed
-                .insert_header((header::X_FRAME_OPTIONS, "DENY"))
-                .body(data)
-        }
-        Err(e) => {
-            let status_code = e.status_code();
-            match status_code {
-                404 => HttpResponse::NotFound().json(serde_json::json!({
-                    "error": "File not found",
-                    "code": "NOT_FOUND"
-                })),
-                403 => HttpResponse::Forbidden().json(serde_json::json!({
-                    "error": "Access denied",
-                    "code": "FORBIDDEN"
-                })),
-                _ => {
-                    tracing::error!("Failed to serve file: {}", e);
-                    HttpResponse::InternalServerError().json(serde_json::json!({
-                        "error": "Failed to retrieve file",
-                        "code": "INTERNAL_ERROR"
-                    }))
-                }
-            }
-        }
-    }
+/// R5-10: This legacy route now enforces visibility checks.
+/// All file serving must go through visibility enforcement - no bypass routes.
+/// Redirects to serve_file_with_visibility for proper access control.
+pub async fn serve_local_file(
+    req: HttpRequest,
+    path: web::Path<(String, String)>,
+    media_repo: web::Data<DynMediaAssetRepository>,
+) -> HttpResponse {
+    // R5-10: Delegate to visibility-checked handler - no bypass allowed
+    serve_file_with_visibility(req, path, media_repo).await
 }
 
-/// GET /api/files/{storage_url}
-/// Redirects to a signed display URL for the file (cloud storage)
-/// or serves directly for local storage
-pub async fn get_file(path: web::Path<String>) -> HttpResponse {
-    let storage_url = path.into_inner();
-
-    // Decode URL-encoded storage URL (e.g., gcs%3A%2F%2Fbucket%2Fpath -> gcs://bucket/path)
-    let storage_url = match urlencoding::decode(&storage_url) {
-        Ok(url) => url.to_string(),
-        Err(_) => storage_url,
-    };
-
-    let client = match create_client_from_env() {
-        Ok(c) => c,
-        Err(e) => {
-            tracing::error!("Failed to create storage client: {}", e);
-            return HttpResponse::ServiceUnavailable().json(serde_json::json!({
-                "error": "Storage service unavailable",
-                "code": "SERVICE_UNAVAILABLE"
-            }));
-        }
-    };
-
-    // For local files, serve directly instead of redirecting
-    if storage_url.starts_with("local://") {
-        match client.get_file(&storage_url).await {
-            Ok(data) => {
-                let mime_type = mime_from_extension(&storage_url);
-                return HttpResponse::Ok()
-                    .insert_header((header::CONTENT_TYPE, mime_type))
-                    .insert_header((header::CACHE_CONTROL, "public, max-age=31536000, immutable"))
-                    .insert_header((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
-                    .body(data);
-            }
-            Err(e) => {
-                tracing::error!("Failed to serve local file: {}", e);
-                return HttpResponse::NotFound().json(serde_json::json!({
-                    "error": "File not found",
-                    "code": "NOT_FOUND"
-                }));
-            }
-        }
-    }
-
-    // For cloud storage, redirect to display URL
-    let display_url = client.storage_to_display_url(&storage_url);
-    if display_url.is_empty() {
-        return HttpResponse::BadRequest().finish();
-    }
-
-    HttpResponse::TemporaryRedirect()
-        .insert_header((header::LOCATION, display_url))
-        .insert_header((header::CACHE_CONTROL, "private, max-age=3600"))
-        .finish()
-}
+// R5-10: get_file endpoint REMOVED
+// This endpoint previously served files at /api/files/serve/{storage_url} with NO visibility checks.
+// This was a critical security vulnerability - anyone could access any file by providing a storage URL.
+// All file serving must now go through visibility-checked endpoints:
+// - /files/v/{resource_id}/{filename} - visibility-enforced serving
+// - /files/{resource_id}/{filename} - legacy route that delegates to visibility-checked handler
+//
+// If you need to serve cloud storage files, use the display-url endpoints to get signed URLs
+// which have appropriate time-limited access built in.
 
 // ============================================
 // R4-05: VISIBILITY-CHECKED FILE ACCESS
@@ -175,21 +75,13 @@ pub async fn get_file(path: web::Path<String>) -> HttpResponse {
 
 use crate::server::repositories::{DynMediaAssetRepository, AssetVisibility};
 
-/// Query parameters for visibility-checked file access
-#[derive(Debug, serde::Deserialize)]
-pub struct VisibilityQuery {
-    /// Optional accessor ID (user ID) for visibility check
-    pub accessor_id: Option<String>,
-    /// Set to true if the accessor is the owner
-    #[serde(default)]
-    pub is_owner: bool,
-}
-
 /// GET /files/v/{resource_id}/{filename}
-/// R4-05: Serves files with visibility policy enforcement
+/// R4-05, R5-10: Serves files with visibility policy enforcement
+/// R5-10: Identity is derived from authenticated principal, never from query params
+/// R5-10: Untracked assets default to private, not public
 pub async fn serve_file_with_visibility(
+    req: HttpRequest,
     path: web::Path<(String, String)>,
-    query: web::Query<VisibilityQuery>,
     media_repo: web::Data<DynMediaAssetRepository>,
 ) -> HttpResponse {
     let (resource_id, filename) = path.into_inner();
@@ -208,13 +100,21 @@ pub async fn serve_file_with_visibility(
 
     let storage_url = format!("local://{resource_id}/{filename}");
 
+    // R5-10: Derive accessor identity from authenticated principal, NOT from query params
+    let authenticated_user = get_authenticated_user(&req).ok();
+    let accessor_id = authenticated_user.as_ref().map(|u| u.id.as_str());
+
     // R4-05: Look up asset and check visibility
     let asset = match media_repo.get_asset_by_storage_url(&storage_url).await {
         Ok(Some(asset)) => asset,
         Ok(None) => {
-            // Asset not tracked - fall back to public access for backwards compatibility
-            tracing::debug!(storage_url = %storage_url, "Asset not tracked, serving as public");
-            return serve_untracked_file(&resource_id, &filename).await;
+            // R5-10: Untracked assets default to PRIVATE, not public
+            // Only authenticated owners can access untracked assets
+            tracing::warn!(storage_url = %storage_url, "Asset not tracked - treating as private");
+            return HttpResponse::NotFound().json(serde_json::json!({
+                "error": "Asset not found or access denied",
+                "code": "NOT_FOUND"
+            }));
         }
         Err(e) => {
             tracing::error!(error = %e, "Failed to look up asset");
@@ -225,10 +125,9 @@ pub async fn serve_file_with_visibility(
         }
     };
 
-    // R4-05: Check visibility policy
+    // R5-10: Check visibility policy - is_owner derived from auth + asset.owner_id
     let visibility = asset.visibility_enum();
-    let accessor_id = query.accessor_id.as_deref();
-    let is_owner = query.is_owner || accessor_id == asset.owner_id.as_deref();
+    let is_owner = accessor_id.is_some() && accessor_id == asset.owner_id.as_deref();
 
     if !asset.is_accessible_by(accessor_id, is_owner) {
         // R4-05: Return 401 for anonymous access to non-public files
@@ -246,12 +145,18 @@ pub async fn serve_file_with_visibility(
         }));
     }
 
-    // Asset is accessible, serve the file
-    serve_untracked_file(&resource_id, &filename).await
+    // Asset is accessible, serve the file with appropriate cache headers
+    // R5-10: Private assets get no-store cache headers
+    serve_file_with_cache_policy(&resource_id, &filename, &visibility).await
 }
 
-/// Internal helper to serve a file without visibility checks
-async fn serve_untracked_file(resource_id: &str, filename: &str) -> HttpResponse {
+/// Internal helper to serve a file with appropriate cache policy
+/// R5-10: Private responses must not be cached publicly
+async fn serve_file_with_cache_policy(
+    resource_id: &str,
+    filename: &str,
+    visibility: &AssetVisibility,
+) -> HttpResponse {
     let client = match create_client_from_env() {
         Ok(c) => c,
         Err(e) => {
@@ -267,41 +172,37 @@ async fn serve_untracked_file(resource_id: &str, filename: &str) -> HttpResponse
 
     match client.get_file(&storage_url).await {
         Ok(data) => {
-            let mime_type = mime_from_extension(filename);
+            let mime = mime_from_extension(filename);
+
+            // R5-10: Use appropriate cache policy based on visibility
+            let cache_control = match visibility {
+                AssetVisibility::Public => {
+                    // Public assets can be cached for 1 year (immutable)
+                    "public, max-age=31536000, immutable"
+                }
+                AssetVisibility::Private | AssetVisibility::Draft => {
+                    // Private/draft assets must not be cached in shared caches
+                    "private, no-store, no-cache, must-revalidate"
+                }
+            };
 
             HttpResponse::Ok()
-                .insert_header((header::CONTENT_TYPE, mime_type))
-                .insert_header((header::CACHE_CONTROL, "public, max-age=31536000, immutable"))
+                .content_type(mime)
+                .insert_header((header::CACHE_CONTROL, cache_control))
                 .insert_header((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
-                .insert_header((
-                    header::CONTENT_SECURITY_POLICY,
-                    "default-src 'none'; style-src 'unsafe-inline'",
-                ))
-                .insert_header((header::X_FRAME_OPTIONS, "DENY"))
                 .body(data)
         }
         Err(e) => {
-            let status_code = e.status_code();
-            match status_code {
-                404 => HttpResponse::NotFound().json(serde_json::json!({
-                    "error": "File not found",
-                    "code": "NOT_FOUND"
-                })),
-                403 => HttpResponse::Forbidden().json(serde_json::json!({
-                    "error": "Access denied",
-                    "code": "FORBIDDEN"
-                })),
-                _ => {
-                    tracing::error!("Failed to serve file: {}", e);
-                    HttpResponse::InternalServerError().json(serde_json::json!({
-                        "error": "Failed to retrieve file",
-                        "code": "INTERNAL_ERROR"
-                    }))
-                }
-            }
+            tracing::error!(error = %e, storage_url = %storage_url, "Failed to get file");
+            HttpResponse::NotFound().json(serde_json::json!({
+                "error": "File not found",
+                "code": "NOT_FOUND"
+            }))
         }
     }
 }
+
+// R5-10: serve_untracked_file removed - all file serving must go through visibility checks
 
 /// Request to convert storage URL to display URL
 #[derive(Debug, serde::Deserialize)]
@@ -552,10 +453,11 @@ pub async fn delete_files(path: web::Path<String>) -> HttpResponse {
 // ============================================
 
 /// Request for tracked upload
+/// R5-10: owner_id removed - derived from authenticated principal
 #[derive(Debug, serde::Deserialize)]
 pub struct TrackedUploadQuery {
     pub resource_id: Option<String>,
-    pub owner_id: Option<String>,
+    // R5-10: owner_id removed - derived from authenticated principal
     pub owner_type: Option<String>,
     pub category: Option<String>,
     pub alt_text: Option<String>,
@@ -575,11 +477,25 @@ pub struct TrackedUploadResponse {
 
 /// POST /api/admin/files/tracked-upload
 /// Upload with DB tracking, quota enforcement, and hash verification
+/// R5-10: owner_id and created_by derived from authenticated principal
 pub async fn tracked_upload(
+    req: HttpRequest,
     mut payload: actix_multipart::Multipart,
     query: web::Query<TrackedUploadQuery>,
     media_service: web::Data<DynMediaAssetService>,
 ) -> HttpResponse {
+    // R5-10: Extract identity from authenticated principal, not query params
+    let authenticated_user = match get_authenticated_user(&req) {
+        Ok(user) => user,
+        Err(e) => {
+            tracing::warn!("Tracked upload requires authentication: {}", e);
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+    };
+    let actor_id = authenticated_user.id.clone();
     use futures_util::StreamExt;
 
     // Extract file from multipart
@@ -649,16 +565,17 @@ pub async fn tracked_upload(
     let visibility = query.visibility.as_deref()
         .and_then(AssetVisibility::from_str);
 
+    // R5-10: Owner/creator derived from authenticated principal, not query params
     let request = MediaUploadRequest {
         resource_id,
         original_filename: filename,
         content_type,
         data,
-        owner_id: query.owner_id.clone(),
+        owner_id: Some(actor_id.clone()),
         owner_type: query.owner_type.clone(),
         category: query.category.clone(),
         alt_text: query.alt_text.clone(),
-        created_by: None, // Could be extracted from auth
+        created_by: Some(actor_id),
         visibility,
     };
 
@@ -787,21 +704,21 @@ pub async fn reconcile_assets(
 
 /// Configure file storage routes
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
-    // Public file serving for local storage (legacy, no visibility check)
-    // GET /files/{resource_id}/{filename}
+    // File serving with visibility enforcement
+    // R5-10: Both routes now enforce visibility - no bypass routes allowed
     cfg.service(web::scope("/files")
-        // R4-05: Visibility-checked endpoint (preferred)
+        // R4-05: Visibility-checked endpoint (explicit path)
         .route("/v/{resource_id}/{filename:.*}", web::get().to(serve_file_with_visibility))
-        // Legacy endpoint (backwards compatibility)
+        // R5-10: Legacy endpoint now delegates to visibility-checked handler
         .route("/{resource_id}/{filename:.*}", web::get().to(serve_local_file)),
     );
 
     // API routes for storage URL management
+    // R5-10: /serve/{storage_url} route REMOVED - was a visibility bypass vulnerability
     cfg.service(
         web::scope("/api/files")
             .route("/display-url", web::get().to(get_display_url))
-            .route("/display-urls", web::post().to(batch_display_urls))
-            .route("/serve/{storage_url:.*}", web::get().to(get_file)),
+            .route("/display-urls", web::post().to(batch_display_urls)),
     );
 
     // Admin file routes - protected by AdminAuth

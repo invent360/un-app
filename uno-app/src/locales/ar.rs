@@ -419,6 +419,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.activate.step2" => "فعّل التشغيل في الخلفية لأقصى أرباح",
     "wizard.activate.step3_title" => "3. اكسب",
     "wizard.activate.step3" => "أبقِ التطبيق قيد التشغيل وشاهد أرباحك تنمو!",
+    "wizard.activate.completion_message" => "تهانينا! أنت مستعد للبدء في الكسب.",
+
+    // Wizard - Reserve Stage
+    "wizard.reserve.title" => "جاري حجز ترخيصك",
+    "wizard.reserve.subtitle" => "يرجى الانتظار بينما نؤمن ترخيصك...",
+    "wizard.reserve.step_locking" => "جاري قفل الترخيص...",
+    "wizard.reserve.step_verifying" => "جاري التحقق من الأهلية...",
+    "wizard.reserve.step_securing" => "جاري تأمين الحجز...",
+    "wizard.reserve.security_notice" => "يتم حجز ترخيصك حصرياً لك",
+    "wizard.reserve.error_title" => "فشل الحجز",
+    "wizard.reserve.try_again" => "حاول مرة أخرى",
 
     // Wizard - What Next Stage
     "wizard.what_next.title" => "ما التالي؟",
@@ -484,7 +495,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Installation Guide
     "install.title" => "دليل التثبيت",
     "install.android.title" => "أندرويد",
-    "install.android.step1" => "حمّل ملف APK من متجر Google Play",
+    "install.android.step1" => "قم بتنزيل التطبيق من متجر Google Play",
     "install.android.step2" => "افتح الملف المحمّل للتثبيت",
     "install.android.step3" => "اسمح بالتثبيت من مصادر غير معروفة إذا طُلب منك",
     "install.android.step4" => "أدخل مفتاح ترخيصك عند الطلب",
@@ -567,10 +578,10 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.platform_title" => "المنصة",
     "wizard.economics.platform_desc" => "تغطي تكاليف البنية التحتية والتطوير والدعم.",
     "wizard.economics.referrer_title" => "المُحيل",
-    "wizard.economics.referrer_desc" => "تذهب لمن أحالك، أو للمنصة إذا لم يكن هناك مُحيل.",
+    "wizard.economics.referrer_desc" => "مخصص للمحيل الخاص بك. إذا لم يكن لديك محيل، يتم الاحتفاظ بهذا في احتياطي الدعم.",
     "wizard.economics.important_title" => "إفصاحات مهمة",
-    "wizard.economics.disclosure_small_rewards" => "مكافآت المهام الفردية صغيرة ($0.001 - $0.05). تتراكم الأرباح بمرور الوقت.",
-    "wizard.economics.disclosure_credit_cost" => "تعمل UNO بالقرب من نقطة التعادل. نمول رصيدك من حصتنا.",
+    "wizard.economics.disclosure_small_rewards" => "مكافآت المهام الفردية صغيرة. تتراكم الأرباح مع مرور الوقت بناءً على توفر المهام ووقت تشغيل الجهاز.",
+    "wizard.economics.disclosure_credit_cost" => "يتم تمويل رصيدك الأولي من موارد المنصة لمساعدتك على البدء.",
     "wizard.economics.disclosure_device_requirement" => "تحتاج إلى جهاز متصل بالإنترنت مع تشغيل التطبيق.",
     "wizard.economics.disclosure_uptime" => "وقت تشغيل أعلى يعني فرص مهام أكثر وأرباح أعلى.",
     "wizard.economics.who_should_not_title" => "من لا يجب أن ينضم",

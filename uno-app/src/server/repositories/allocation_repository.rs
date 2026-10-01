@@ -35,6 +35,28 @@ impl Default for AllocationState {
     }
 }
 
+/// R5-07: Quarantine status for manual allocation review
+#[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type)]
+#[sqlx(type_name = "allocation_quarantine_status", rename_all = "snake_case")]
+pub enum QuarantineStatus {
+    /// Normal allocation (automated or validated)
+    None,
+    /// Requires manual review
+    PendingReview,
+    /// Flagged as problematic
+    Quarantined,
+    /// Issue resolved
+    Resolved,
+    /// Rejected as invalid
+    Rejected,
+}
+
+impl Default for QuarantineStatus {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 /// Allocation ledger entry
 #[derive(Debug, Clone, sqlx::FromRow)]
 pub struct AllocationEntry {
@@ -77,6 +99,32 @@ pub struct AllocationEntry {
     pub state_changed_by: Option<String>,
     #[sqlx(default)]
     pub settlement_ref: Option<String>,
+    // R5-07: Quarantine tracking
+    #[sqlx(default)]
+    pub quarantine_status: Option<String>,
+    #[sqlx(default)]
+    pub quarantine_reason: Option<String>,
+    #[sqlx(default)]
+    pub quarantine_reviewed_by: Option<String>,
+    #[sqlx(default)]
+    pub quarantine_reviewed_at: Option<DateTime<Utc>>,
+    // R5-07: Reward source tracking
+    #[sqlx(default)]
+    pub reward_source: Option<String>,
+    #[sqlx(default)]
+    pub reward_batch_id: Option<Uuid>,
+    #[sqlx(default)]
+    pub is_batch_member: bool,
+    // R5-07: Agreement snapshot
+    #[sqlx(default)]
+    pub agreement_snapshot: Option<serde_json::Value>,
+    // R5-07: Recipient tracking
+    #[sqlx(default)]
+    pub ulo_recipient_id: Option<Uuid>,
+    #[sqlx(default)]
+    pub uno_recipient_id: Option<Uuid>,
+    #[sqlx(default)]
+    pub reserve_recipient_id: Option<Uuid>,
 }
 
 /// Input for creating a new allocation entry
@@ -105,6 +153,23 @@ pub struct CreateAllocationInput {
     pub reward_event_id: Option<String>,
     /// R3-07: Agent receiving referral share (if any)
     pub referral_agent_id: Option<Uuid>,
+    // R5-07: Reward source tracking
+    /// Source type: automatic, manual, compensating, batch
+    pub reward_source: Option<String>,
+    /// Groups allocations from single event covering multiple licenses
+    pub reward_batch_id: Option<Uuid>,
+    /// True if allocation is part of a batch reward event
+    pub is_batch_member: bool,
+    // R5-07: Agreement snapshot
+    /// Snapshot of agreement terms at allocation time for audit
+    pub agreement_snapshot: Option<serde_json::Value>,
+    // R5-07: Recipient tracking
+    /// User/participant receiving ULO share
+    pub ulo_recipient_id: Option<Uuid>,
+    /// UNO operator entity (usually system)
+    pub uno_recipient_id: Option<Uuid>,
+    /// Reserve pool recipient (for no-referral allocations)
+    pub reserve_recipient_id: Option<Uuid>,
 }
 
 /// Pool balance summary for a license
@@ -189,6 +254,55 @@ pub trait AllocationRepository: Send + Sync {
         provider_id: &str,
         reward_event_id: &str,
     ) -> Result<bool, AppError>;
+
+    /// R5-07: List allocations pending quarantine review
+    async fn list_quarantined(
+        &self,
+        limit: i32,
+        offset: i32,
+    ) -> Result<Vec<AllocationEntry>, AppError>;
+
+    /// R5-07: Mark allocation for quarantine review
+    async fn quarantine(
+        &self,
+        id: Uuid,
+        reason: &str,
+        reviewer_id: Option<&str>,
+    ) -> Result<(), AppError>;
+
+    /// R5-07: Resolve quarantined allocation
+    async fn resolve_quarantine(
+        &self,
+        id: Uuid,
+        resolution: &str,
+        reviewer_id: &str,
+        notes: Option<&str>,
+    ) -> Result<(), AppError>;
+
+    /// R5-07: Get alert policy by code
+    async fn get_alert_policy(&self, policy_code: &str) -> Result<Option<AlertPolicyRow>, AppError>;
+
+    /// R5-07: List all active alert policies
+    async fn list_alert_policies(&self) -> Result<Vec<AlertPolicyRow>, AppError>;
+}
+
+/// R5-07: Alert policy row from database
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct AlertPolicyRow {
+    pub id: i32,
+    pub policy_code: String,
+    pub policy_name: String,
+    pub description: Option<String>,
+    pub parameters: serde_json::Value,
+    pub threshold_micros: Option<i64>,
+    pub threshold_percent: Option<f64>,
+    pub period_type: Option<String>,
+    pub period_value: Option<i32>,
+    pub basis: Option<String>,
+    pub is_active: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub version: i32,
 }
 
 /// PostgreSQL implementation of AllocationRepository
@@ -219,7 +333,10 @@ impl AllocationRepository for AllocationRepositoryImpl {
                 period_start, period_end,
                 source, external_ref,
                 provider_id, reward_event_id, referral_agent_id,
-                allocated_at, created_at
+                allocated_at, created_at,
+                reward_source, reward_batch_id, is_batch_member,
+                agreement_snapshot,
+                ulo_recipient_id, uno_recipient_id, reserve_recipient_id
             ) VALUES (
                 $1, $2, $3,
                 $4, $5,
@@ -229,7 +346,10 @@ impl AllocationRepository for AllocationRepositoryImpl {
                 $14, $15,
                 $16, $17,
                 $18, $19, $20,
-                $21, $22
+                $21, $22,
+                $23, $24, $25,
+                $26,
+                $27, $28, $29
             )
             "#,
         )
@@ -255,6 +375,14 @@ impl AllocationRepository for AllocationRepositoryImpl {
         .bind(input.referral_agent_id)
         .bind(now)
         .bind(now)
+        // R5-07 columns
+        .bind(&input.reward_source)
+        .bind(input.reward_batch_id)
+        .bind(input.is_batch_member)
+        .bind(&input.agreement_snapshot)
+        .bind(input.ulo_recipient_id)
+        .bind(input.uno_recipient_id)
+        .bind(input.reserve_recipient_id)
         .execute(&self.pool)
         .await
         .map_err(|e| AppError::Database(e.to_string()))?;
@@ -276,7 +404,12 @@ impl AllocationRepository for AllocationRepositoryImpl {
                 source, external_ref,
                 provider_id, reward_event_id, referral_agent_id,
                 allocated_at, created_at,
-                state::text as state, state_changed_at, state_changed_by, settlement_ref
+                state::text as state, state_changed_at, state_changed_by, settlement_ref,
+                quarantine_status::text as quarantine_status, quarantine_reason,
+                quarantine_reviewed_by, quarantine_reviewed_at,
+                reward_source, reward_batch_id, COALESCE(is_batch_member, false) as is_batch_member,
+                agreement_snapshot,
+                ulo_recipient_id, uno_recipient_id, reserve_recipient_id
             FROM allocation_ledger
             WHERE id = $1
             "#,
@@ -306,7 +439,12 @@ impl AllocationRepository for AllocationRepositoryImpl {
                 source, external_ref,
                 provider_id, reward_event_id, referral_agent_id,
                 allocated_at, created_at,
-                state::text as state, state_changed_at, state_changed_by, settlement_ref
+                state::text as state, state_changed_at, state_changed_by, settlement_ref,
+                quarantine_status::text as quarantine_status, quarantine_reason,
+                quarantine_reviewed_by, quarantine_reviewed_at,
+                reward_source, reward_batch_id, COALESCE(is_batch_member, false) as is_batch_member,
+                agreement_snapshot,
+                ulo_recipient_id, uno_recipient_id, reserve_recipient_id
             FROM allocation_ledger
             WHERE license_id = $1
             ORDER BY allocated_at DESC
@@ -346,7 +484,12 @@ impl AllocationRepository for AllocationRepositoryImpl {
                 source, external_ref,
                 provider_id, reward_event_id, referral_agent_id,
                 allocated_at, created_at,
-                state::text as state, state_changed_at, state_changed_by, settlement_ref
+                state::text as state, state_changed_at, state_changed_by, settlement_ref,
+                quarantine_status::text as quarantine_status, quarantine_reason,
+                quarantine_reviewed_by, quarantine_reviewed_at,
+                reward_source, reward_batch_id, COALESCE(is_batch_member, false) as is_batch_member,
+                agreement_snapshot,
+                ulo_recipient_id, uno_recipient_id, reserve_recipient_id
             FROM allocation_ledger
             WHERE state = $1::allocation_state
             ORDER BY allocated_at DESC
@@ -558,5 +701,151 @@ impl AllocationRepository for AllocationRepositoryImpl {
         .map_err(|e| AppError::Database(e.to_string()))?;
 
         Ok(row.get("exists"))
+    }
+
+    /// R5-07: List allocations pending quarantine review
+    async fn list_quarantined(
+        &self,
+        limit: i32,
+        offset: i32,
+    ) -> Result<Vec<AllocationEntry>, AppError> {
+        sqlx::query_as::<_, AllocationEntry>(
+            r#"
+            SELECT
+                id, license_id, agreement_version,
+                pool_micros, pool_currency,
+                ulo_micros, uno_micros, referral_micros,
+                COALESCE(reserve_micros, 0) as reserve_micros,
+                ulo_bps, uno_bps, referral_bps,
+                remainder_micros,
+                period_start, period_end,
+                source, external_ref,
+                provider_id, reward_event_id, referral_agent_id,
+                allocated_at, created_at,
+                state::text as state, state_changed_at, state_changed_by, settlement_ref,
+                quarantine_status::text as quarantine_status, quarantine_reason,
+                quarantine_reviewed_by, quarantine_reviewed_at,
+                reward_source, reward_batch_id, COALESCE(is_batch_member, false) as is_batch_member,
+                agreement_snapshot,
+                ulo_recipient_id, uno_recipient_id, reserve_recipient_id
+            FROM allocation_ledger
+            WHERE quarantine_status IN ('pending_review', 'quarantined')
+            ORDER BY created_at DESC
+            LIMIT $1 OFFSET $2
+            "#,
+        )
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| AppError::Database(e.to_string()))
+    }
+
+    /// R5-07: Mark allocation for quarantine review
+    async fn quarantine(
+        &self,
+        id: Uuid,
+        reason: &str,
+        reviewer_id: Option<&str>,
+    ) -> Result<(), AppError> {
+        let now = Utc::now();
+
+        sqlx::query(
+            r#"
+            UPDATE allocation_ledger
+            SET quarantine_status = 'pending_review'::allocation_quarantine_status,
+                quarantine_reason = $2,
+                quarantine_reviewed_by = $3,
+                updated_at = $4
+            WHERE id = $1
+            "#,
+        )
+        .bind(id)
+        .bind(reason)
+        .bind(reviewer_id)
+        .bind(now)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::Database(e.to_string()))?;
+
+        Ok(())
+    }
+
+    /// R5-07: Resolve quarantined allocation
+    async fn resolve_quarantine(
+        &self,
+        id: Uuid,
+        resolution: &str,
+        reviewer_id: &str,
+        notes: Option<&str>,
+    ) -> Result<(), AppError> {
+        // Validate resolution value
+        if resolution != "resolved" && resolution != "rejected" {
+            return Err(AppError::ValidationError(
+                "Resolution must be 'resolved' or 'rejected'".to_string(),
+            ));
+        }
+
+        let now = Utc::now();
+
+        sqlx::query(
+            r#"
+            UPDATE allocation_ledger
+            SET quarantine_status = $2::allocation_quarantine_status,
+                quarantine_reviewed_by = $3,
+                quarantine_reviewed_at = $4,
+                quarantine_resolution_notes = $5,
+                updated_at = $4
+            WHERE id = $1
+            "#,
+        )
+        .bind(id)
+        .bind(resolution)
+        .bind(reviewer_id)
+        .bind(now)
+        .bind(notes)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::Database(e.to_string()))?;
+
+        Ok(())
+    }
+
+    /// R5-07: Get alert policy by code
+    async fn get_alert_policy(&self, policy_code: &str) -> Result<Option<AlertPolicyRow>, AppError> {
+        sqlx::query_as::<_, AlertPolicyRow>(
+            r#"
+            SELECT
+                id, policy_code, policy_name, description,
+                parameters, threshold_micros, threshold_percent,
+                period_type, period_value, basis,
+                is_active, created_at, updated_at, version
+            FROM alert_policies
+            WHERE policy_code = $1 AND is_active = true
+            "#,
+        )
+        .bind(policy_code)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| AppError::Database(e.to_string()))
+    }
+
+    /// R5-07: List all active alert policies
+    async fn list_alert_policies(&self) -> Result<Vec<AlertPolicyRow>, AppError> {
+        sqlx::query_as::<_, AlertPolicyRow>(
+            r#"
+            SELECT
+                id, policy_code, policy_name, description,
+                parameters, threshold_micros, threshold_percent,
+                period_type, period_value, basis,
+                is_active, created_at, updated_at, version
+            FROM alert_policies
+            WHERE is_active = true
+            ORDER BY policy_code
+            "#,
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| AppError::Database(e.to_string()))
     }
 }

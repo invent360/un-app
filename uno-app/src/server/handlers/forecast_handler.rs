@@ -13,7 +13,7 @@ use crate::server::repositories::{
     UpdateTaskInput, CreateGoldenFixtureInput, ForecastStatus,
 };
 use crate::server::services::{
-    DynForecastService, ForecastEngine, AgreementShares, WeeklyProjection,
+    DynForecastService, AgreementShares, WeeklyProjection,
 };
 use crate::types::AppError;
 

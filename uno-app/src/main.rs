@@ -34,9 +34,8 @@ async fn main() -> std::io::Result<()> {
         .ok_or_else(|| {
             std::io::Error::other("CSRF_SECRET_KEY must be configured with at least 32 characters")
         })?;
-    let is_production = std::env::var("RUST_ENV")
-        .is_ok_and(|value| value.eq_ignore_ascii_case("production"))
-        || std::env::var("LEPTOS_ENV").is_ok_and(|value| value.eq_ignore_ascii_case("PROD"));
+    // R5-11: Use unified production mode resolver
+    let is_production = uno_app::server::config::is_production_mode();
     let ui_only = !is_production && std::env::var("UNO_UI_ONLY").is_ok_and(|value| value == "true");
 
     // Register server functions explicitly
@@ -71,6 +70,43 @@ async fn main() -> std::io::Result<()> {
                 uno_app::server::scheduler::start_content_scheduler(scheduler_factory).await;
             });
 
+            // R5-09: Start outbox publisher background task
+            if let Some(webhook_url) = std::env::var("WEBHOOK_URL").ok() {
+                let outbox_repo = factory.outbox_repository.clone();
+                let webhook_secret = std::env::var("WEBHOOK_SECRET").ok();
+                let config = uno_app::server::services::OutboxPublisherConfig {
+                    webhook_url: Some(webhook_url),
+                    webhook_secret,
+                    ..Default::default()
+                };
+                let shutdown = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+                // Outbox publisher - polls and publishes events
+                let outbox_repo_clone = outbox_repo.clone();
+                let shutdown_clone = shutdown.clone();
+                actix_rt::spawn(async move {
+                    uno_app::server::services::run_outbox_publisher(
+                        outbox_repo_clone,
+                        config,
+                        std::time::Duration::from_secs(5),
+                        shutdown_clone,
+                    ).await;
+                });
+
+                // Stale event recovery - resets stuck events
+                actix_rt::spawn(async move {
+                    uno_app::server::services::run_outbox_stale_recovery(
+                        outbox_repo,
+                        std::time::Duration::from_secs(60),
+                        shutdown,
+                    ).await;
+                });
+
+                info!("Outbox publisher enabled");
+            } else {
+                warn!("WEBHOOK_URL not configured - outbox publishing disabled");
+            }
+
             Some(factory)
         }
         Err(e) => {
@@ -102,21 +138,28 @@ async fn main() -> std::io::Result<()> {
             app = app
                 .app_data(web::Data::new(factory.clone()))
                 // Register individual repositories and services for handler extraction
+                // R5-01: Use Data::new() to match handler Data<DynXxx> expectations
+                // Data::from(Arc<T>) creates Data<T>, but handlers expect Data<Arc<T>>
+                // Data::new(Arc<T>) creates Data<Arc<T>> which matches handlers
                 // Phase 7-8 repositories
-                .app_data(web::Data::from(factory.support_repository.clone()))
-                .app_data(web::Data::from(factory.cohort_repository.clone()))
-                .app_data(web::Data::from(factory.exit_repository.clone()))
-                .app_data(web::Data::from(factory.market_repository.clone()))
-                .app_data(web::Data::from(factory.operator_metrics_repository.clone()))
-                .app_data(web::Data::from(factory.forecast_repository.clone()))
-                .app_data(web::Data::from(factory.webhook_repository.clone()))
-                .app_data(web::Data::from(factory.communication_repository.clone()))
-                .app_data(web::Data::from(factory.media_asset_repository.clone()))
+                .app_data(web::Data::new(factory.support_repository.clone()))
+                .app_data(web::Data::new(factory.cohort_repository.clone()))
+                .app_data(web::Data::new(factory.exit_repository.clone()))
+                .app_data(web::Data::new(factory.market_repository.clone()))
+                .app_data(web::Data::new(factory.operator_metrics_repository.clone()))
+                .app_data(web::Data::new(factory.forecast_repository.clone()))
+                .app_data(web::Data::new(factory.webhook_repository.clone()))
+                .app_data(web::Data::new(factory.communication_repository.clone()))
+                .app_data(web::Data::new(factory.media_asset_repository.clone()))
+                // R5-11: Media backup repository
+                .app_data(web::Data::new(factory.media_backup_repository.clone()))
                 // Phase 7-8 services
-                .app_data(web::Data::from(factory.forecast_service.clone()))
-                .app_data(web::Data::from(factory.webhook_service.clone()))
-                .app_data(web::Data::from(factory.communication_service.clone()))
-                .app_data(web::Data::from(factory.media_asset_service.clone()));
+                .app_data(web::Data::new(factory.forecast_service.clone()))
+                .app_data(web::Data::new(factory.webhook_service.clone()))
+                .app_data(web::Data::new(factory.communication_service.clone()))
+                .app_data(web::Data::new(factory.media_asset_service.clone()))
+                // R5-11: Media backup service
+                .app_data(web::Data::new(factory.media_backup_service.clone()));
         }
 
         // Increase JSON payload limit to 50MB for content with embedded images
@@ -156,7 +199,8 @@ async fn main() -> std::io::Result<()> {
                                         var rtlLocales = ['ar'];
 
                                         // Detect locale from cookie, then browser preference
-                                        var locale = (document.cookie.match(/uno_locale=([^;]+)/) || [])[1] ||
+                                        // R5-14: Cookie name must match server (uno-locale with hyphen)
+                                        var locale = (document.cookie.match(/uno-locale=([^;]+)/) || [])[1] ||
                                                      (navigator.language || navigator.userLanguage || 'en').split('-')[0];
 
                                         // Store for hydration agreement

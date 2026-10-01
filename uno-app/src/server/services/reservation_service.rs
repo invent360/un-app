@@ -71,16 +71,21 @@ impl Default for ReservationRequest {
 }
 
 /// Extended reservation result with eligibility info
+///
+/// R5-05: Does NOT include lease_code - credential revealed only at confirmation
+/// when ownership is established.
 #[derive(Debug, Clone, Serialize)]
 pub struct ExtendedReservationResult {
     pub license_id: String,
-    pub lease_code: String,
+    /// R5-05: lease_code intentionally omitted - revealed only at confirm
     pub session_token: String,
     pub expires_at: DateTime<Utc>,
     pub split_type: String,
     pub referral_validated: bool,
     /// Eligibility ruleset that was applied (if any)
     pub eligibility_ruleset: Option<String>,
+    /// R5-05: Remaining capacity after this reservation
+    pub capacity_remaining: Option<i64>,
 }
 
 /// Input for confirming a reservation
@@ -218,50 +223,10 @@ impl ReservationServiceImpl {
         }
     }
 
-    /// R3-05: Check if capacity ceiling allows new reservation
-    ///
-    /// Counts licenses in occupied states (reserved, issued, active, release_pending)
-    /// and returns error if at or above MAX_OCCUPIED_LICENSES.
-    async fn check_capacity(&self) -> Result<(), ReservationError> {
-        let now = Utc::now();
-
-        // Count licenses that are:
-        // - Reserved (reserved_until > now)
-        // - Claimed (claimed = true)
-        // - Or in active lifecycle states
-        let count: (i64,) = sqlx::query_as(
-            r#"
-            SELECT COUNT(*) as count
-            FROM licenses
-            WHERE
-                claimed = true
-                OR (reserved_until IS NOT NULL AND reserved_until > $1)
-            "#,
-        )
-        .bind(now)
-        .fetch_one(&self.pool)
-        .await
-        .map_err(|e| ReservationError::new("capacity_check_failed", &e.to_string()))?;
-
-        if count.0 >= MAX_OCCUPIED_LICENSES {
-            tracing::warn!(
-                occupied = count.0,
-                ceiling = MAX_OCCUPIED_LICENSES,
-                "Capacity ceiling reached"
-            );
-            return Err(ReservationError::new(
-                "capacity_exceeded",
-                "License capacity has been reached. Please try again later.",
-            ));
-        }
-
-        tracing::debug!(
-            occupied = count.0,
-            ceiling = MAX_OCCUPIED_LICENSES,
-            "Capacity check passed"
-        );
-        Ok(())
-    }
+    // R5-05: Capacity check moved inside atomic_reserve_with_capacity
+    // The old check_capacity() method created a TOCTOU race condition where
+    // two users could both pass the capacity check, then both try to reserve.
+    // Now the capacity check is performed atomically inside the transaction.
 
     /// Find license ID and check eligibility atomically
     async fn find_eligible_license(
@@ -337,20 +302,22 @@ impl ReservationService for ReservationServiceImpl {
         &self,
         request: ReservationRequest,
     ) -> Result<ExtendedReservationResult, ReservationError> {
-        // R3-05: Check capacity ceiling before attempting reservation
-        self.check_capacity().await?;
-
-        // Use existing atomic_reserve with split_type and referral
-        // The underlying repository handles locking
+        // R5-05: Use atomic_reserve_with_capacity to check capacity INSIDE the transaction
+        // This prevents TOCTOU race conditions where two users could both pass a
+        // non-locked capacity check and then both attempt to reserve.
         let result = self.claim_repo
-            .atomic_reserve(
+            .atomic_reserve_with_capacity(
                 request.split_type.as_deref(),
                 request.referral_code.as_deref(),
+                Some(MAX_OCCUPIED_LICENSES),
             )
             .await
             .map_err(|e| {
                 match e {
                     AppError::NotFound(_) => ReservationError::no_licenses(),
+                    AppError::ValidationError(msg) if msg.contains("capacity") => {
+                        ReservationError::new("capacity_exceeded", &msg)
+                    }
                     _ => ReservationError::new("reservation_failed", &e.to_string()),
                 }
             })?;
@@ -403,14 +370,15 @@ impl ReservationService for ReservationServiceImpl {
             None
         };
 
+        // R5-05: Do NOT include lease_code - credential revealed only at confirm
         Ok(ExtendedReservationResult {
             license_id: result.license_id,
-            lease_code: result.lease_code,
             session_token: result.session_token,
             expires_at: result.expires_at,
             split_type: result.split_type,
             referral_validated: result.referral_validated,
             eligibility_ruleset: ruleset_name,
+            capacity_remaining: result.capacity_remaining,
         })
     }
 
@@ -500,8 +468,9 @@ impl ReservationService for ReservationServiceImpl {
     ) -> Result<Option<ReservationResult>, AppError> {
         let now = Utc::now();
 
+        // R5-05: Do NOT select lease_code - credential revealed only at confirm
         let result: Option<UserReservationRow> = sqlx::query_as::<_, UserReservationRow>(r#"
-            SELECT r.license_id, l.lease_code, r.session_token, r.expires_at, l.split_type::text as split_type
+            SELECT r.license_id, r.session_token, r.expires_at, l.split_type::text as split_type
             FROM license_reservations r
             JOIN licenses l ON r.license_id = l.id
             WHERE r.user_id = $1
@@ -518,11 +487,11 @@ impl ReservationService for ReservationServiceImpl {
 
         Ok(result.map(|r| ReservationResult {
             license_id: r.license_id,
-            lease_code: r.lease_code,
             session_token: r.session_token,
             expires_at: r.expires_at,
             split_type: r.split_type,
             referral_validated: false,
+            capacity_remaining: None, // Not tracked for existing reservations
         }))
     }
 
@@ -541,10 +510,10 @@ struct LicenseSearchRow {
     eligibility_ruleset_id: Option<i32>,
 }
 
+/// R5-05: Does NOT include lease_code - credentials revealed only at confirm
 #[derive(Debug, sqlx::FromRow)]
 struct UserReservationRow {
     license_id: String,
-    lease_code: String,
     session_token: String,
     expires_at: DateTime<Utc>,
     split_type: String,

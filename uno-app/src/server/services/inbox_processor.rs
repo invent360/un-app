@@ -297,8 +297,11 @@ mod tests {
             Ok(vec![])
         }
         async fn mark_published(&self, _: uuid::Uuid) -> Result<(), AppError> { Ok(()) }
+        async fn mark_published_fenced(&self, _: uuid::Uuid, _: uuid::Uuid) -> Result<bool, AppError> { Ok(true) }
         async fn mark_failed(&self, _: uuid::Uuid, _: &str, _: Option<chrono::DateTime<chrono::Utc>>) -> Result<(), AppError> { Ok(()) }
         async fn mark_dead_letter(&self, _: uuid::Uuid, _: &str) -> Result<(), AppError> { Ok(()) }
+        async fn mark_failed_fenced(&self, _: uuid::Uuid, _: &str, _: Option<chrono::DateTime<chrono::Utc>>, _: uuid::Uuid) -> Result<bool, AppError> { Ok(true) }
+        async fn mark_dead_letter_fenced(&self, _: uuid::Uuid, _: &str, _: uuid::Uuid) -> Result<bool, AppError> { Ok(true) }
         async fn get_retry_events(&self, _: i32) -> Result<Vec<crate::server::repositories::OutboxEvent>, AppError> { Ok(vec![]) }
         async fn get_dead_letter_events(&self, _: i32, _: i32) -> Result<Vec<crate::server::repositories::OutboxEvent>, AppError> { Ok(vec![]) }
         async fn replay_event(&self, _: uuid::Uuid) -> Result<crate::server::repositories::OutboxEvent, AppError> { unimplemented!() }
@@ -313,5 +316,6 @@ mod tests {
         async fn get_expired_workers(&self) -> Result<Vec<crate::server::repositories::WorkerLease>, AppError> { Ok(vec![]) }
         async fn cleanup_old_inbox_events(&self, _: i32) -> Result<i64, AppError> { Ok(0) }
         async fn cleanup_old_outbox_events(&self, _: i32) -> Result<i64, AppError> { Ok(0) }
+        async fn recover_stale_publishing_events(&self) -> Result<i64, AppError> { Ok(0) }
     }
 }

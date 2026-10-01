@@ -166,13 +166,43 @@ pub trait OutboxRepository: Send + Sync {
     async fn claim_events(&self, limit: i32, worker_id: Uuid) -> Result<Vec<OutboxEvent>, AppError>;
 
     /// Mark event as published
+    #[deprecated(since = "0.2.0", note = "Use mark_published_fenced instead for proper lease validation")]
     async fn mark_published(&self, event_id: Uuid) -> Result<(), AppError>;
 
+    /// R5-09: Mark event as published with fenced lease validation
+    /// Returns false if lease expired or worker doesn't match
+    async fn mark_published_fenced(
+        &self,
+        event_id: Uuid,
+        worker_id: Uuid,
+    ) -> Result<bool, AppError>;
+
     /// Mark event as failed with retry
+    #[deprecated(since = "0.2.0", note = "Use mark_failed_fenced instead for proper lease validation")]
     async fn mark_failed(&self, event_id: Uuid, error: &str, retry_at: Option<DateTime<Utc>>) -> Result<(), AppError>;
 
+    /// R5-09: Mark event as failed with fenced lease validation
+    /// Returns false if lease expired or worker doesn't match
+    async fn mark_failed_fenced(
+        &self,
+        event_id: Uuid,
+        error: &str,
+        retry_at: Option<DateTime<Utc>>,
+        worker_id: Uuid,
+    ) -> Result<bool, AppError>;
+
     /// Mark event as dead letter (no more retries)
+    #[deprecated(since = "0.2.0", note = "Use mark_dead_letter_fenced instead for proper lease validation")]
     async fn mark_dead_letter(&self, event_id: Uuid, error: &str) -> Result<(), AppError>;
+
+    /// R5-09: Mark event as dead letter with fenced lease validation
+    /// Returns false if lease expired or worker doesn't match
+    async fn mark_dead_letter_fenced(
+        &self,
+        event_id: Uuid,
+        error: &str,
+        worker_id: Uuid,
+    ) -> Result<bool, AppError>;
 
     /// Get events ready for retry
     async fn get_retry_events(&self, limit: i32) -> Result<Vec<OutboxEvent>, AppError>;
@@ -231,6 +261,9 @@ pub trait OutboxRepository: Send + Sync {
 
     /// Cleanup old published outbox events
     async fn cleanup_old_outbox_events(&self, older_than_days: i32) -> Result<i64, AppError>;
+
+    /// R5-09: Recover events stuck in 'publishing' state with expired claims
+    async fn recover_stale_publishing_events(&self) -> Result<i64, AppError>;
 }
 
 // ============================================
@@ -290,12 +323,17 @@ impl OutboxRepository for OutboxRepositoryImpl {
     }
 
     async fn claim_events(&self, limit: i32, worker_id: Uuid) -> Result<Vec<OutboxEvent>, AppError> {
-        // Claim pending or retry-ready events
+        // R5-09: Claim with proper lease tracking for fenced acknowledgement
+        // Sets claimed_by, claimed_at, claim_expires_at, and increments claim_generation
         let events = sqlx::query_as::<_, OutboxEvent>(
             r#"
             UPDATE outbox
             SET status = 'publishing',
-                publish_attempts = publish_attempts + 1
+                publish_attempts = publish_attempts + 1,
+                claimed_by = $2,
+                claimed_at = NOW(),
+                claim_expires_at = NOW() + INTERVAL '5 minutes',
+                claim_generation = COALESCE(claim_generation, 0) + 1
             WHERE id IN (
                 SELECT id FROM outbox
                 WHERE (status = 'pending')
@@ -310,6 +348,7 @@ impl OutboxRepository for OutboxRepositoryImpl {
             "#,
         )
         .bind(limit)
+        .bind(worker_id.to_string())
         .fetch_all(&self.pool)
         .await
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
@@ -318,14 +357,23 @@ impl OutboxRepository for OutboxRepositoryImpl {
     }
 
     async fn mark_published(&self, event_id: Uuid) -> Result<(), AppError> {
-        sqlx::query(
+        // R5-09: Clear claim tracking and mark as published
+        // Note: Fenced version would check claimed_by matches, but since we claimed
+        // within same process flow, we trust the event_id. The claim_expires_at
+        // provides protection against stale completion from crashed workers.
+        let result = sqlx::query(
             r#"
             UPDATE outbox
             SET status = 'published',
                 published_at = NOW(),
                 last_error = NULL,
-                next_retry_at = NULL
+                next_retry_at = NULL,
+                claimed_by = NULL,
+                claimed_at = NULL,
+                claim_expires_at = NULL
             WHERE event_id = $1
+              AND status = 'publishing'
+              AND claim_expires_at > NOW()
             "#,
         )
         .bind(event_id)
@@ -333,16 +381,125 @@ impl OutboxRepository for OutboxRepositoryImpl {
         .await
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
+        if result.rows_affected() == 0 {
+            // Check if already published or claim expired
+            let current: Option<(String,)> = sqlx::query_as(
+                "SELECT status FROM outbox WHERE event_id = $1"
+            )
+            .bind(event_id)
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+            match current {
+                Some((status,)) if status == "published" => {
+                    // Already published, idempotent success
+                    tracing::debug!(event_id = %event_id, "Event already published");
+                }
+                Some((status,)) => {
+                    // Lease expired or status changed
+                    tracing::warn!(
+                        event_id = %event_id,
+                        status = %status,
+                        "Failed to mark published - lease may have expired"
+                    );
+                    return Err(AppError::Conflict(
+                        format!("Event {} claim expired or status changed to {}", event_id, status)
+                    ));
+                }
+                None => {
+                    return Err(AppError::NotFound(format!("Event {} not found", event_id)));
+                }
+            }
+        }
+
         Ok(())
     }
 
+    async fn mark_published_fenced(
+        &self,
+        event_id: Uuid,
+        worker_id: Uuid,
+    ) -> Result<bool, AppError> {
+        // R5-09: Only allow publish if lease is still valid and worker matches
+        let result = sqlx::query(
+            r#"
+            UPDATE outbox
+            SET status = 'published',
+                published_at = NOW(),
+                last_error = NULL,
+                next_retry_at = NULL,
+                claimed_by = NULL,
+                claimed_at = NULL,
+                claim_expires_at = NULL
+            WHERE event_id = $1
+              AND status = 'publishing'
+              AND claimed_by = $2
+              AND claim_expires_at > NOW()
+            "#,
+        )
+        .bind(event_id)
+        .bind(worker_id.to_string())
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        if result.rows_affected() == 0 {
+            // Check if already published (idempotent success) or stale
+            let current: Option<(String,)> = sqlx::query_as(
+                "SELECT status FROM outbox WHERE event_id = $1"
+            )
+            .bind(event_id)
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+            match current {
+                Some((status,)) if status == "published" => {
+                    // Already published, idempotent success
+                    tracing::debug!(
+                        event_id = %event_id,
+                        worker_id = %worker_id,
+                        "Event already published (idempotent success)"
+                    );
+                    return Ok(true);
+                }
+                Some((status,)) => {
+                    // Lease expired or worker mismatch
+                    tracing::warn!(
+                        event_id = %event_id,
+                        worker_id = %worker_id,
+                        status = %status,
+                        "mark_published_fenced: lease expired or worker mismatch - stale worker detected"
+                    );
+                    return Ok(false);
+                }
+                None => {
+                    tracing::error!(event_id = %event_id, "Event not found");
+                    return Ok(false);
+                }
+            }
+        }
+
+        tracing::debug!(
+            event_id = %event_id,
+            worker_id = %worker_id,
+            "Event published successfully (fenced)"
+        );
+        Ok(true)
+    }
+
     async fn mark_failed(&self, event_id: Uuid, error: &str, retry_at: Option<DateTime<Utc>>) -> Result<(), AppError> {
+        // R5-09: Clear claim tracking when failing
         sqlx::query(
             r#"
             UPDATE outbox
             SET status = 'failed',
                 last_error = $2,
-                next_retry_at = $3
+                next_retry_at = $3,
+                claimed_by = NULL,
+                claimed_at = NULL,
+                claim_expires_at = NULL
             WHERE event_id = $1
             "#,
         )
@@ -357,12 +514,16 @@ impl OutboxRepository for OutboxRepositoryImpl {
     }
 
     async fn mark_dead_letter(&self, event_id: Uuid, error: &str) -> Result<(), AppError> {
+        // R5-09: Clear claim tracking when moving to dead letter
         sqlx::query(
             r#"
             UPDATE outbox
             SET status = 'dead_letter',
                 last_error = $2,
-                next_retry_at = NULL
+                next_retry_at = NULL,
+                claimed_by = NULL,
+                claimed_at = NULL,
+                claim_expires_at = NULL
             WHERE event_id = $1
             "#,
         )
@@ -373,6 +534,90 @@ impl OutboxRepository for OutboxRepositoryImpl {
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         Ok(())
+    }
+
+    async fn mark_failed_fenced(
+        &self,
+        event_id: Uuid,
+        error: &str,
+        retry_at: Option<DateTime<Utc>>,
+        worker_id: Uuid,
+    ) -> Result<bool, AppError> {
+        // R5-09: Only allow fail if lease is still valid and worker matches
+        let result = sqlx::query(
+            r#"
+            UPDATE outbox
+            SET status = 'failed',
+                last_error = $2,
+                next_retry_at = $3,
+                claimed_by = NULL,
+                claimed_at = NULL,
+                claim_expires_at = NULL
+            WHERE event_id = $1
+              AND status = 'publishing'
+              AND claimed_by = $4
+              AND claim_expires_at > NOW()
+            "#,
+        )
+        .bind(event_id)
+        .bind(error)
+        .bind(retry_at)
+        .bind(worker_id.to_string())
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        if result.rows_affected() == 0 {
+            tracing::warn!(
+                event_id = %event_id,
+                worker_id = %worker_id,
+                "mark_failed_fenced: lease expired or worker mismatch - stale worker detected"
+            );
+            return Ok(false);
+        }
+
+        Ok(true)
+    }
+
+    async fn mark_dead_letter_fenced(
+        &self,
+        event_id: Uuid,
+        error: &str,
+        worker_id: Uuid,
+    ) -> Result<bool, AppError> {
+        // R5-09: Only allow dead-letter if lease is still valid and worker matches
+        let result = sqlx::query(
+            r#"
+            UPDATE outbox
+            SET status = 'dead_letter',
+                last_error = $2,
+                next_retry_at = NULL,
+                claimed_by = NULL,
+                claimed_at = NULL,
+                claim_expires_at = NULL
+            WHERE event_id = $1
+              AND status = 'publishing'
+              AND claimed_by = $3
+              AND claim_expires_at > NOW()
+            "#,
+        )
+        .bind(event_id)
+        .bind(error)
+        .bind(worker_id.to_string())
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        if result.rows_affected() == 0 {
+            tracing::warn!(
+                event_id = %event_id,
+                worker_id = %worker_id,
+                "mark_dead_letter_fenced: lease expired or worker mismatch - stale worker detected"
+            );
+            return Ok(false);
+        }
+
+        Ok(true)
     }
 
     async fn get_retry_events(&self, limit: i32) -> Result<Vec<OutboxEvent>, AppError> {
@@ -655,6 +900,34 @@ impl OutboxRepository for OutboxRepositoryImpl {
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         Ok(result.rows_affected() as i64)
+    }
+
+    async fn recover_stale_publishing_events(&self) -> Result<i64, AppError> {
+        // R5-09: Recover events stuck in 'publishing' with expired claims
+        // These are events where the worker crashed or timed out
+        let result = sqlx::query(
+            r#"
+            UPDATE outbox
+            SET status = 'pending',
+                claimed_by = NULL,
+                claimed_at = NULL,
+                claim_expires_at = NULL,
+                last_error = 'Recovered from stale publishing state (worker claim expired)'
+            WHERE status = 'publishing'
+              AND claim_expires_at IS NOT NULL
+              AND claim_expires_at < NOW()
+            "#,
+        )
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        let count = result.rows_affected() as i64;
+        if count > 0 {
+            tracing::info!(count = count, "Recovered stale publishing events");
+        }
+
+        Ok(count)
     }
 }
 

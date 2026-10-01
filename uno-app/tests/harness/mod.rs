@@ -57,6 +57,9 @@ impl TestHarness {
         std::env::set_var("ADMIN_CLIENT_ID", "test-admin");
         std::env::set_var("ADMIN_SECRET_KEY", "test-secret-key-phase9");
 
+        // R5-15: Enable license issuance for tests so claim logic can be verified
+        std::env::set_var("ENABLE_TEST_ISSUANCE", "1");
+
         // Create service factory with real dependencies
         let factory = ServiceFactory::new(pool.clone());
 
@@ -94,6 +97,9 @@ impl TestHarness {
         std::env::set_var("ADMIN_API_KEY", "test-api-key-phase9");
         std::env::set_var("ADMIN_CLIENT_ID", "test-admin");
         std::env::set_var("ADMIN_SECRET_KEY", "test-secret-key-phase9");
+
+        // R5-15: Enable license issuance for tests so claim logic can be verified
+        std::env::set_var("ENABLE_TEST_ISSUANCE", "1");
 
         let factory = ServiceFactory::new(pool.clone());
         let server = TestServer::start(factory).await;

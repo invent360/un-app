@@ -230,6 +230,17 @@ pub trait PilotRepository {
 
     /// Get metrics snapshots for a cohort
     async fn get_metrics_snapshots(&self, cohort_id: &str) -> Result<Vec<PilotMetricsSnapshot>, AppError>;
+
+    /// R5-16: Atomic pilot enrollment with gate/quota/capacity checks
+    ///
+    /// Returns Some((cohort_id, None)) on success, Some((_, rejection_reason)) on rejection,
+    /// or None if the function returns no rows.
+    async fn atomic_enroll(
+        &self,
+        user_id: &str,
+        market_code: &str,
+        cohort_id: Option<&str>,
+    ) -> Result<Option<(String, Option<String>)>, AppError>;
 }
 
 /// PostgreSQL implementation of PilotRepository
@@ -634,6 +645,40 @@ impl PilotRepository for PilotRepositoryImpl {
         .map_err(|e| AppError::InternalServerError(e.to_string()))?;
 
         Ok(snapshots)
+    }
+
+    async fn atomic_enroll(
+        &self,
+        user_id: &str,
+        market_code: &str,
+        cohort_id: Option<&str>,
+    ) -> Result<Option<(String, Option<String>)>, AppError> {
+        // R5-16: Call the atomic_pilot_enroll SQL function
+        // Returns: (enrolled BOOLEAN, cohort_id VARCHAR(50), rejection_reason TEXT)
+        let result: Option<(bool, Option<String>, Option<String>)> = sqlx::query_as(
+            "SELECT enrolled, cohort_id, rejection_reason FROM atomic_pilot_enroll($1, $2, $3)",
+        )
+        .bind(user_id)
+        .bind(market_code)
+        .bind(cohort_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| AppError::InternalServerError(e.to_string()))?;
+
+        match result {
+            Some((enrolled, Some(assigned_cohort_id), rejection_reason)) => {
+                if enrolled {
+                    Ok(Some((assigned_cohort_id, None)))
+                } else {
+                    Ok(Some((assigned_cohort_id, rejection_reason)))
+                }
+            }
+            Some((_, None, rejection_reason)) => {
+                // enrolled=false with no cohort_id means rejection
+                Ok(Some((String::new(), rejection_reason)))
+            }
+            None => Ok(None),
+        }
     }
 }
 

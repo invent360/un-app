@@ -1,8 +1,8 @@
 //! Admin content API handlers with HMAC authentication
 
-use actix_web::{HttpResponse, web};
+use actix_web::{HttpRequest, HttpResponse, web};
 
-use uno_api::auth::{verify_request_with_replay_protection_async, SignedRequest};
+use uno_api::auth::{verify_request_with_replay_protection_binding_async, SignedRequest};
 
 use crate::server::app::ServiceFactory;
 use crate::types::{
@@ -16,6 +16,7 @@ const MAX_REQUEST_AGE_SECS: i64 = 300;
 /// POST /api/v1/admin/contents
 /// Create new content
 pub async fn create_content(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<UpsertContentRequest>>,
 ) -> HttpResponse {
@@ -29,10 +30,12 @@ pub async fn create_content(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -64,6 +67,7 @@ pub async fn create_content(
 /// PUT /api/v1/admin/contents/{id}
 /// Update existing content
 pub async fn update_content(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<UpsertContentRequest>>,
@@ -78,10 +82,12 @@ pub async fn update_content(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -115,6 +121,7 @@ pub async fn update_content(
 /// POST /api/v1/admin/contents/list
 /// List all content with filters
 pub async fn list_contents(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<ContentListParams>>,
 ) -> HttpResponse {
@@ -128,10 +135,12 @@ pub async fn list_contents(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -156,6 +165,7 @@ pub async fn list_contents(
 /// POST /api/v1/admin/contents/{id}/get
 /// Get single content detail
 pub async fn get_content(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<serde_json::Value>>,
@@ -170,10 +180,12 @@ pub async fn get_content(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -204,6 +216,7 @@ pub async fn get_content(
 /// POST /api/v1/admin/contents/{id}/delete
 /// Delete content (soft delete)
 pub async fn delete_content(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<serde_json::Value>>,
@@ -218,10 +231,12 @@ pub async fn delete_content(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -251,6 +266,7 @@ pub async fn delete_content(
 /// POST /api/v1/admin/contents/{id}/publish
 /// Publish content
 pub async fn publish_content(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<PublishContentRequest>>,
@@ -265,10 +281,12 @@ pub async fn publish_content(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -302,6 +320,7 @@ pub async fn publish_content(
 /// POST /api/v1/admin/contents/{id}/archive
 /// Archive content
 pub async fn archive_content(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<serde_json::Value>>,
@@ -316,10 +335,12 @@ pub async fn archive_content(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -349,6 +370,7 @@ pub async fn archive_content(
 /// POST /api/v1/admin/contents/{id}/revert
 /// Revert content to version
 pub async fn revert_content(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<RevertContentRequest>>,
@@ -363,10 +385,12 @@ pub async fn revert_content(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -399,6 +423,7 @@ pub async fn revert_content(
 /// PUT /api/v1/admin/contents/{id}/schedule
 /// Update content schedule (publish_at, unpublish_at)
 pub async fn update_content_schedule(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<UpdateScheduleRequest>>,
@@ -413,10 +438,12 @@ pub async fn update_content_schedule(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {

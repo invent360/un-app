@@ -413,6 +413,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.activate.step2" => "I-enable ang background running para sa maximum na kita",
     "wizard.activate.step3_title" => "3. Kumita",
     "wizard.activate.step3" => "Panatilihing tumatakbo ang app at panoorin ang paglaki ng iyong kita!",
+    "wizard.activate.completion_message" => "Binabati kita! Handa ka nang kumita.",
+
+    // Wizard - Reserve Stage
+    "wizard.reserve.title" => "Inirereserba ang Iyong Lisensya",
+    "wizard.reserve.subtitle" => "Maghintay habang sinisiguro namin ang iyong lisensya...",
+    "wizard.reserve.step_locking" => "Nila-lock ang lisensya...",
+    "wizard.reserve.step_verifying" => "Bine-verify ang pagiging karapat-dapat...",
+    "wizard.reserve.step_securing" => "Sinisiguro ang reserbasyon...",
+    "wizard.reserve.security_notice" => "Eksklusibong inirereserba ang iyong lisensya para sa iyo",
+    "wizard.reserve.error_title" => "Nabigo ang Reserbasyon",
+    "wizard.reserve.try_again" => "Subukan Muli",
 
     // Wizard - What Next Stage
     "wizard.what_next.title" => "Ano ang Susunod?",
@@ -475,7 +486,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Installation Guide
     "install.title" => "Gabay sa Pag-install",
     "install.android.title" => "Android",
-    "install.android.step1" => "I-download ang APK mula sa Google Play Store",
+    "install.android.step1" => "I-download ang app mula sa Google Play Store",
     "install.android.step2" => "Buksan ang na-download na file para i-install",
     "install.android.step3" => "Payagan ang installation mula sa unknown sources kung hinihiling",
     "install.android.step4" => "Ilagay ang iyong license key kapag hiniling",
@@ -558,10 +569,10 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.platform_title" => "Platform",
     "wizard.economics.platform_desc" => "Sumasaklaw sa infrastructure, development, at support costs.",
     "wizard.economics.referrer_title" => "Referrer",
-    "wizard.economics.referrer_desc" => "Napupunta sa nag-refer sa iyo, o sa platform kung walang referrer.",
+    "wizard.economics.referrer_desc" => "Nakalaan para sa iyong referrer. Kung wala kang referrer, ito ay nakalagay sa support reserve.",
     "wizard.economics.important_title" => "Mahahalagang Disclosures",
-    "wizard.economics.disclosure_small_rewards" => "Ang mga individual task rewards ay maliit ($0.001 - $0.05). Ang kita ay nag-aaccumulate sa paglipas ng panahon.",
-    "wizard.economics.disclosure_credit_cost" => "Ang UNO ay nag-ooperate sa near break-even. Pina-fund namin ang iyong credits mula sa aming share.",
+    "wizard.economics.disclosure_small_rewards" => "Maliit ang mga individual na gantimpala ng task. Naiipon ang mga kita sa paglipas ng panahon batay sa availability ng task at uptime ng device.",
+    "wizard.economics.disclosure_credit_cost" => "Ang iyong paunang mga credits ay pinopondohan mula sa platform resources upang matulungan kang makapagsimula.",
     "wizard.economics.disclosure_device_requirement" => "Kailangan mo ng device na konektado sa internet na may tumatakbong app.",
     "wizard.economics.disclosure_uptime" => "Mas mataas na uptime ay nangangahulugang mas maraming task opportunities at mas mataas na kita.",
     "wizard.economics.who_should_not_title" => "Sino ang HINDI Dapat Sumali",

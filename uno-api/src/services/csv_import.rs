@@ -193,6 +193,13 @@ fn parse_record(
         valid_from,
         valid_to,
         split_type,
+        // R5-06: Optional fields not provided in CSV
+        uno_share_pct: None,
+        ulo_share_pct: None,
+        agent_share_pct: None,
+        source_system: Some("csv_import".to_string()),
+        source_version: None,
+        source_record_id: None,
     })
 }
 

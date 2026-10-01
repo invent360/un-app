@@ -3,8 +3,8 @@
 //! Provides endpoints for managing content schemas.
 //! Admin endpoints require HMAC authentication.
 
-use actix_web::{HttpResponse, web};
-use uno_api::auth::{verify_request_with_replay_protection_async, SignedRequest};
+use actix_web::{HttpRequest, HttpResponse, web};
+use uno_api::auth::{verify_request_with_replay_protection_binding_async, SignedRequest};
 use crate::server::app::ServiceFactory;
 use crate::types::{ContentSchema, SchemaListResponse};
 
@@ -83,6 +83,7 @@ pub async fn get_schema(
 /// POST /api/v1/admin/schemas
 /// Create a new schema (admin only)
 pub async fn create_schema(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<ContentSchema>>,
 ) -> HttpResponse {
@@ -96,10 +97,12 @@ pub async fn create_schema(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -129,6 +132,7 @@ pub async fn create_schema(
 /// PUT /api/v1/admin/schemas/{id}
 /// Update an existing schema (admin only)
 pub async fn update_schema(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<String>,
     body: web::Json<SignedRequest<ContentSchema>>,
@@ -143,10 +147,12 @@ pub async fn update_schema(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -178,6 +184,7 @@ pub async fn update_schema(
 /// POST /api/v1/admin/schemas/{id}/delete
 /// Delete a schema (admin only)
 pub async fn delete_schema(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<String>,
     body: web::Json<SignedRequest<serde_json::Value>>,
@@ -192,10 +199,12 @@ pub async fn delete_schema(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {

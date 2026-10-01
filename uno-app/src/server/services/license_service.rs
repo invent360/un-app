@@ -14,16 +14,22 @@ use std::sync::Arc;
 use uno_api::traits::LicenseRepository;
 
 /// Extended claim response with session token for two-phase flow
+///
+/// R5-05: Does NOT include lease_code - credential is revealed only at confirmation
+/// when ownership is established. This prevents credential exposure before the
+/// user has committed to claiming.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ReservationResponse {
     pub success: bool,
     pub message: Option<String>,
     pub license_id: Option<String>,
-    pub lease_code: Option<String>,
+    /// R5-05: lease_code intentionally omitted - revealed only at confirm
     pub session_token: Option<String>,
     pub expires_at: Option<chrono::DateTime<chrono::Utc>>,
     pub split_type: Option<SplitType>,
     pub referral_validated: bool,
+    /// R5-05: Remaining capacity after this reservation
+    pub capacity_remaining: Option<i64>,
 }
 
 impl ReservationResponse {
@@ -32,11 +38,11 @@ impl ReservationResponse {
             success: true,
             message: None,
             license_id: Some(result.license_id.to_string()),
-            lease_code: Some(result.lease_code),
             session_token: Some(result.session_token),
             expires_at: Some(result.expires_at),
             split_type: SplitType::from_str(&result.split_type),
             referral_validated: result.referral_validated,
+            capacity_remaining: result.capacity_remaining,
         }
     }
 
@@ -45,11 +51,11 @@ impl ReservationResponse {
             success: false,
             message: Some(message.to_string()),
             license_id: None,
-            lease_code: None,
             session_token: None,
             expires_at: None,
             split_type: None,
             referral_validated: false,
+            capacity_remaining: None,
         }
     }
 }
@@ -82,8 +88,21 @@ impl LicenseService {
     }
 
     // Fail closed until Phase 4 replaces every legacy claim path with verified,
-    // owner-bound issuance. This intentionally has no environment bypass.
+    // owner-bound issuance.
+    //
+    // R5-15: Added test-mode bypass. In test builds with ENABLE_TEST_ISSUANCE=1,
+    // issuance is allowed so tests can verify claim logic works correctly.
+    // In production (without #[cfg(test)]), this ALWAYS fails closed.
     fn ensure_issuance_ready() -> Result<(), AppError> {
+        #[cfg(test)]
+        {
+            // In test builds, check for explicit opt-in
+            if std::env::var("ENABLE_TEST_ISSUANCE").is_ok() {
+                return Ok(());
+            }
+        }
+
+        // Production and non-opted-in tests: fail closed
         Err(AppError::LicenseUnavailable(
             "Licence issuance is paused pending secure allocation".into(),
         ))
@@ -161,12 +180,27 @@ impl LicenseService {
     }
 
     /// Claim a license by split type (auto-assigns an available license).
+    ///
+    /// # R5-05 DEPRECATED
+    /// This method uses non-atomic operations and should NOT be used for new code.
+    /// Use `atomic_reserve_with_capacity()` + `atomic_confirm()` from ClaimRepository instead.
+    /// Issues with this method:
+    /// - No transactional guarantee between get and claim
+    /// - No capacity ceiling enforcement
+    /// - No referral attribution (use atomic_confirm for frozen attribution)
+    /// - Credential (lease_code) immediately exposed
+    #[deprecated(since = "2.0.0", note = "Use ClaimRepository::atomic_reserve_with_capacity() + atomic_confirm() instead")]
     pub async fn claim_by_split_type(
         &self,
         split_type: SplitType,
         device_id: Option<String>,
     ) -> Result<ClaimResponse, AppError> {
         Self::ensure_issuance_ready()?;
+
+        tracing::warn!(
+            "R5-05: Using deprecated claim_by_split_type - migrate to atomic_reserve + atomic_confirm"
+        );
+
         let api_split = convert_to_api_split(split_type);
 
         // Get the first unclaimed license of this type
@@ -199,11 +233,25 @@ impl LicenseService {
 
     /// Reserve a license by split type (returns license info WITHOUT marking as claimed).
     /// This is phase 1 of the two-phase claim process.
+    ///
+    /// # R5-05 DEPRECATED
+    /// This method uses non-atomic operations and should NOT be used for new code.
+    /// Use `atomic_reserve_with_capacity()` from ClaimRepository instead.
+    /// Issues with this method:
+    /// - No session binding for reservation
+    /// - No capacity ceiling enforcement
+    /// - No publication/quarantine status checking
+    #[deprecated(since = "2.0.0", note = "Use ClaimRepository::atomic_reserve_with_capacity() instead")]
     pub async fn reserve_by_split_type(
         &self,
         split_type: SplitType,
     ) -> Result<ClaimResponse, AppError> {
         Self::ensure_issuance_ready()?;
+
+        tracing::warn!(
+            "R5-05: Using deprecated reserve_by_split_type - migrate to atomic_reserve_with_capacity"
+        );
+
         let api_split = convert_to_api_split(split_type);
 
         // Get the first unclaimed license of this type (without claiming)
@@ -276,12 +324,26 @@ impl LicenseService {
 
     /// Confirm a license claim by ID (marks as claimed).
     /// This is phase 2 of the two-phase claim process - called when user copies the key.
+    ///
+    /// # R5-05 DEPRECATED
+    /// This method uses non-atomic operations and should NOT be used for new code.
+    /// Use `atomic_confirm()` from ClaimRepository instead.
+    /// Issues with this method:
+    /// - No session token verification (anyone with license_id can confirm)
+    /// - No referral attribution or freezing
+    /// - No agent approval validation
+    /// - Separate check-then-claim creates race condition
+    #[deprecated(since = "2.0.0", note = "Use ClaimRepository::atomic_confirm() instead")]
     pub async fn confirm_claim(
         &self,
         license_id: &str,
         device_id: Option<String>,
     ) -> Result<ClaimResponse, AppError> {
         Self::ensure_issuance_ready()?;
+
+        tracing::warn!(
+            "R5-05: Using deprecated confirm_claim - migrate to atomic_confirm"
+        );
 
         // Validate license ID is not empty
         if license_id.is_empty() {

@@ -423,6 +423,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.activate.step2" => "সর্বোচ্চ আয়ের জন্য ব্যাকগ্রাউন্ড রানিং সক্ষম করুন",
     "wizard.activate.step3_title" => "৩. আয় করুন",
     "wizard.activate.step3" => "অ্যাপ চালু রাখুন এবং আপনার আয় বাড়তে দেখুন!",
+    "wizard.activate.completion_message" => "অভিনন্দন! আপনি উপার্জন শুরু করতে প্রস্তুত।",
+
+    // Wizard - Reserve Stage
+    "wizard.reserve.title" => "আপনার লাইসেন্স সংরক্ষণ করা হচ্ছে",
+    "wizard.reserve.subtitle" => "অনুগ্রহ করে অপেক্ষা করুন আমরা আপনার লাইসেন্স সুরক্ষিত করছি...",
+    "wizard.reserve.step_locking" => "লাইসেন্স লক করা হচ্ছে...",
+    "wizard.reserve.step_verifying" => "যোগ্যতা যাচাই করা হচ্ছে...",
+    "wizard.reserve.step_securing" => "সংরক্ষণ সুরক্ষিত করা হচ্ছে...",
+    "wizard.reserve.security_notice" => "আপনার লাইসেন্স একচেটিয়াভাবে আপনার জন্য সংরক্ষিত হচ্ছে",
+    "wizard.reserve.error_title" => "সংরক্ষণ ব্যর্থ",
+    "wizard.reserve.try_again" => "আবার চেষ্টা করুন",
 
     // Wizard - What Next Stage
     "wizard.what_next.title" => "এরপর কি?",
@@ -488,7 +499,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Installation Guide
     "install.title" => "ইনস্টলেশন গাইড",
     "install.android.title" => "অ্যান্ড্রয়েড",
-    "install.android.step1" => "Google Play Store থেকে APK ডাউনলোড করুন",
+    "install.android.step1" => "Google Play Store থেকে অ্যাপ ডাউনলোড করুন",
     "install.android.step2" => "ইনস্টল করতে ডাউনলোড করা ফাইল খুলুন",
     "install.android.step3" => "জিজ্ঞাসা করলে অজানা উৎস থেকে ইনস্টলেশন অনুমতি দিন",
     "install.android.step4" => "জিজ্ঞাসা করলে আপনার লাইসেন্স কী দিন",
@@ -565,10 +576,10 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.platform_title" => "প্ল্যাটফর্ম",
     "wizard.economics.platform_desc" => "অবকাঠামো, উন্নয়ন এবং সাপোর্ট খরচ কভার করে।",
     "wizard.economics.referrer_title" => "রেফারার",
-    "wizard.economics.referrer_desc" => "যিনি আপনাকে রেফার করেছেন তাঁর কাছে যায়, অথবা রেফারার না থাকলে প্ল্যাটফর্মে।",
+    "wizard.economics.referrer_desc" => "আপনার রেফারারের জন্য নির্ধারিত। আপনার কোনো রেফারার না থাকলে, এটি সাপোর্ট রিজার্ভে রাখা হয়।",
     "wizard.economics.important_title" => "গুরুত্বপূর্ণ প্রকাশনা",
-    "wizard.economics.disclosure_small_rewards" => "পৃথক কাজের পুরস্কার ছোট ($০.০০১ - $০.০৫)। আয় সময়ের সাথে জমা হয়।",
-    "wizard.economics.disclosure_credit_cost" => "UNO প্রায় ব্রেক-ইভেনে চলে। আমরা আমাদের শেয়ার থেকে আপনার ক্রেডিট ফান্ড করি।",
+    "wizard.economics.disclosure_small_rewards" => "পৃথক টাস্ক পুরস্কার ছোট। টাস্ক প্রাপ্যতা এবং ডিভাইস আপটাইমের উপর ভিত্তি করে সময়ের সাথে সাথে উপার্জন জমা হয়।",
+    "wizard.economics.disclosure_credit_cost" => "আপনার প্রাথমিক ক্রেডিট প্ল্যাটফর্ম সম্পদ থেকে অর্থায়ন করা হয় আপনাকে শুরু করতে সাহায্য করার জন্য।",
     "wizard.economics.disclosure_device_requirement" => "আপনার একটি ইন্টারনেট সংযুক্ত ডিভাইস প্রয়োজন যেখানে অ্যাপ চলছে।",
     "wizard.economics.disclosure_uptime" => "বেশি আপটাইম মানে বেশি কাজের সুযোগ এবং বেশি আয়।",
     "wizard.economics.who_should_not_title" => "কাদের যোগ দেওয়া উচিত নয়",

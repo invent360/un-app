@@ -4,10 +4,10 @@
 //! These endpoints mirror the Leptos server functions in api/cms_review.rs
 //! but are accessible via standard HTTP/JSON with HMAC authentication.
 
-use actix_web::{HttpResponse, web};
+use actix_web::{HttpRequest, HttpResponse, web};
 use serde::{Deserialize, Serialize};
 
-use uno_api::auth::{verify_request_with_replay_protection_async, SignedRequest};
+use uno_api::auth::{verify_request_with_replay_protection_binding_async, SignedRequest};
 
 use crate::server::app::ServiceFactory;
 use crate::types::{
@@ -66,6 +66,7 @@ pub struct RevertToVersionRequest {
 /// POST /api/v1/admin/reviews/submit
 /// Submit content version for review
 pub async fn submit_for_review(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<SubmitReviewRequest>>,
 ) -> HttpResponse {
@@ -79,10 +80,12 @@ pub async fn submit_for_review(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -107,6 +110,7 @@ pub async fn submit_for_review(
 /// POST /api/v1/admin/reviews/{id}/approve
 /// Approve a content review
 pub async fn approve_review(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<ReviewDecisionPayload>>,
@@ -121,10 +125,12 @@ pub async fn approve_review(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -165,6 +171,7 @@ pub struct ReviewDecisionPayload {
 /// POST /api/v1/admin/reviews/{id}/request-changes
 /// Request changes on a review
 pub async fn request_changes(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<ReviewDecisionPayload>>,
@@ -179,10 +186,12 @@ pub async fn request_changes(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -226,6 +235,7 @@ pub async fn request_changes(
 /// POST /api/v1/admin/reviews/{id}/reject
 /// Reject a review
 pub async fn reject_review(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<ReviewDecisionPayload>>,
@@ -240,10 +250,12 @@ pub async fn reject_review(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -276,6 +288,7 @@ pub async fn reject_review(
 /// POST /api/v1/admin/reviews/pending
 /// Get pending reviews
 pub async fn get_pending_reviews(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<GetPendingReviewsRequest>>,
 ) -> HttpResponse {
@@ -289,10 +302,12 @@ pub async fn get_pending_reviews(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -323,6 +338,7 @@ pub async fn get_pending_reviews(
 /// POST /api/v1/admin/reviews/my-submissions
 /// Get reviews submitted by a user
 pub async fn get_my_submissions(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<GetMySubmissionsRequest>>,
 ) -> HttpResponse {
@@ -336,10 +352,12 @@ pub async fn get_my_submissions(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -371,6 +389,7 @@ pub async fn get_my_submissions(
 /// POST /api/v1/admin/preview-tokens
 /// Create a preview token
 pub async fn create_preview_token(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<CreatePreviewTokenRequest>>,
 ) -> HttpResponse {
@@ -384,10 +403,12 @@ pub async fn create_preview_token(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -471,6 +492,7 @@ pub async fn get_preview_content(
 /// POST /api/v1/admin/publish/direct
 /// Publish content directly (skip review)
 pub async fn publish_direct(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<DirectPublishRequest>>,
 ) -> HttpResponse {
@@ -484,10 +506,12 @@ pub async fn publish_direct(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -553,6 +577,7 @@ pub async fn publish_direct(
 /// POST /api/v1/admin/publish/batch
 /// Publish multiple approved content items
 pub async fn publish_batch(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<PublishRequest>>,
 ) -> HttpResponse {
@@ -566,10 +591,12 @@ pub async fn publish_batch(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -640,6 +667,7 @@ pub async fn publish_batch(
 /// POST /api/v1/admin/versions/{content_id}/history
 /// Get version history for content
 pub async fn get_version_history(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<GetVersionHistoryRequest>>,
@@ -654,10 +682,12 @@ pub async fn get_version_history(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -689,6 +719,7 @@ pub async fn get_version_history(
 /// POST /api/v1/admin/versions/{content_id}/compare
 /// Compare two versions
 pub async fn compare_versions(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<CompareVersionsRequest>>,
@@ -703,10 +734,12 @@ pub async fn compare_versions(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -768,6 +801,7 @@ pub async fn compare_versions(
 /// POST /api/v1/admin/versions/{content_id}/revert
 /// Revert content to a previous version
 pub async fn revert_to_version(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     path: web::Path<i32>,
     body: web::Json<SignedRequest<RevertToVersionRequest>>,
@@ -782,10 +816,12 @@ pub async fn revert_to_version(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {

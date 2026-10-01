@@ -104,10 +104,19 @@ async fn concurrent_claims_exactly_n_winners_for_n_licenses() {
         claimed_licenses.insert(code.clone());
     }
 
+    // R5-15: Assert that claims actually succeeded
     // The number of successful claims should equal the number of licenses
-    // Note: This may be 0 if claims are disabled via launch gates
+    assert_eq!(
+        claimed_licenses.len(),
+        AVAILABLE_LICENSES,
+        "Expected exactly {} successful claims, got {}. \
+         Ensure ENABLE_TEST_ISSUANCE is set in test harness.",
+        AVAILABLE_LICENSES,
+        claimed_licenses.len()
+    );
+
     println!(
-        "Concurrent claim test: {} successful claims for {} licenses",
+        "Concurrent claim test PASSED: {} successful claims for {} licenses",
         claimed_licenses.len(),
         AVAILABLE_LICENSES
     );

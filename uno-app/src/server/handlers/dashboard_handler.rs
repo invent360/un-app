@@ -6,10 +6,14 @@
 //! - Earnings summary
 //! - Tasks summary
 //! - Recent notifications
+//!
+//! R5-02: All dashboard endpoints now require authentication and derive
+//! user_id from the authenticated token, not from query/path parameters.
 
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use serde::{Deserialize, Serialize};
 
+use crate::server::extractors::auth::get_authenticated_user;
 use crate::server::repositories::{
     DynCohortRepository, DynSupportRepository, DynExitRepository,
 };
@@ -56,9 +60,9 @@ pub struct ExitSummary {
     pub net_payout_micros: Option<i64>,
 }
 
+/// R5-02: user_id removed - now derived from authenticated token
 #[derive(Debug, Deserialize)]
 pub struct DashboardQuery {
-    pub user_id: String,
     pub license_id: String,
 }
 
@@ -68,13 +72,20 @@ pub struct DashboardQuery {
 
 /// GET /api/v1/dashboard
 /// Get participant dashboard data
+///
+/// R5-02: Now requires authentication. user_id is derived from the
+/// authenticated token, preventing horizontal privilege escalation.
 pub async fn get_dashboard(
+    req: HttpRequest,
     cohort_repo: web::Data<DynCohortRepository>,
     support_repo: web::Data<DynSupportRepository>,
     exit_repo: web::Data<DynExitRepository>,
     query: web::Query<DashboardQuery>,
 ) -> Result<HttpResponse, AppError> {
-    let user_id = &query.user_id;
+    // R5-02: Get user_id from authenticated token, not query params
+    let user = get_authenticated_user(&req)
+        .map_err(|e| AppError::Unauthorized(e.to_string()))?;
+    let user_id = &user.id;
     let license_id = &query.license_id;
 
     // Get cohort data
@@ -152,15 +163,23 @@ pub async fn get_dashboard(
     }))
 }
 
-/// GET /api/v1/dashboard/progress/{user_id}/{license_id}
+/// GET /api/v1/dashboard/progress/{license_id}
 /// Get cohort progress details
+///
+/// R5-02: Now requires authentication. user_id is derived from the
+/// authenticated token, preventing horizontal privilege escalation.
 pub async fn get_progress(
+    req: HttpRequest,
     cohort_repo: web::Data<DynCohortRepository>,
-    path: web::Path<(String, String)>,
+    path: web::Path<String>,
 ) -> Result<HttpResponse, AppError> {
-    let (user_id, license_id) = path.into_inner();
+    // R5-02: Get user_id from authenticated token, not path
+    let user = get_authenticated_user(&req)
+        .map_err(|e| AppError::Unauthorized(e.to_string()))?;
+    let user_id = &user.id;
+    let license_id = path.into_inner();
 
-    let cohort = cohort_repo.get_cohort_by_user_license(&user_id, &license_id).await?
+    let cohort = cohort_repo.get_cohort_by_user_license(user_id, &license_id).await?
         .ok_or_else(|| AppError::NotFound("Cohort not found".to_string()))?;
 
     let d7_progress = cohort_repo.calculate_d7_progress(cohort.id).await?;
@@ -173,15 +192,23 @@ pub async fn get_progress(
     })))
 }
 
-/// GET /api/v1/dashboard/activities/{user_id}/{license_id}
+/// GET /api/v1/dashboard/activities/{license_id}
 /// Get recent activities
+///
+/// R5-02: Now requires authentication. user_id is derived from the
+/// authenticated token, preventing horizontal privilege escalation.
 pub async fn get_activities(
+    req: HttpRequest,
     cohort_repo: web::Data<DynCohortRepository>,
-    path: web::Path<(String, String)>,
+    path: web::Path<String>,
 ) -> Result<HttpResponse, AppError> {
-    let (user_id, license_id) = path.into_inner();
+    // R5-02: Get user_id from authenticated token, not path
+    let user = get_authenticated_user(&req)
+        .map_err(|e| AppError::Unauthorized(e.to_string()))?;
+    let user_id = &user.id;
+    let license_id = path.into_inner();
 
-    let cohort = cohort_repo.get_cohort_by_user_license(&user_id, &license_id).await?
+    let cohort = cohort_repo.get_cohort_by_user_license(user_id, &license_id).await?
         .ok_or_else(|| AppError::NotFound("Cohort not found".to_string()))?;
 
     let activities = cohort_repo.get_cohort_activities(cohort.id).await?;
@@ -194,11 +221,13 @@ pub async fn get_activities(
 // ============================================
 
 /// Configure dashboard routes
+///
+/// R5-02: Routes updated to remove user_id from paths - now derived from auth token
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/dashboard")
             .route("", web::get().to(get_dashboard))
-            .route("/progress/{user_id}/{license_id}", web::get().to(get_progress))
-            .route("/activities/{user_id}/{license_id}", web::get().to(get_activities)),
+            .route("/progress/{license_id}", web::get().to(get_progress))
+            .route("/activities/{license_id}", web::get().to(get_activities)),
     );
 }

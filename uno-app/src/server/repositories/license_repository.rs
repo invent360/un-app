@@ -28,10 +28,19 @@ impl PostgresLicenseRepository {
 #[async_trait]
 impl LicenseRepository for PostgresLicenseRepository {
     async fn insert(&self, license: &License) -> Result<(), DbError> {
+        // R5-06: Include exact share percentages and source provenance
         sqlx::query(
             r#"
-            INSERT INTO licenses (id, lease_code, valid_from, valid_to, split_type, claimed, bound_to_device, device_id, claimed_at, created_at)
-            VALUES ($1, $2, $3, $4, $5::split_type, $6, $7, $8, $9, $10)
+            INSERT INTO licenses (
+                id, lease_code, valid_from, valid_to, split_type, claimed, bound_to_device,
+                device_id, claimed_at, created_at,
+                uno_share_pct, ulo_share_pct, agent_share_pct,
+                source_system, source_version, source_record_id, source_imported_at
+            )
+            VALUES (
+                $1, $2, $3, $4, $5::split_type, $6, $7, $8, $9, $10,
+                $11, $12, $13, $14, $15, $16, $17
+            )
             "#,
         )
         .bind(&license.id)
@@ -44,6 +53,15 @@ impl LicenseRepository for PostgresLicenseRepository {
         .bind(&license.device_id)
         .bind(license.claimed_at)
         .bind(license.created_at)
+        // R5-06: Exact shares
+        .bind(license.uno_share_pct)
+        .bind(license.ulo_share_pct)
+        .bind(license.agent_share_pct)
+        // R5-06: Source provenance
+        .bind(&license.source_system)
+        .bind(&license.source_version)
+        .bind(&license.source_record_id)
+        .bind(if license.source_system.is_some() { Some(chrono::Utc::now()) } else { None })
         .execute(&self.pool)
         .await
         .map_err(|e| {
@@ -74,8 +92,11 @@ impl LicenseRepository for PostgresLicenseRepository {
     }
 
     async fn get_by_id(&self, id: &str) -> Result<Option<License>, DbError> {
+        // R5-06: Include exact shares and provenance columns
         let license = sqlx::query_as::<_, LicenseRow>(
-            "SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at FROM licenses WHERE id = $1",
+            r#"SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at,
+                      uno_share_pct, ulo_share_pct, agent_share_pct, source_system, source_version, source_record_id
+               FROM licenses WHERE id = $1"#,
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -86,8 +107,11 @@ impl LicenseRepository for PostgresLicenseRepository {
     }
 
     async fn get_by_lease_code(&self, lease_code: &str) -> Result<Option<License>, DbError> {
+        // R5-06: Include exact shares and provenance columns
         let license = sqlx::query_as::<_, LicenseRow>(
-            "SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at FROM licenses WHERE lease_code = $1",
+            r#"SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at,
+                      uno_share_pct, ulo_share_pct, agent_share_pct, source_system, source_version, source_record_id
+               FROM licenses WHERE lease_code = $1"#,
         )
         .bind(lease_code)
         .fetch_optional(&self.pool)
@@ -99,9 +123,11 @@ impl LicenseRepository for PostgresLicenseRepository {
 
     async fn get_first_unclaimed(&self, split_type: SplitType) -> Result<Option<License>, DbError> {
         let now = Utc::now();
+        // R5-06: Include exact shares and provenance columns
         let license = sqlx::query_as::<_, LicenseRow>(
             r#"
-            SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at
+            SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at,
+                   uno_share_pct, ulo_share_pct, agent_share_pct, source_system, source_version, source_record_id
             FROM licenses
             WHERE split_type = $1::split_type
             AND claimed = false
@@ -123,9 +149,11 @@ impl LicenseRepository for PostgresLicenseRepository {
 
     async fn get_first_unclaimed_any(&self) -> Result<Option<License>, DbError> {
         let now = Utc::now();
+        // R5-06: Include exact shares and provenance columns
         let license = sqlx::query_as::<_, LicenseRow>(
             r#"
-            SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at
+            SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at,
+                   uno_share_pct, ulo_share_pct, agent_share_pct, source_system, source_version, source_record_id
             FROM licenses
             WHERE claimed = false
             AND valid_from <= $1
@@ -151,9 +179,11 @@ impl LicenseRepository for PostgresLicenseRepository {
         let offset = pagination.offset() as i64;
         let limit = pagination.limit() as i64;
 
+        // R5-06: Include exact shares and provenance columns
         let licenses = sqlx::query_as::<_, LicenseRow>(
             r#"
-            SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at
+            SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at,
+                   uno_share_pct, ulo_share_pct, agent_share_pct, source_system, source_version, source_record_id
             FROM licenses
             WHERE split_type = $1::split_type
             ORDER BY created_at DESC
@@ -187,9 +217,11 @@ impl LicenseRepository for PostgresLicenseRepository {
         let limit = pagination.limit() as i64;
         let now = Utc::now();
 
+        // R5-06: Include exact shares and provenance columns
         let licenses = sqlx::query_as::<_, LicenseRow>(
             r#"
-            SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at
+            SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at,
+                   uno_share_pct, ulo_share_pct, agent_share_pct, source_system, source_version, source_record_id
             FROM licenses
             WHERE claimed = false AND valid_from <= $1 AND valid_to > $1
             ORDER BY created_at DESC
@@ -258,12 +290,14 @@ impl LicenseRepository for PostgresLicenseRepository {
         let now = Utc::now();
         let bound_to_device = device_id.is_some();
 
+        // R5-06: Include exact shares and provenance columns in RETURNING
         let license = sqlx::query_as::<_, LicenseRow>(
             r#"
             UPDATE licenses
             SET claimed = true, bound_to_device = $2, device_id = $3, claimed_at = $4
             WHERE id = $1 AND claimed = false
-            RETURNING id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at
+            RETURNING id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at,
+                      uno_share_pct, ulo_share_pct, agent_share_pct, source_system, source_version, source_record_id
             "#,
         )
         .bind(id)
@@ -424,9 +458,11 @@ impl LicenseRepository for PostgresLicenseRepository {
             format!("WHERE {}", conditions.join(" AND "))
         };
 
+        // R5-06: Include exact shares and provenance columns
         let query = format!(
             r#"
-            SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at
+            SELECT id, lease_code, valid_from, valid_to, split_type::text, claimed, bound_to_device, device_id, claimed_at, created_at,
+                   uno_share_pct, ulo_share_pct, agent_share_pct, source_system, source_version, source_record_id
             FROM licenses
             {}
             ORDER BY created_at DESC
@@ -510,6 +546,20 @@ struct LicenseRow {
     device_id: Option<String>,
     claimed_at: Option<chrono::DateTime<Utc>>,
     created_at: chrono::DateTime<Utc>,
+    // R5-06: Exact share percentages
+    #[sqlx(default)]
+    uno_share_pct: Option<f64>,
+    #[sqlx(default)]
+    ulo_share_pct: Option<f64>,
+    #[sqlx(default)]
+    agent_share_pct: Option<f64>,
+    // R5-06: Source provenance
+    #[sqlx(default)]
+    source_system: Option<String>,
+    #[sqlx(default)]
+    source_version: Option<String>,
+    #[sqlx(default)]
+    source_record_id: Option<String>,
 }
 
 impl From<LicenseRow> for License {
@@ -525,6 +575,14 @@ impl From<LicenseRow> for License {
             device_id: row.device_id,
             claimed_at: row.claimed_at,
             created_at: row.created_at,
+            // R5-06: Exact shares
+            uno_share_pct: row.uno_share_pct,
+            ulo_share_pct: row.ulo_share_pct,
+            agent_share_pct: row.agent_share_pct,
+            // R5-06: Source provenance
+            source_system: row.source_system,
+            source_version: row.source_version,
+            source_record_id: row.source_record_id,
         }
     }
 }

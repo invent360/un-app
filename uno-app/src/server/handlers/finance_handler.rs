@@ -38,6 +38,9 @@ pub struct CreateAllocationRequest {
     pub provider_id: Option<String>,
     /// R3-08: Unique event ID from provider for duplicate prevention
     pub reward_event_id: Option<String>,
+    /// R5-07: Referral agent ID (if license was referred).
+    /// When None, allocation uses allocate_without_referral() and share goes to reserve.
+    pub referral_agent_id: Option<Uuid>,
 }
 
 fn default_currency() -> String {
@@ -205,6 +208,7 @@ pub async fn create_allocation(
         })),
     };
 
+    // R5-07: Include referral_agent_id for proper reserve allocation
     let input = RecordAllocationInput {
         license_id: body.license_id.clone(),
         pool_micros: body.pool_micros,
@@ -216,6 +220,7 @@ pub async fn create_allocation(
         external_ref: body.external_ref.clone(),
         provider_id: body.provider_id.clone(),
         reward_event_id: body.reward_event_id.clone(),
+        referral_agent_id: body.referral_agent_id,
     };
 
     match settlement_service.record_allocation(input).await {

@@ -413,6 +413,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.activate.step2" => "अधिकतम कमाई के लिए बैकग्राउंड रनिंग सक्षम करें",
     "wizard.activate.step3_title" => "3. कमाएं",
     "wizard.activate.step3" => "ऐप चालू रखें और अपनी कमाई बढ़ते देखें!",
+    "wizard.activate.completion_message" => "बधाई हो! आप कमाई शुरू करने के लिए पूरी तरह तैयार हैं।",
+
+    // Wizard - Reserve Stage
+    "wizard.reserve.title" => "आपका लाइसेंस आरक्षित हो रहा है",
+    "wizard.reserve.subtitle" => "कृपया प्रतीक्षा करें जब तक हम आपका लाइसेंस सुरक्षित करते हैं...",
+    "wizard.reserve.step_locking" => "लाइसेंस लॉक हो रहा है...",
+    "wizard.reserve.step_verifying" => "पात्रता सत्यापित हो रही है...",
+    "wizard.reserve.step_securing" => "आरक्षण सुरक्षित हो रहा है...",
+    "wizard.reserve.security_notice" => "आपका लाइसेंस विशेष रूप से आपके लिए आरक्षित किया जा रहा है",
+    "wizard.reserve.error_title" => "आरक्षण विफल",
+    "wizard.reserve.try_again" => "पुनः प्रयास करें",
 
     // Wizard - What Next Stage
     "wizard.what_next.title" => "आगे क्या?",
@@ -475,7 +486,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Installation Guide
     "install.title" => "इंस्टॉलेशन गाइड",
     "install.android.title" => "Android",
-    "install.android.step1" => "Google Play Store से APK डाउनलोड करें",
+    "install.android.step1" => "Google Play Store से ऐप डाउनलोड करें",
     "install.android.step2" => "इंस्टॉल करने के लिए डाउनलोड की गई फ़ाइल खोलें",
     "install.android.step3" => "यदि संकेत मिले तो अज्ञात स्रोतों से इंस्टॉलेशन की अनुमति दें",
     "install.android.step4" => "पूछे जाने पर अपनी लाइसेंस कुंजी दर्ज करें",
@@ -558,10 +569,10 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.platform_title" => "प्लेटफॉर्म",
     "wizard.economics.platform_desc" => "बुनियादी ढांचे, विकास और सहायता लागत को कवर करता है।",
     "wizard.economics.referrer_title" => "रेफरर",
-    "wizard.economics.referrer_desc" => "जिसने आपको रेफर किया उसे जाता है, या कोई रेफरर नहीं होने पर प्लेटफॉर्म को।",
+    "wizard.economics.referrer_desc" => "आपके रेफरर के लिए निर्धारित। यदि आपका कोई रेफरर नहीं है, तो यह सपोर्ट रिजर्व में रखा जाता है।",
     "wizard.economics.important_title" => "महत्वपूर्ण खुलासे",
-    "wizard.economics.disclosure_small_rewards" => "व्यक्तिगत कार्य पुरस्कार छोटे हैं ($0.001 - $0.05)। कमाई समय के साथ जमा होती है।",
-    "wizard.economics.disclosure_credit_cost" => "UNO लगभग ब्रेक-ईवन पर संचालित होता है। हम आपके क्रेडिट अपने हिस्से से फंड करते हैं।",
+    "wizard.economics.disclosure_small_rewards" => "व्यक्तिगत टास्क रिवॉर्ड्स छोटे होते हैं। टास्क उपलब्धता और डिवाइस अपटाइम के आधार पर समय के साथ कमाई जमा होती है।",
+    "wizard.economics.disclosure_credit_cost" => "आपके शुरुआती क्रेडिट्स प्लेटफॉर्म संसाधनों से वित्तपोषित होते हैं ताकि आपको शुरू करने में मदद मिल सके।",
     "wizard.economics.disclosure_device_requirement" => "आपको इंटरनेट से जुड़े डिवाइस की आवश्यकता है जिस पर ऐप चल रहा हो।",
     "wizard.economics.disclosure_uptime" => "अधिक अपटाइम का मतलब अधिक कार्य अवसर और अधिक कमाई।",
     "wizard.economics.who_should_not_title" => "किसे शामिल नहीं होना चाहिए",

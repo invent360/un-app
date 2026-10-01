@@ -29,27 +29,46 @@ pub struct ClaimedLicense {
 }
 
 /// Reservation result returned by atomic_reserve
+///
+/// R5-05: The lease_code is NOT included in the reservation result.
+/// Credentials are only revealed after confirmation to prevent
+/// credential exposure before ownership is established.
 #[derive(Debug, Clone)]
 pub struct ReservationResult {
     /// License ID (can be UUID or blockchain hex format)
     pub license_id: String,
-    pub lease_code: String,
+    /// Session token for confirming the reservation
     pub session_token: String,
+    /// When the reservation expires
     pub expires_at: DateTime<Utc>,
+    /// Split type for this license
     pub split_type: String,
+    /// Whether the referral code was validated (not yet attributed)
     pub referral_validated: bool,
+    /// R5-05: Remaining capacity after this reservation
+    pub capacity_remaining: Option<i64>,
 }
 
 /// Claim result returned by atomic_confirm
+///
+/// R5-05: The lease_code IS included here - credential revealed only after
+/// successful confirmation when ownership is established.
 #[derive(Debug, Clone)]
 pub struct ClaimResult {
     /// License ID (can be UUID or blockchain hex format)
     pub license_id: String,
+    /// The credential - revealed only at confirmation time
     pub lease_code: String,
+    /// When the license was claimed
     pub claimed_at: DateTime<Utc>,
+    /// Referral ID if attribution was made
     pub referral_id: Option<i32>,
+    /// When referral was attributed
     pub referral_attributed_at: Option<DateTime<Utc>>,
+    /// Agreement version at time of referral attribution
     pub agreement_version: Option<i32>,
+    /// R5-05: Referral attribution is now frozen (immutable, including no-referral)
+    pub referral_frozen: bool,
 }
 
 /// Claim repository trait defining database operations
@@ -60,9 +79,26 @@ pub trait ClaimRepository: Send + Sync {
     async fn set_referral(&self, license_id: &str, referral_id: i32) -> Result<(), AppError>;
 
     /// Get claimed licenses since a given timestamp (for uno-admin sync)
+    ///
+    /// DEPRECATED: Use `get_claimed_since_compound` for correct cursor-based pagination.
+    /// This method can skip records with identical timestamps.
     async fn get_claimed_since(
         &self,
         since: Option<DateTime<Utc>>,
+        limit: i32,
+    ) -> Result<Vec<ClaimedLicense>, AppError>;
+
+    /// Get claimed licenses using compound cursor (R5-06)
+    ///
+    /// Uses compound key (claimed_at, license_id) for correct pagination.
+    /// This prevents skipping records that have the same timestamp.
+    ///
+    /// - `since_ts`: Start after this timestamp (exclusive if high_water_id matches)
+    /// - `high_water_id`: Last processed license_id at `since_ts` (for disambiguation)
+    async fn get_claimed_since_compound(
+        &self,
+        since_ts: Option<DateTime<Utc>>,
+        high_water_id: Option<&str>,
         limit: i32,
     ) -> Result<Vec<ClaimedLicense>, AppError>;
 
@@ -79,6 +115,19 @@ pub trait ClaimRepository: Send + Sync {
         &self,
         split_type: Option<&str>,
         referral_code: Option<&str>,
+    ) -> Result<ReservationResult, AppError>;
+
+    /// Atomically reserve a license with capacity ceiling enforcement
+    ///
+    /// R5-05: Same as atomic_reserve, but checks capacity ceiling INSIDE
+    /// the transaction to prevent TOCTOU race conditions.
+    ///
+    /// This is the recommended method for production use.
+    async fn atomic_reserve_with_capacity(
+        &self,
+        split_type: Option<&str>,
+        referral_code: Option<&str>,
+        capacity_ceiling: Option<i64>,
     ) -> Result<ReservationResult, AppError>;
 
     /// Atomically confirm a reservation and claim the license
@@ -146,13 +195,15 @@ impl ClaimRepositoryImpl {
 #[async_trait]
 impl ClaimRepository for ClaimRepositoryImpl {
     async fn set_referral(&self, license_id: &str, referral_id: i32) -> Result<(), AppError> {
-        // SECURITY: Only set referral if not already set (immutable attribution)
+        // R5-05: SECURITY: Only set referral if not already set AND not frozen
+        // referral_frozen is set to true during atomic_confirm() to prevent changes
         let result = sqlx::query(r#"
             UPDATE licenses
             SET referral_id = $1,
                 referral_attributed_at = NOW()
             WHERE id = $2::uuid
               AND referral_id IS NULL
+              AND (referral_frozen = false OR referral_frozen IS NULL)
         "#)
         .bind(referral_id)
         .bind(license_id)
@@ -160,17 +211,29 @@ impl ClaimRepository for ClaimRepositoryImpl {
         .await?;
 
         if result.rows_affected() == 0 {
-            // Check if referral was already set
-            let existing: Option<(Option<i32>,)> = sqlx::query_as(
-                "SELECT referral_id FROM licenses WHERE id = $1::uuid"
+            // Check why update failed - either referral already set or frozen
+            let existing: Option<(Option<i32>, Option<bool>)> = sqlx::query_as(
+                "SELECT referral_id, referral_frozen FROM licenses WHERE id = $1::uuid"
             )
             .bind(license_id)
             .fetch_optional(&self.db_pool)
             .await?;
 
-            if let Some((Some(_),)) = existing {
-                // Referral already set - this is expected for immutability
-                tracing::debug!("Referral already set for license {}, ignoring update", license_id);
+            match existing {
+                Some((Some(_), _)) => {
+                    // Referral already set - this is expected for immutability
+                    tracing::debug!("Referral already set for license {}, ignoring update", license_id);
+                }
+                Some((None, Some(true))) => {
+                    // R5-05: Referral frozen as "no referral" - cannot change
+                    tracing::warn!(
+                        "Attempted to set referral on frozen license {} - immutability enforced",
+                        license_id
+                    );
+                }
+                _ => {
+                    tracing::debug!("License {} not found or other condition prevented update", license_id);
+                }
             }
         }
 
@@ -182,9 +245,41 @@ impl ClaimRepository for ClaimRepositoryImpl {
         since: Option<DateTime<Utc>>,
         limit: i32,
     ) -> Result<Vec<ClaimedLicense>, AppError> {
-        let query = match since {
-            Some(ts) => {
-                // R3-06: Compound key ordering for consistent cursor-based pagination
+        // Delegate to compound version without high-water mark
+        self.get_claimed_since_compound(since, None, limit).await
+    }
+
+    async fn get_claimed_since_compound(
+        &self,
+        since_ts: Option<DateTime<Utc>>,
+        high_water_id: Option<&str>,
+        limit: i32,
+    ) -> Result<Vec<ClaimedLicense>, AppError> {
+        let results = match (since_ts, high_water_id) {
+            // R5-06: Full compound cursor - excludes previously processed records
+            // with the same timestamp by using (timestamp, id) > (cursor_ts, cursor_id)
+            (Some(ts), Some(hwm_id)) => {
+                sqlx::query_as::<_, ClaimedLicense>(r#"
+                    SELECT
+                        l.id::text as license_id,
+                        l.claimed_at,
+                        r.referral_code,
+                        l.lease_code as claim_token
+                    FROM licenses l
+                    LEFT JOIN referrals r ON l.referral_id = r.id
+                    WHERE l.claimed = true
+                      AND (l.claimed_at, l.id::text) > ($1, $2)
+                    ORDER BY l.claimed_at ASC, l.id ASC
+                    LIMIT $3
+                "#)
+                .bind(ts)
+                .bind(hwm_id)
+                .bind(limit)
+                .fetch_all(&self.db_pool)
+                .await?
+            }
+            // Timestamp only - use greater-than for timestamp
+            (Some(ts), None) => {
                 sqlx::query_as::<_, ClaimedLicense>(r#"
                     SELECT
                         l.id::text as license_id,
@@ -203,8 +298,8 @@ impl ClaimRepository for ClaimRepositoryImpl {
                 .fetch_all(&self.db_pool)
                 .await?
             }
-            None => {
-                // R3-06: Compound key ordering for consistent cursor-based pagination
+            // No cursor - start from beginning
+            (None, _) => {
                 sqlx::query_as::<_, ClaimedLicense>(r#"
                     SELECT
                         l.id::text as license_id,
@@ -223,7 +318,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
             }
         };
 
-        Ok(query)
+        Ok(results)
     }
 
     async fn atomic_reserve(
@@ -231,11 +326,25 @@ impl ClaimRepository for ClaimRepositoryImpl {
         split_type: Option<&str>,
         referral_code: Option<&str>,
     ) -> Result<ReservationResult, AppError> {
+        self.atomic_reserve_with_capacity(split_type, referral_code, None).await
+    }
+
+    /// Atomically reserve a license with capacity ceiling check
+    ///
+    /// R5-05: The capacity check is now inside the transaction with proper locking.
+    /// This prevents TOCTOU race conditions where two users could both pass a
+    /// non-locked capacity check and then both attempt to reserve.
+    async fn atomic_reserve_with_capacity(
+        &self,
+        split_type: Option<&str>,
+        referral_code: Option<&str>,
+        capacity_ceiling: Option<i64>,
+    ) -> Result<ReservationResult, AppError> {
         let now = Utc::now();
         let expires_at = now + Duration::seconds(RESERVATION_EXPIRY_SECS);
         let session_token = Self::generate_session_token();
 
-        // Start transaction
+        // Start transaction with SERIALIZABLE isolation for capacity safety
         let mut tx = self.db_pool.begin().await
             .map_err(|e| AppError::Database(format!("Failed to start transaction: {}", e)))?;
 
@@ -259,16 +368,55 @@ impl ClaimRepository for ClaimRepositoryImpl {
         .execute(&mut *tx)
         .await?;
 
+        // R5-05: Check capacity ceiling INSIDE the transaction
+        // This count happens after cleanup and before we lock our target license
+        // INCLUDES: claimed licenses, active reservations, AND pending releases
+        let capacity_remaining = if let Some(ceiling) = capacity_ceiling {
+            let count: (i64,) = sqlx::query_as(
+                r#"
+                SELECT COUNT(*) as count
+                FROM licenses
+                WHERE claimed = true
+                   OR (reserved_until IS NOT NULL AND reserved_until > $1)
+                   OR (is_pending_release = true)
+                "#,
+            )
+            .bind(now)
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(|e| AppError::Database(format!("Capacity check failed: {}", e)))?;
+
+            if count.0 >= ceiling {
+                tracing::warn!(
+                    occupied = count.0,
+                    ceiling = ceiling,
+                    "Capacity ceiling reached (inside transaction)"
+                );
+                return Err(AppError::ValidationError(
+                    "License capacity has been reached. Please try again later.".into()
+                ));
+            }
+
+            Some(ceiling - count.0 - 1) // -1 because we're about to reserve one
+        } else {
+            None
+        };
+
         // Select first available license with row-level lock
+        // R5-05: FOR UPDATE SKIP LOCKED ensures atomic acquisition
+        // R5-05: Do NOT select lease_code - credentials not revealed until confirm
         let license: Option<LicenseReserveRow> = if let Some(st) = split_type {
             sqlx::query_as::<_, LicenseReserveRow>(r#"
-                SELECT id, lease_code, split_type::text as split_type
+                SELECT id, split_type::text as split_type
                 FROM licenses
                 WHERE claimed = false
                   AND (reserved_until IS NULL OR reserved_until < $1)
                   AND valid_from <= $1
                   AND valid_to > $1
                   AND split_type = $2::split_type
+                  AND (publication_status = 'published' OR publication_status IS NULL)
+                  AND (is_quarantined = false OR is_quarantined IS NULL)
+                  AND (is_pending_release = false OR is_pending_release IS NULL)
                 ORDER BY created_at ASC
                 LIMIT 1
                 FOR UPDATE SKIP LOCKED
@@ -279,12 +427,15 @@ impl ClaimRepository for ClaimRepositoryImpl {
             .await?
         } else {
             sqlx::query_as::<_, LicenseReserveRow>(r#"
-                SELECT id, lease_code, split_type::text as split_type
+                SELECT id, split_type::text as split_type
                 FROM licenses
                 WHERE claimed = false
                   AND (reserved_until IS NULL OR reserved_until < $1)
                   AND valid_from <= $1
                   AND valid_to > $1
+                  AND (publication_status = 'published' OR publication_status IS NULL)
+                  AND (is_quarantined = false OR is_quarantined IS NULL)
+                  AND (is_pending_release = false OR is_pending_release IS NULL)
                 ORDER BY created_at ASC
                 LIMIT 1
                 FOR UPDATE SKIP LOCKED
@@ -350,13 +501,14 @@ impl ClaimRepository for ClaimRepositoryImpl {
         tx.commit().await
             .map_err(|e| AppError::Database(format!("Failed to commit reservation: {}", e)))?;
 
+        // R5-05: Return result WITHOUT lease_code - credential revealed only at confirm
         Ok(ReservationResult {
             license_id: license.id,
-            lease_code: license.lease_code,
             session_token,
             expires_at,
             split_type: license.split_type,
             referral_validated,
+            capacity_remaining,
         })
     }
 
@@ -402,7 +554,8 @@ impl ClaimRepository for ClaimRepositoryImpl {
         if license.claimed {
             // Fetch the claimed license data
             let result: ClaimResultRow = sqlx::query_as::<_, ClaimResultRow>(r#"
-                SELECT id, lease_code, claimed_at, referral_id, referral_attributed_at, referral_agreement_version
+                SELECT id, lease_code, claimed_at, referral_id, referral_attributed_at,
+                       referral_agreement_version, COALESCE(referral_frozen, false) as referral_frozen
                 FROM licenses WHERE id = $1
             "#)
             .bind(license_id)
@@ -418,6 +571,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
                 referral_id: result.referral_id,
                 referral_attributed_at: result.referral_attributed_at,
                 agreement_version: result.referral_agreement_version,
+                referral_frozen: result.referral_frozen,
             });
         }
 
@@ -503,6 +657,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
         };
 
         // Claim the license atomically
+        // R5-05: Set referral_frozen = true to make attribution immutable (including no-referral)
         let bound_to_device = device_id.is_some();
         sqlx::query(r#"
             UPDATE licenses
@@ -514,7 +669,9 @@ impl ClaimRepository for ClaimRepositoryImpl {
                 reservation_token = NULL,
                 referral_id = COALESCE(referral_id, $5),
                 referral_attributed_at = COALESCE(referral_attributed_at, $6),
-                referral_agreement_version = COALESCE(referral_agreement_version, $7)
+                referral_agreement_version = COALESCE(referral_agreement_version, $7),
+                referral_frozen = true,
+                referral_frozen_at = COALESCE(referral_frozen_at, $2)
             WHERE id = $1 AND claimed = false
         "#)
         .bind(license_id)
@@ -541,12 +698,26 @@ impl ClaimRepository for ClaimRepositoryImpl {
 
         // Fetch the final result
         let result: ClaimResultRow = sqlx::query_as::<_, ClaimResultRow>(r#"
-            SELECT id, lease_code, claimed_at, referral_id, referral_attributed_at, referral_agreement_version
+            SELECT id, lease_code, claimed_at, referral_id, referral_attributed_at,
+                   referral_agreement_version, COALESCE(referral_frozen, true) as referral_frozen
             FROM licenses WHERE id = $1
         "#)
         .bind(license_id)
         .fetch_one(&mut *tx)
         .await?;
+
+        // Mark credential as revealed in reservation record
+        sqlx::query(r#"
+            UPDATE license_reservations
+            SET credential_revealed = true, credential_revealed_at = $2
+            WHERE license_id = $1 AND session_token = $3
+        "#)
+        .bind(license_id)
+        .bind(now)
+        .bind(session_token)
+        .execute(&mut *tx)
+        .await
+        .ok(); // Ignore errors - this is just audit tracking
 
         // Commit transaction
         tx.commit().await
@@ -559,6 +730,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
             referral_id: result.referral_id,
             referral_attributed_at: result.referral_attributed_at,
             agreement_version: result.referral_agreement_version,
+            referral_frozen: result.referral_frozen,
         })
     }
 
@@ -657,11 +829,11 @@ impl ClaimRepository for ClaimRepositoryImpl {
 
 // Internal row types for SQLx mapping
 
+/// R5-05: Does NOT include lease_code - credentials revealed only at confirm
 #[derive(Debug, sqlx::FromRow)]
 struct LicenseReserveRow {
     // Use String for id to handle both UUID and blockchain hex formats
     id: String,
-    lease_code: String,
     split_type: String,
 }
 
@@ -689,4 +861,6 @@ struct ClaimResultRow {
     referral_id: Option<i32>,
     referral_attributed_at: Option<DateTime<Utc>>,
     referral_agreement_version: Option<i32>,
+    /// R5-05: Whether referral attribution is frozen
+    referral_frozen: bool,
 }

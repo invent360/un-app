@@ -64,7 +64,9 @@ pub use job_service::{
 pub use worker_runner::{
     WorkerRunner, WorkerConfig, WorkerStats,
     run_lease_reclaimer, run_event_cleanup, run_stale_event_recovery, run_retention_cleanup,
+    run_outbox_publisher, run_outbox_stale_recovery,
 };
+pub use outbox_publisher::OutboxPublisherConfig;
 pub use service_identity_service::{ServiceIdentityService, AuthenticatedService};
 pub use evidence_service::{
     EvidenceService, EvidenceProvider, DynEvidenceProvider,
@@ -75,6 +77,7 @@ pub use evidence_service::{
 pub use reservation_service::{
     ReservationService, ReservationServiceImpl, DynReservationService,
     ReservationRequest, ConfirmRequest, ExtendedReservationResult, ReservationError,
+    MAX_OCCUPIED_LICENSES,
 };
 pub use ownership_service::{
     OwnershipService, OwnershipServiceImpl, DynOwnershipService,
@@ -91,13 +94,15 @@ pub use lifecycle_service::{
     LifecycleEvent, ActorType as LifecycleActorType, LifecycleLogEntry, ExposureMetrics,
     CancelLicenseInput, ReleaseLicenseInput, ReactivateLicenseInput,
     ExpiryNotificationType, LicensePendingExpiry,
+    // R5-05: Release workflow types
+    ReleaseStatus, RequestReleaseInput, RequestReleaseResult, ConfirmUpstreamReleaseInput,
 };
 pub use journey_service::{
     JourneyService, JourneyServiceImpl, DynJourneyService,
     JourneyEntry, StageMetrics,
 };
 pub use outbox_publisher::{
-    OutboxPublisher, OutboxPublisherConfig, PublishStats, WebhookPayload,
+    OutboxPublisher, PublishStats, WebhookPayload,
     EventPublisher, DynEventPublisher, WebhookPublisher, NullPublisher,
 };
 pub use inbox_processor::{
@@ -132,9 +137,10 @@ pub use cohort_notification_service::{
 };
 
 // Phase 8: Operator Tools, Forecasting and Optional Adapters
+// R5-12: ForecastEngine removed - all forecasts use canonical engine
 pub use forecast_service::{
     ForecastService, ForecastServiceImpl, DynForecastService,
-    ForecastEngine, ForecastEngineConfig, AgreementShares, WeeklyProjection,
+    ForecastEngineConfig, AgreementShares, WeeklyProjection,
 };
 pub use webhook_service::{
     WebhookService, WebhookServiceImpl, DynWebhookService,

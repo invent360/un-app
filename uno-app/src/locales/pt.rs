@@ -413,6 +413,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.activate.step2" => "Habilite a execucao em segundo plano para ganhos maximos",
     "wizard.activate.step3_title" => "3. Ganhar",
     "wizard.activate.step3" => "Mantenha o app rodando e veja seus ganhos crescerem!",
+    "wizard.activate.completion_message" => "Parabéns! Você está pronto para começar a ganhar.",
+
+    // Wizard - Reserve Stage
+    "wizard.reserve.title" => "Reservando Sua Licença",
+    "wizard.reserve.subtitle" => "Por favor, aguarde enquanto protegemos sua licença...",
+    "wizard.reserve.step_locking" => "Bloqueando licença...",
+    "wizard.reserve.step_verifying" => "Verificando elegibilidade...",
+    "wizard.reserve.step_securing" => "Protegendo reserva...",
+    "wizard.reserve.security_notice" => "Sua licença está sendo reservada exclusivamente para você",
+    "wizard.reserve.error_title" => "Falha na Reserva",
+    "wizard.reserve.try_again" => "Tentar Novamente",
 
     // Wizard - What Next Stage
     "wizard.what_next.title" => "E Agora?",
@@ -475,7 +486,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Installation Guide
     "install.title" => "Guia de Instalacao",
     "install.android.title" => "Android",
-    "install.android.step1" => "Baixe o APK da Google Play Store",
+    "install.android.step1" => "Baixe o aplicativo da Google Play Store",
     "install.android.step2" => "Abra o arquivo baixado para instalar",
     "install.android.step3" => "Permita instalacao de fontes desconhecidas se solicitado",
     "install.android.step4" => "Insira sua chave de licenca quando solicitado",
@@ -558,10 +569,10 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.platform_title" => "Plataforma",
     "wizard.economics.platform_desc" => "Cobre custos de infraestrutura, desenvolvimento e suporte.",
     "wizard.economics.referrer_title" => "Indicador",
-    "wizard.economics.referrer_desc" => "Vai para quem indicou voce, ou para a plataforma se nao houver indicador.",
+    "wizard.economics.referrer_desc" => "Destinado ao seu indicador. Se você não tem indicador, isso é mantido em uma reserva de suporte.",
     "wizard.economics.important_title" => "Divulgacoes Importantes",
-    "wizard.economics.disclosure_small_rewards" => "Recompensas individuais por tarefa sao pequenas ($0,001 - $0,05). Os ganhos acumulam ao longo do tempo.",
-    "wizard.economics.disclosure_credit_cost" => "UNO opera quase no ponto de equilibrio. Financiamos seus creditos com nossa parte.",
+    "wizard.economics.disclosure_small_rewards" => "As recompensas individuais de tarefas são pequenas. Os ganhos se acumulam com o tempo com base na disponibilidade de tarefas e tempo de atividade do dispositivo.",
+    "wizard.economics.disclosure_credit_cost" => "Seus créditos iniciais são financiados com recursos da plataforma para ajudá-lo a começar.",
     "wizard.economics.disclosure_device_requirement" => "Voce precisa de um dispositivo conectado a internet com o app rodando.",
     "wizard.economics.disclosure_uptime" => "Maior tempo online significa mais oportunidades de tarefas e maiores ganhos.",
     "wizard.economics.who_should_not_title" => "Quem NAO Deve Participar",

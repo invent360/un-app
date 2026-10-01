@@ -413,6 +413,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.activate.step2" => "Enable background running for maximum earnings",
     "wizard.activate.step3_title" => "3. Earn",
     "wizard.activate.step3" => "Keep the app running and watch your earnings grow!",
+    "wizard.activate.completion_message" => "Congratulations! You're all set to start earning.",
+
+    // Wizard - Reserve Stage
+    "wizard.reserve.title" => "Reserving Your License",
+    "wizard.reserve.subtitle" => "Please wait while we secure your license...",
+    "wizard.reserve.step_locking" => "Locking license...",
+    "wizard.reserve.step_verifying" => "Verifying eligibility...",
+    "wizard.reserve.step_securing" => "Securing reservation...",
+    "wizard.reserve.security_notice" => "Your license is being reserved exclusively for you",
+    "wizard.reserve.error_title" => "Reservation Failed",
+    "wizard.reserve.try_again" => "Try Again",
 
     // Wizard - What Next Stage
     "wizard.what_next.title" => "What's Next?",
@@ -475,7 +486,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Installation Guide
     "install.title" => "Installation Guide",
     "install.android.title" => "Android",
-    "install.android.step1" => "Download the APK from Google Play Store",
+    "install.android.step1" => "Download the app from Google Play Store",
     "install.android.step2" => "Open the downloaded file to install",
     "install.android.step3" => "Allow installation from unknown sources if prompted",
     "install.android.step4" => "Enter your license key when asked",
@@ -558,10 +569,10 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.platform_title" => "Platform",
     "wizard.economics.platform_desc" => "Covers infrastructure, development, and support costs.",
     "wizard.economics.referrer_title" => "Referrer",
-    "wizard.economics.referrer_desc" => "Goes to who referred you, or to platform if no referrer.",
+    "wizard.economics.referrer_desc" => "Designated for your referrer. If you have no referrer, this is held in a support reserve.",
     "wizard.economics.important_title" => "Important Disclosures",
-    "wizard.economics.disclosure_small_rewards" => "Individual task rewards are small ($0.001 - $0.05). Earnings accumulate over time.",
-    "wizard.economics.disclosure_credit_cost" => "UNO operates at near break-even. We fund your credits from our share.",
+    "wizard.economics.disclosure_small_rewards" => "Individual task rewards are small. Earnings accumulate over time based on task availability and device uptime.",
+    "wizard.economics.disclosure_credit_cost" => "Your initial credits are funded from platform resources to help you get started.",
     "wizard.economics.disclosure_device_requirement" => "You need a device connected to the internet with the app running.",
     "wizard.economics.disclosure_uptime" => "Higher uptime means more task opportunities and higher earnings.",
     "wizard.economics.who_should_not_title" => "Who Should NOT Join",

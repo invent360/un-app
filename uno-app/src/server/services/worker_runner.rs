@@ -405,6 +405,84 @@ pub async fn run_stale_event_recovery(
     }
 }
 
+/// R5-09: Background task for recovering stale outbox events
+/// Resets events stuck in 'publishing' state back to 'pending'
+pub async fn run_outbox_stale_recovery(
+    outbox_repo: DynOutboxRepository,
+    check_interval: Duration,
+    shutdown: Arc<AtomicBool>,
+) {
+    let mut timer = interval(check_interval);
+
+    tracing::info!(
+        check_interval_secs = check_interval.as_secs(),
+        "Outbox stale event recovery task started"
+    );
+
+    loop {
+        timer.tick().await;
+
+        if shutdown.load(Ordering::Relaxed) {
+            break;
+        }
+
+        match outbox_repo.recover_stale_publishing_events().await {
+            Ok(count) if count > 0 => {
+                tracing::info!(count = count, "Recovered stale outbox events");
+            }
+            Ok(_) => {}
+            Err(e) => {
+                tracing::error!(error = %e, "Failed to recover stale outbox events");
+            }
+        }
+    }
+}
+
+/// R5-09: Background task for publishing outbox events
+/// Polls and publishes events using the configured publisher (webhook, etc.)
+pub async fn run_outbox_publisher(
+    outbox_repo: DynOutboxRepository,
+    config: super::OutboxPublisherConfig,
+    poll_interval: Duration,
+    shutdown: Arc<AtomicBool>,
+) {
+    use super::OutboxPublisher;
+
+    let publisher = OutboxPublisher::from_config(outbox_repo.clone(), config);
+    let mut timer = interval(poll_interval);
+
+    tracing::info!(
+        poll_interval_secs = poll_interval.as_secs(),
+        "Outbox publisher started"
+    );
+
+    loop {
+        timer.tick().await;
+
+        if shutdown.load(Ordering::Relaxed) {
+            tracing::info!("Outbox publisher shutting down");
+            break;
+        }
+
+        match publisher.publish_batch().await {
+            Ok(stats) => {
+                if stats.claimed > 0 {
+                    tracing::debug!(
+                        claimed = stats.claimed,
+                        published = stats.published,
+                        failed = stats.failed,
+                        dead_lettered = stats.dead_lettered,
+                        "Outbox publish batch completed"
+                    );
+                }
+            }
+            Err(e) => {
+                tracing::error!(error = %e, "Outbox publish batch failed");
+            }
+        }
+    }
+}
+
 /// R3-17: Background task for data retention cleanup
 /// Enforces retention policies from the retention_policies table
 pub async fn run_retention_cleanup(

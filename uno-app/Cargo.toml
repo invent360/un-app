@@ -88,8 +88,9 @@ wasm-bindgen = "0.2"
 wasm-bindgen-futures = { version = "0.4", optional = true }
 serde-wasm-bindgen = { version = "0.6", optional = true }
 console_error_panic_hook = "0.1"
-web-sys = { version = "0.3", features = ["Window", "Document", "Element", "HtmlElement", "Navigator", "Clipboard", "Location", "Storage", "MediaQueryList"], optional = true }
+web-sys = { version = "0.3", features = ["Window", "Document", "Element", "HtmlElement", "Navigator", "Clipboard", "Location", "Storage", "MediaQueryList", "RequestCredentials"], optional = true }
 gloo-timers = { version = "0.3", features = ["futures"], optional = true }
+gloo-net = { version = "0.6", optional = true }
 
 # Config
 dotenvy = { version = "0.15", optional = true }
@@ -108,8 +109,8 @@ default = []
 # WARNING: Never enable debug-routes in production - exposes sensitive data!
 # Only enable for local development debugging.
 debug-routes = []
-csr = ["leptos/csr", "dep:web-sys", "dep:wasm-bindgen-futures", "dep:gloo-timers", "dep:serde-wasm-bindgen", "dep:ember-fx-icons", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-utils", "ember-fx-components/csr", "ember-fx-core/csr"]
-hydrate = ["leptos/hydrate", "dep:web-sys", "dep:wasm-bindgen-futures", "dep:gloo-timers", "dep:serde-wasm-bindgen", "dep:ember-fx-icons", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-utils", "ember-fx-components/hydrate", "ember-fx-core/hydrate"]
+csr = ["leptos/csr", "dep:web-sys", "dep:wasm-bindgen-futures", "dep:gloo-timers", "dep:gloo-net", "dep:serde-wasm-bindgen", "dep:ember-fx-icons", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-utils", "ember-fx-components/csr", "ember-fx-core/csr"]
+hydrate = ["leptos/hydrate", "dep:web-sys", "dep:wasm-bindgen-futures", "dep:gloo-timers", "dep:gloo-net", "dep:serde-wasm-bindgen", "dep:ember-fx-icons", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-utils", "ember-fx-components/hydrate", "ember-fx-core/hydrate"]
 ssr = [
     "dep:actix-web",
     "dep:actix-files",

@@ -22,8 +22,10 @@ const STATUS_ACTIVE: &str = "active";
 const STATUS_SUSPENDED: &str = "suspended";
 const STATUS_PENDING: &str = "pending";
 
-/// Default commission for new agents (percentage)
-const DEFAULT_COMMISSION_PERCENT: f64 = 3.0;
+/// R5-07: Default commission for new agents (percentage).
+/// This is the referral share from the canonical 50/40/10 split.
+/// Do NOT use the legacy 3% default.
+const DEFAULT_COMMISSION_PERCENT: f64 = 10.0;
 
 /// Service for referral synchronization.
 pub struct ReferralSyncService {
@@ -49,6 +51,10 @@ impl ReferralSyncService {
     }
 
     /// Push agents with referral codes to uno-app as referrals.
+    ///
+    /// R5-07: This method respects existing suspension status in uno-app.
+    /// If a referral is already suspended, we do NOT push an "active" status
+    /// that would reactivate it (reverse sync protection).
     pub async fn push_agents_as_referrals(&self) -> Result<SyncResult, String> {
         info!("Pushing agents as referrals to uno-app");
 
@@ -71,17 +77,64 @@ impl ReferralSyncService {
 
         info!("Found {} agents with referral codes", agents_with_codes.len());
 
-        // Convert to ReferralInput
+        // R5-07: First fetch existing referrals to check suspension status
+        // This prevents reverse sync from reactivating suspended agents
+        let existing_response = self.uno_client
+            .get_referrals()
+            .await
+            .map_err(|e| {
+                error!("Failed to fetch existing referrals for suspension check: {}", e);
+                e.to_string()
+            })?;
+
+        // Build a set of suspended referral codes for quick lookup
+        let suspended_codes: std::collections::HashSet<String> = existing_response
+            .referrals
+            .iter()
+            .filter(|r| r.status == STATUS_SUSPENDED)
+            .map(|r| r.referral_code.clone())
+            .collect();
+
+        // Convert to ReferralInput, respecting suspension status
+        let mut skipped_suspended = 0;
         let referrals: Vec<ReferralInput> = agents_with_codes
             .iter()
-            .map(|a| ReferralInput {
-                username: a.name.clone(),
-                email: a.email.clone(),
-                country_code: a.country.clone(),
-                referral_code: a.referral_code.clone().unwrap_or_default(),
-                status: "active".to_string(), // Agents are typically active
+            .filter_map(|a| {
+                let code = a.referral_code.clone().unwrap_or_default();
+
+                // R5-07: Do not push "active" status for suspended referrals
+                if suspended_codes.contains(&code) {
+                    warn!(
+                        "Skipping push for suspended referral {} (agent {})",
+                        code, a.email
+                    );
+                    skipped_suspended += 1;
+                    return None;
+                }
+
+                Some(ReferralInput {
+                    username: a.name.clone(),
+                    email: a.email.clone(),
+                    country_code: a.country.clone(),
+                    referral_code: code,
+                    status: STATUS_ACTIVE.to_string(),
+                })
             })
             .collect();
+
+        if skipped_suspended > 0 {
+            info!("Skipped {} suspended referrals (R5-07 protection)", skipped_suspended);
+        }
+
+        if referrals.is_empty() {
+            info!("No eligible referrals to sync after suspension check");
+            return Ok(SyncResult {
+                created: 0,
+                updated: 0,
+                failed: 0,
+                errors: vec![],
+            });
+        }
 
         // Sync to uno-app
         let result = self.uno_client
@@ -93,8 +146,8 @@ impl ReferralSyncService {
             })?;
 
         info!(
-            "Push result: {} created, {} updated, {} failed",
-            result.created, result.updated, result.failed
+            "Push result: {} created, {} updated, {} failed, {} suspended (skipped)",
+            result.created, result.updated, result.failed, skipped_suspended
         );
 
         Ok(SyncResult {

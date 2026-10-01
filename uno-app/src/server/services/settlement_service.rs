@@ -78,6 +78,9 @@ pub struct RecordAllocationInput {
     pub provider_id: Option<String>,
     /// R3-08: Unique event ID from provider for duplicate prevention
     pub reward_event_id: Option<String>,
+    /// R5-07: Referral agent ID (if license was referred).
+    /// When None, allocation uses allocate_without_referral() and share goes to reserve.
+    pub referral_agent_id: Option<Uuid>,
 }
 
 /// Input for preparing a settlement
@@ -149,34 +152,21 @@ pub trait SettlementServiceTrait: Send + Sync {
 }
 
 /// Settlement service implementation
+/// R5-08: Settlement item repository is REQUIRED in production for per-party settlement
 pub struct SettlementService {
     allocation_repo: Arc<dyn AllocationRepository + Send + Sync>,
     credit_order_repo: Arc<dyn CreditOrderRepository + Send + Sync>,
     audit_repo: Arc<dyn ImmutableAuditRepository + Send + Sync>,
     outbox_repo: DynOutboxRepository,
-    settlement_item_repo: Option<Arc<dyn crate::server::repositories::SettlementItemRepository + Send + Sync>>,
+    // R5-08: Repository is required, not optional - enables per-party settlement tracking
+    settlement_item_repo: Arc<dyn crate::server::repositories::SettlementItemRepository + Send + Sync>,
     allocation_service: AllocationService,
 }
 
 impl SettlementService {
+    // R5-08: Single constructor requires settlement item repository
+    // The old `new()` constructor without repository has been removed
     pub fn new(
-        allocation_repo: Arc<dyn AllocationRepository + Send + Sync>,
-        credit_order_repo: Arc<dyn CreditOrderRepository + Send + Sync>,
-        audit_repo: Arc<dyn ImmutableAuditRepository + Send + Sync>,
-        outbox_repo: DynOutboxRepository,
-    ) -> Self {
-        Self {
-            allocation_repo,
-            credit_order_repo,
-            audit_repo,
-            outbox_repo,
-            settlement_item_repo: None,
-            allocation_service: AllocationService::new(),
-        }
-    }
-
-    /// R4-04: Create with settlement item repository for per-party settlement
-    pub fn with_settlement_items(
         allocation_repo: Arc<dyn AllocationRepository + Send + Sync>,
         credit_order_repo: Arc<dyn CreditOrderRepository + Send + Sync>,
         audit_repo: Arc<dyn ImmutableAuditRepository + Send + Sync>,
@@ -188,9 +178,21 @@ impl SettlementService {
             credit_order_repo,
             audit_repo,
             outbox_repo,
-            settlement_item_repo: Some(settlement_item_repo),
+            settlement_item_repo,
             allocation_service: AllocationService::new(),
         }
+    }
+
+    // R5-08: Deprecated alias - use new() instead
+    #[deprecated(note = "Use new() - settlement_item_repo is now required")]
+    pub fn with_settlement_items(
+        allocation_repo: Arc<dyn AllocationRepository + Send + Sync>,
+        credit_order_repo: Arc<dyn CreditOrderRepository + Send + Sync>,
+        audit_repo: Arc<dyn ImmutableAuditRepository + Send + Sync>,
+        outbox_repo: DynOutboxRepository,
+        settlement_item_repo: Arc<dyn crate::server::repositories::SettlementItemRepository + Send + Sync>,
+    ) -> Self {
+        Self::new(allocation_repo, credit_order_repo, audit_repo, outbox_repo, settlement_item_repo)
     }
 
     /// Generate a unique settlement reference
@@ -238,6 +240,49 @@ impl SettlementService {
             tracing::error!(error = %e, "Failed to create outbox event");
         }
     }
+
+    /// R5-08: Check if an allocation has all parties settled
+    /// Returns true only when ULO, UNO, referral (if applicable), and reserve are all confirmed
+    async fn is_allocation_fully_settled(&self, allocation_id: Uuid) -> Result<bool, SettlementError> {
+        // Get the allocation to check which parties have amounts > 0
+        let alloc = self.allocation_repo
+            .get(allocation_id)
+            .await
+            .map_err(|e| SettlementError::Database(e.to_string()))?
+            .ok_or_else(|| SettlementError::AllocationNotFound(allocation_id))?;
+
+        // R5-08: Get all settlement items for this allocation (repository is now required)
+        let items = self.settlement_item_repo
+            .list_by_allocation(allocation_id)
+            .await
+            .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+        // Build a map of party_type -> is_confirmed
+        let mut party_confirmed: std::collections::HashMap<&str, bool> = std::collections::HashMap::new();
+        for item in &items {
+            if item.item_state == "confirmed" {
+                party_confirmed.insert(item.party_type.as_str(), true);
+            }
+        }
+
+        // Check each party that has a non-zero amount
+        let mut all_settled = true;
+
+        if alloc.ulo_micros > 0 && !party_confirmed.get("ulo").copied().unwrap_or(false) {
+            all_settled = false;
+        }
+        if alloc.uno_micros > 0 && !party_confirmed.get("uno").copied().unwrap_or(false) {
+            all_settled = false;
+        }
+        if alloc.referral_micros > 0 && !party_confirmed.get("referral").copied().unwrap_or(false) {
+            all_settled = false;
+        }
+        if alloc.reserve_micros > 0 && !party_confirmed.get("reserve").copied().unwrap_or(false) {
+            all_settled = false;
+        }
+
+        Ok(all_settled)
+    }
 }
 
 #[async_trait]
@@ -273,6 +318,7 @@ impl SettlementServiceTrait for SettlementService {
         }
 
         // Use AllocationService to compute the split
+        // R5-07: Include referral_agent_id for proper reserve allocation
         let request = AllocationRequest {
             license_id: input.license_id.clone(),
             pool_micros: input.pool_micros,
@@ -284,6 +330,7 @@ impl SettlementServiceTrait for SettlementService {
             external_ref: input.external_ref.clone(),
             provider_id: input.provider_id.clone(),
             reward_event_id: input.reward_event_id.clone(),
+            referral_agent_id: input.referral_agent_id,
         };
 
         let entry = self.allocation_service
@@ -321,6 +368,14 @@ impl SettlementServiceTrait for SettlementService {
             provider_id: entry.provider_id.clone(),
             reward_event_id: entry.reward_event_id.clone(),
             referral_agent_id: entry.referral_agent_id,
+            // R5-07: Reward source tracking (defaults for automatic allocations)
+            reward_source: Some("automatic".to_string()),
+            reward_batch_id: None,
+            is_batch_member: false,
+            agreement_snapshot: None,
+            ulo_recipient_id: None,
+            uno_recipient_id: None,
+            reserve_recipient_id: None,
         };
 
         let id = self.allocation_repo
@@ -430,7 +485,7 @@ impl SettlementServiceTrait for SettlementService {
             ));
         }
 
-        // R4-04: Validate fee is non-negative
+        // R5-08: Validate fee bounds (0 <= fee <= total will be checked after total is computed)
         if input.fee_micros < 0 {
             return Err(SettlementError::ReconciliationFailed(
                 format!("Fee must be non-negative, got: {}", input.fee_micros)
@@ -468,26 +523,58 @@ impl SettlementServiceTrait for SettlementService {
                 expected_currency = Some(alloc.pool_currency.clone());
             }
 
-            // R4-04: Check if this allocation+party is already in a pending settlement
-            if let Some(ref item_repo) = self.settlement_item_repo {
-                let is_pending = item_repo
-                    .is_pending(*id, &input.party_type)
-                    .await
-                    .map_err(|e| SettlementError::Database(e.to_string()))?;
+            // R5-08: Check if this allocation+party is already in a pending settlement
+            let is_pending = self.settlement_item_repo
+                .is_pending(*id, &input.party_type)
+                .await
+                .map_err(|e| SettlementError::Database(e.to_string()))?;
 
-                if is_pending {
-                    return Err(SettlementError::DuplicateAllocation(
-                        format!("Allocation {} party {} is already in a pending settlement", id, input.party_type)
-                    ));
-                }
+            if is_pending {
+                return Err(SettlementError::DuplicateAllocation(
+                    format!("Allocation {} party {} is already in a pending settlement", id, input.party_type)
+                ));
             }
 
-            // Sum the appropriate party's share
+            // R5-08: Sum the appropriate party's share with recipient validation
+            // Validate that recipient is an actual payee, not just license_id
             let (party_amount, recipient_id) = match input.party_type.as_str() {
-                "ulo" => (alloc.ulo_micros, alloc.license_id.clone()),
-                "uno" => (alloc.uno_micros, "uno_treasury".to_string()),
-                "referral" => (alloc.referral_micros, alloc.referral_agent_id.map(|id| id.to_string()).unwrap_or_default()),
-                "reserve" => (alloc.reserve_micros, "reserve_fund".to_string()),
+                "ulo" => {
+                    // R5-08: ULO recipient should resolve to actual user/participant
+                    // For now, use ulo_recipient_id if available, fall back to license_id
+                    let recipient = alloc.ulo_recipient_id
+                        .map(|id| id.to_string())
+                        .unwrap_or_else(|| alloc.license_id.clone());
+                    (alloc.ulo_micros, recipient)
+                },
+                "uno" => {
+                    // UNO recipient is the treasury (system recipient)
+                    let recipient = alloc.uno_recipient_id
+                        .map(|id| id.to_string())
+                        .unwrap_or_else(|| "uno_treasury".to_string());
+                    (alloc.uno_micros, recipient)
+                },
+                "referral" => {
+                    // R5-08: Referral recipient must be the actual agent
+                    let recipient = alloc.referral_agent_id
+                        .map(|id| id.to_string())
+                        .unwrap_or_default();
+
+                    // Reject if referral amount > 0 but no agent assigned
+                    if alloc.referral_micros > 0 && recipient.is_empty() {
+                        return Err(SettlementError::ReconciliationFailed(
+                            format!("Allocation {} has referral_micros {} but no referral_agent_id",
+                                id, alloc.referral_micros)
+                        ));
+                    }
+                    (alloc.referral_micros, recipient)
+                },
+                "reserve" => {
+                    // Reserve recipient is the reserve fund (system recipient)
+                    let recipient = alloc.reserve_recipient_id
+                        .map(|id| id.to_string())
+                        .unwrap_or_else(|| "reserve_fund".to_string());
+                    (alloc.reserve_micros, recipient)
+                },
                 _ => return Err(SettlementError::InvalidStateTransition(
                     format!("Invalid party type: {}", input.party_type)
                 )),
@@ -512,10 +599,15 @@ impl SettlementServiceTrait for SettlementService {
             }
         }
 
-        let net_micros = total_micros.checked_sub(input.fee_micros)
-            .ok_or_else(|| SettlementError::ReconciliationFailed(
+        // R5-08: Enforce 0 <= fee <= total explicitly
+        if input.fee_micros > total_micros {
+            return Err(SettlementError::ReconciliationFailed(
                 format!("Fee {} exceeds total {}", input.fee_micros, total_micros)
-            ))?;
+            ));
+        }
+
+        // Net cannot be negative after fee validation above
+        let net_micros = total_micros - input.fee_micros;
 
         let settlement_ref = Self::generate_settlement_ref();
 
@@ -537,36 +629,34 @@ impl SettlementServiceTrait for SettlementService {
             .await
             .map_err(|e| SettlementError::Database(e.to_string()))?;
 
-        // R4-04: Create settlement items for each allocation
-        if let Some(ref item_repo) = self.settlement_item_repo {
-            let recipient_type = match input.party_type.as_str() {
-                "ulo" => "license_owner",
-                "uno" => "uno_treasury",
-                "referral" => "referral_agent",
-                "reserve" => "reserve_fund",
-                _ => "unknown",
+        // R5-08: Create settlement items for each allocation (repository is now required)
+        let recipient_type = match input.party_type.as_str() {
+            "ulo" => "license_owner",
+            "uno" => "uno_treasury",
+            "referral" => "referral_agent",
+            "reserve" => "reserve_fund",
+            _ => "unknown",
+        };
+
+        for (alloc_id, amount, recipient_id) in &allocation_items {
+            let item_input = CreateSettlementItemInput {
+                settlement_id,
+                allocation_id: *alloc_id,
+                party_type: input.party_type.clone(),
+                recipient_id: if recipient_id.is_empty() { None } else { Some(recipient_id.clone()) },
+                recipient_type: Some(recipient_type.to_string()),
+                amount_micros: *amount,
+                currency: input.currency.clone(),
             };
 
-            for (alloc_id, amount, recipient_id) in &allocation_items {
-                let item_input = CreateSettlementItemInput {
-                    settlement_id,
-                    allocation_id: *alloc_id,
-                    party_type: input.party_type.clone(),
-                    recipient_id: if recipient_id.is_empty() { None } else { Some(recipient_id.clone()) },
-                    recipient_type: Some(recipient_type.to_string()),
-                    amount_micros: *amount,
-                    currency: input.currency.clone(),
-                };
+            self.settlement_item_repo.create(item_input)
+                .await
+                .map_err(|e| SettlementError::Database(e.to_string()))?;
 
-                item_repo.create(item_input)
-                    .await
-                    .map_err(|e| SettlementError::Database(e.to_string()))?;
-
-                // Update per-party settlement state
-                item_repo.update_allocation_settlement_state(*alloc_id, &input.party_type, "submitted")
-                    .await
-                    .map_err(|e| SettlementError::Database(e.to_string()))?;
-            }
+            // Update per-party settlement state
+            self.settlement_item_repo.update_allocation_settlement_state(*alloc_id, &input.party_type, "submitted")
+                .await
+                .map_err(|e| SettlementError::Database(e.to_string()))?;
         }
 
         // Log audit
@@ -633,7 +723,30 @@ impl SettlementServiceTrait for SettlementService {
             .map_err(|e| SettlementError::Database(e.to_string()))?
             .ok_or_else(|| SettlementError::SettlementNotFound(input.settlement_ref.clone()))?;
 
-        // Execute settlement
+        // R5-08: Check for provider_ref idempotency (prevent duplicate confirmations)
+        let existing = self.settlement_item_repo
+            .list_by_settlement(settlement.id)
+            .await
+            .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+        // Check if any items are already confirmed with a provider ref
+        for item in &existing {
+            if item.item_state == "confirmed" {
+                tracing::warn!(
+                    settlement_id = %settlement.id,
+                    item_id = %item.id,
+                    "Settlement items already confirmed - idempotent return"
+                );
+                // Idempotent: already executed, return current state
+                return self.credit_order_repo
+                    .get_settlement(settlement.id)
+                    .await
+                    .map_err(|e| SettlementError::Database(e.to_string()))?
+                    .ok_or_else(|| SettlementError::SettlementNotFound(input.settlement_ref));
+            }
+        }
+
+        // Execute settlement record
         let success = self.credit_order_repo
             .execute_settlement(settlement.id, &input.executor_id, &input.provider, &input.provider_ref)
             .await
@@ -645,11 +758,37 @@ impl SettlementServiceTrait for SettlementService {
             ));
         }
 
-        // Mark all allocations as paid
-        self.allocation_repo
-            .mark_paid(&settlement.allocation_ids, &input.executor_id, &input.settlement_ref)
+        // R5-08: Mark settlement items as confirmed and update per-party states
+        // DO NOT mark whole allocation as paid - only update party-specific state
+        // Get all settlement items
+        let items = self.settlement_item_repo
+            .list_by_settlement(settlement.id)
             .await
             .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+        // Mark items as confirmed
+        let item_ids: Vec<Uuid> = items.iter().map(|i| i.id).collect();
+        self.settlement_item_repo
+            .mark_confirmed(&item_ids)
+            .await
+            .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+        // Update per-party settlement state to "confirmed" for each allocation
+        for item in &items {
+            self.settlement_item_repo
+                .update_allocation_settlement_state(item.allocation_id, &settlement.party_type, "confirmed")
+                .await
+                .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+            // R5-08: Check if all parties are now settled for this allocation
+            // Only mark whole allocation as "paid" when ALL parties are confirmed
+            if self.is_allocation_fully_settled(item.allocation_id).await? {
+                self.allocation_repo
+                    .mark_paid(&[item.allocation_id], &input.executor_id, &input.settlement_ref)
+                    .await
+                    .map_err(|e| SettlementError::Database(e.to_string()))?;
+            }
+        }
 
         // Log audit
         self.log_audit_event(
@@ -664,6 +803,7 @@ impl SettlementServiceTrait for SettlementService {
                 "action": "executed",
                 "provider": input.provider,
                 "provider_ref": input.provider_ref,
+                "party_type": settlement.party_type,
             }),
         ).await;
 

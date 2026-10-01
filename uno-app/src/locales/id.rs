@@ -413,6 +413,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.activate.step2" => "Aktifkan berjalan di latar belakang untuk penghasilan maksimal",
     "wizard.activate.step3_title" => "3. Hasilkan",
     "wizard.activate.step3" => "Jaga aplikasi tetap berjalan dan lihat penghasilan Anda bertambah!",
+    "wizard.activate.completion_message" => "Selamat! Anda siap untuk mulai menghasilkan.",
+
+    // Wizard - Reserve Stage
+    "wizard.reserve.title" => "Memesan Lisensi Anda",
+    "wizard.reserve.subtitle" => "Mohon tunggu sementara kami mengamankan lisensi Anda...",
+    "wizard.reserve.step_locking" => "Mengunci lisensi...",
+    "wizard.reserve.step_verifying" => "Memverifikasi kelayakan...",
+    "wizard.reserve.step_securing" => "Mengamankan reservasi...",
+    "wizard.reserve.security_notice" => "Lisensi Anda sedang dipesan secara eksklusif untuk Anda",
+    "wizard.reserve.error_title" => "Reservasi Gagal",
+    "wizard.reserve.try_again" => "Coba Lagi",
 
     // Wizard - What Next Stage
     "wizard.what_next.title" => "Apa Selanjutnya?",
@@ -475,7 +486,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Installation Guide
     "install.title" => "Panduan Instalasi",
     "install.android.title" => "Android",
-    "install.android.step1" => "Unduh APK dari Google Play Store",
+    "install.android.step1" => "Unduh aplikasi dari Google Play Store",
     "install.android.step2" => "Buka file yang diunduh untuk menginstal",
     "install.android.step3" => "Izinkan instalasi dari sumber tidak dikenal jika diminta",
     "install.android.step4" => "Masukkan kunci lisensi Anda saat diminta",
@@ -558,10 +569,10 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.platform_title" => "Platform",
     "wizard.economics.platform_desc" => "Menutup biaya infrastruktur, pengembangan, dan dukungan.",
     "wizard.economics.referrer_title" => "Perujuk",
-    "wizard.economics.referrer_desc" => "Diberikan kepada yang mereferensikan Anda, atau ke platform jika tidak ada perujuk.",
+    "wizard.economics.referrer_desc" => "Diperuntukkan bagi referrer Anda. Jika Anda tidak memiliki referrer, ini disimpan dalam cadangan dukungan.",
     "wizard.economics.important_title" => "Pengungkapan Penting",
-    "wizard.economics.disclosure_small_rewards" => "Hadiah tugas individual kecil ($0.001 - $0.05). Penghasilan terakumulasi seiring waktu.",
-    "wizard.economics.disclosure_credit_cost" => "UNO beroperasi mendekati impas. Kami mendanai kredit Anda dari bagian kami.",
+    "wizard.economics.disclosure_small_rewards" => "Hadiah tugas individu kecil. Penghasilan terakumulasi seiring waktu berdasarkan ketersediaan tugas dan waktu aktif perangkat.",
+    "wizard.economics.disclosure_credit_cost" => "Kredit awal Anda didanai dari sumber daya platform untuk membantu Anda memulai.",
     "wizard.economics.disclosure_device_requirement" => "Anda membutuhkan perangkat yang terhubung ke internet dengan aplikasi yang berjalan.",
     "wizard.economics.disclosure_uptime" => "Waktu aktif yang lebih tinggi berarti lebih banyak peluang tugas dan penghasilan yang lebih tinggi.",
     "wizard.economics.who_should_not_title" => "Siapa yang TIDAK Seharusnya Bergabung",

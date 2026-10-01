@@ -4,12 +4,15 @@
 //! - Creating and managing support tickets
 //! - Agent queue management
 //! - Ticket messaging
+//!
+//! R5-02: All ticket read endpoints now require authentication and verify
+//! ownership before returning data, preventing horizontal privilege escalation.
 
 use actix_web::{web, HttpRequest, HttpResponse};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::server::extractors::auth::get_actor_id;
+use crate::server::extractors::auth::{get_actor_id, get_authenticated_user, Permission};
 use crate::server::repositories::{
     DynSupportRepository, TicketCategory, TicketPriority, TicketStatus,
     CreateTicketInput, AddMessageInput, TicketFilters,
@@ -133,42 +136,93 @@ pub async fn create_ticket(
 
 /// GET /api/v1/support/tickets/{id}
 /// Get ticket by ID
+///
+/// R5-02: Now requires authentication and verifies ownership.
+/// Users can only view their own tickets. Agents/operators can view any ticket.
 pub async fn get_ticket(
+    req: HttpRequest,
     repo: web::Data<DynSupportRepository>,
     path: web::Path<Uuid>,
 ) -> Result<HttpResponse, AppError> {
+    // R5-02: Require authentication
+    let user = get_authenticated_user(&req)
+        .map_err(|e| AppError::Unauthorized(e.to_string()))?;
+
     let id = path.into_inner();
     let ticket = repo.get_ticket(id).await?
         .ok_or_else(|| AppError::NotFound(format!("Ticket {} not found", id)))?;
+
+    // R5-02: Verify ownership - users can only view their own tickets
+    // Operators and agents can view any ticket
+    let is_operator = user.require(Permission::Operator).is_ok();
+    let is_agent = user.require(Permission::SupportRead).is_ok();
+    let is_owner = ticket.user_id == user.id;
+    let is_assigned_agent = ticket.assigned_agent_id
+        .map(|agent_id| agent_id.to_string() == user.id)
+        .unwrap_or(false);
+
+    if !is_owner && !is_operator && !is_agent && !is_assigned_agent {
+        return Err(AppError::Forbidden("Not authorized to view this ticket".to_string()));
+    }
+
     Ok(HttpResponse::Ok().json(ticket))
 }
 
 /// GET /api/v1/support/tickets/number/{ticket_number}
 /// Get ticket by ticket number
+///
+/// R5-02: Now requires authentication and verifies ownership.
+/// Users can only view their own tickets. Agents/operators can view any ticket.
 pub async fn get_ticket_by_number(
+    req: HttpRequest,
     repo: web::Data<DynSupportRepository>,
     path: web::Path<String>,
 ) -> Result<HttpResponse, AppError> {
+    // R5-02: Require authentication
+    let user = get_authenticated_user(&req)
+        .map_err(|e| AppError::Unauthorized(e.to_string()))?;
+
     let ticket_number = path.into_inner();
     let ticket = repo.get_ticket_by_number(&ticket_number).await?
         .ok_or_else(|| AppError::NotFound(format!("Ticket {} not found", ticket_number)))?;
+
+    // R5-02: Verify ownership - users can only view their own tickets
+    // Operators and agents can view any ticket
+    let is_operator = user.require(Permission::Operator).is_ok();
+    let is_agent = user.require(Permission::SupportRead).is_ok();
+    let is_owner = ticket.user_id == user.id;
+    let is_assigned_agent = ticket.assigned_agent_id
+        .map(|agent_id| agent_id.to_string() == user.id)
+        .unwrap_or(false);
+
+    if !is_owner && !is_operator && !is_agent && !is_assigned_agent {
+        return Err(AppError::Forbidden("Not authorized to view this ticket".to_string()));
+    }
+
     Ok(HttpResponse::Ok().json(ticket))
 }
 
-/// GET /api/v1/support/tickets/user/{user_id}
-/// Get tickets for a user
+/// GET /api/v1/support/my-tickets
+/// Get tickets for the authenticated user
+///
+/// R5-02: Now requires authentication. user_id is derived from token.
+/// Users can only view their own tickets.
 pub async fn get_user_tickets(
+    req: HttpRequest,
     repo: web::Data<DynSupportRepository>,
-    path: web::Path<String>,
     query: web::Query<SearchTicketsRequest>,
 ) -> Result<HttpResponse, AppError> {
-    let user_id = path.into_inner();
+    // R5-02: Get user_id from authenticated token, not path
+    let user = get_authenticated_user(&req)
+        .map_err(|e| AppError::Unauthorized(e.to_string()))?;
+    let user_id = user.id.clone();
+
     let page = query.page.unwrap_or(1);
     let page_size = query.page_size.unwrap_or(20).min(100);
     let offset = (page - 1) * page_size;
 
     let filters = TicketFilters {
-        user_id: Some(user_id.clone()),
+        user_id: Some(user_id),
         status: query.status.as_ref().and_then(|s| TicketStatus::from_str(s)),
         ..Default::default()
     };
@@ -216,15 +270,38 @@ pub async fn add_message(
 
 /// GET /api/v1/support/tickets/{id}/messages
 /// Get messages for a ticket
+///
+/// R5-02: Now requires authentication and verifies ownership.
+/// Internal messages are only visible to agents/operators.
 pub async fn get_messages(
+    req: HttpRequest,
     repo: web::Data<DynSupportRepository>,
     path: web::Path<Uuid>,
-    _req: HttpRequest, // Used to determine if internal messages should be shown
 ) -> Result<HttpResponse, AppError> {
+    // R5-02: Require authentication
+    let user = get_authenticated_user(&req)
+        .map_err(|e| AppError::Unauthorized(e.to_string()))?;
+
     let ticket_id = path.into_inner();
 
-    // TODO: Check if requester is agent/admin to show internal messages
-    let include_internal = false;
+    // First verify ticket exists and user has access
+    let ticket = repo.get_ticket(ticket_id).await?
+        .ok_or_else(|| AppError::NotFound(format!("Ticket {} not found", ticket_id)))?;
+
+    // R5-02: Verify ownership
+    let is_operator = user.require(Permission::Operator).is_ok();
+    let is_agent = user.require(Permission::SupportRead).is_ok();
+    let is_owner = ticket.user_id == user.id;
+    let is_assigned_agent = ticket.assigned_agent_id
+        .map(|agent_id| agent_id.to_string() == user.id)
+        .unwrap_or(false);
+
+    if !is_owner && !is_operator && !is_agent && !is_assigned_agent {
+        return Err(AppError::Forbidden("Not authorized to view this ticket".to_string()));
+    }
+
+    // R5-02: Only show internal messages to agents/operators
+    let include_internal = is_operator || is_agent || is_assigned_agent;
 
     let messages = repo.get_messages(ticket_id, include_internal).await?;
     Ok(HttpResponse::Ok().json(messages))
@@ -459,7 +536,7 @@ pub fn configure_public_routes(cfg: &mut web::ServiceConfig) {
             .route("/tickets", web::post().to(create_ticket))
             .route("/tickets/{id}", web::get().to(get_ticket))
             .route("/tickets/number/{ticket_number}", web::get().to(get_ticket_by_number))
-            .route("/tickets/user/{user_id}", web::get().to(get_user_tickets))
+            .route("/my-tickets", web::get().to(get_user_tickets))
             .route("/tickets/{id}/messages", web::post().to(add_message))
             .route("/tickets/{id}/messages", web::get().to(get_messages))
             .route("/tickets/{id}/satisfaction", web::post().to(record_satisfaction)),

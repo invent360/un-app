@@ -3,10 +3,10 @@
 //! These handlers use uno-api's signed request authentication
 //! for secure communication with admin clients.
 
-use actix_web::{HttpResponse, web};
+use actix_web::{HttpRequest, HttpResponse, web};
 use chrono::{DateTime, Utc};
 
-use uno_api::auth::{verify_request_with_replay_protection_async, SignedRequest};
+use uno_api::auth::{verify_request_with_replay_protection_binding_async, SignedRequest};
 use uno_api::models::{PaginationParams, CsvImportRequest, RevokeRequest, PublishLicensesRequest};
 use uno_api::models::marketplace::{
     GetClaimedLicensesRequest, ClaimedLicenseDto, ClaimedLicensesResponse,
@@ -23,6 +23,7 @@ const MAX_REQUEST_AGE_SECS: i64 = 300;
 /// POST /api/v1/admin/licenses
 /// Publish a batch of licenses
 pub async fn publish_licenses(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<PublishLicensesRequest>>,
 ) -> HttpResponse {
@@ -36,10 +37,12 @@ pub async fn publish_licenses(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -65,6 +68,7 @@ pub async fn publish_licenses(
 /// POST /api/v1/admin/licenses/import
 /// Import licenses from CSV
 pub async fn import_csv(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<CsvImportRequest>>,
 ) -> HttpResponse {
@@ -78,10 +82,12 @@ pub async fn import_csv(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -107,6 +113,7 @@ pub async fn import_csv(
 /// POST /api/v1/admin/licenses/search
 /// Search licenses with filters
 pub async fn search_licenses(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<SearchRequest>>,
 ) -> HttpResponse {
@@ -120,10 +127,12 @@ pub async fn search_licenses(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -150,6 +159,7 @@ pub async fn search_licenses(
 /// DELETE /api/v1/admin/licenses
 /// Revoke licenses
 pub async fn revoke_licenses(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<RevokeRequest>>,
 ) -> HttpResponse {
@@ -163,10 +173,12 @@ pub async fn revoke_licenses(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -191,6 +203,7 @@ pub async fn revoke_licenses(
 /// POST /api/v1/admin/summary
 /// Get license summary statistics
 pub async fn get_summary(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<serde_json::Value>>,
 ) -> HttpResponse {
@@ -204,10 +217,12 @@ pub async fn get_summary(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -240,6 +255,7 @@ pub async fn health() -> HttpResponse {
 /// POST /api/v1/admin/licenses/claimed
 /// Get claimed licenses for uno-admin sync
 pub async fn get_claimed_licenses(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<GetClaimedLicensesRequest>>,
 ) -> HttpResponse {
@@ -253,10 +269,12 @@ pub async fn get_claimed_licenses(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -321,6 +339,7 @@ pub async fn get_claimed_licenses(
 /// POST /api/v1/admin/referrals
 /// Get all referrals for sync
 pub async fn get_referrals(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<serde_json::Value>>,
 ) -> HttpResponse {
@@ -334,10 +353,12 @@ pub async fn get_referrals(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -382,6 +403,7 @@ pub async fn get_referrals(
 /// POST /api/v1/admin/referrals/sync
 /// Receive referrals from uno-admin
 pub async fn sync_referrals(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<SyncReferralsRequest>>,
 ) -> HttpResponse {
@@ -395,10 +417,12 @@ pub async fn sync_referrals(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {
@@ -462,6 +486,7 @@ pub struct SearchRequest {
 /// POST /api/v1/admin/stats/visitors
 /// Get visitor stats by country for uno-admin sync
 pub async fn get_visitor_stats(
+    req: HttpRequest,
     factory: Option<web::Data<ServiceFactory>>,
     body: web::Json<SignedRequest<GetVisitorStatsRequest>>,
 ) -> HttpResponse {
@@ -475,10 +500,12 @@ pub async fn get_visitor_stats(
         }
     };
 
-    // Verify HMAC signature with replay protection
-    if let Err(e) = verify_request_with_replay_protection_async(
+    // R5-04: Verify HMAC signature with method/path binding and replay protection
+    if let Err(e) = verify_request_with_replay_protection_binding_async(
         &body,
         &factory.client_registry,
+        req.method().as_str(),
+        req.path(),
         factory.nonce_repository.as_ref(),
         MAX_REQUEST_AGE_SECS,
     ).await {

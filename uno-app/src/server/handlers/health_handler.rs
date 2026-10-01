@@ -483,11 +483,8 @@ async fn check_media_storage() -> DependencyStatus {
         );
     }
 
-    // R3-11: Check marker file in production mode
-    let is_production = std::env::var("PRODUCTION")
-        .or_else(|_| std::env::var("APP_ENV"))
-        .map(|v| v == "production" || v == "true" || v == "1")
-        .unwrap_or(false);
+    // R5-11: Use unified production mode resolver
+    let is_production = crate::server::config::is_production_mode();
 
     if is_production {
         let marker_path = path.join(".uno-volume");
@@ -519,12 +516,9 @@ async fn check_media_storage() -> DependencyStatus {
         }
     }
 
-    // Try to verify write access by checking temp file creation
-    let test_file = path.join(".health_check_test");
-    match std::fs::write(&test_file, b"health_check") {
-        Ok(_) => {
-            // Clean up test file
-            let _ = std::fs::remove_file(&test_file);
+    // R5-11: Verify write access using safe temp file (no predictable filename)
+    match crate::server::config::verify_writable(path) {
+        Ok(()) => {
             DependencyStatus::healthy("media_storage", start.elapsed().as_millis() as u64)
         }
         Err(e) => DependencyStatus::unhealthy(

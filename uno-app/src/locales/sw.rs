@@ -413,6 +413,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.activate.step2" => "Wezesha kuendesha nyuma kwa mapato ya juu",
     "wizard.activate.step3_title" => "3. Pata",
     "wizard.activate.step3" => "Weka programu ikiendesha na utazame mapato yako yakikua!",
+    "wizard.activate.completion_message" => "Hongera! Uko tayari kuanza kupata mapato.",
+
+    // Wizard - Reserve Stage
+    "wizard.reserve.title" => "Kuhifadhi Leseni Yako",
+    "wizard.reserve.subtitle" => "Tafadhali subiri tunapohakikisha leseni yako...",
+    "wizard.reserve.step_locking" => "Kufunga leseni...",
+    "wizard.reserve.step_verifying" => "Kuthibitisha ustahiki...",
+    "wizard.reserve.step_securing" => "Kulinda uhifadhi...",
+    "wizard.reserve.security_notice" => "Leseni yako inahifadhiwa kwa ajili yako pekee",
+    "wizard.reserve.error_title" => "Uhifadhi Umeshindikana",
+    "wizard.reserve.try_again" => "Jaribu Tena",
 
     // Wizard - What Next Stage
     "wizard.what_next.title" => "Nini Kinafuata?",
@@ -475,7 +486,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Installation Guide
     "install.title" => "Mwongozo wa Usakinishaji",
     "install.android.title" => "Android",
-    "install.android.step1" => "Pakua APK kutoka Google Play Store",
+    "install.android.step1" => "Pakua programu kutoka Google Play Store",
     "install.android.step2" => "Fungua faili iliyopakuliwa kusakinisha",
     "install.android.step3" => "Ruhusu usakinishaji kutoka vyanzo visivyojulikana ikiombwa",
     "install.android.step4" => "Ingiza ufunguo wako wa leseni unapoombwa",
@@ -558,10 +569,10 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.platform_title" => "Jukwaa",
     "wizard.economics.platform_desc" => "Inashughulikia gharama za miundombinu, maendeleo, na msaada.",
     "wizard.economics.referrer_title" => "Mrejeaji",
-    "wizard.economics.referrer_desc" => "Inakwenda kwa aliyekuelekeza, au kwa jukwaa ikiwa hakuna mrejeaji.",
+    "wizard.economics.referrer_desc" => "Imewekwa kwa mreferrer wako. Ikiwa huna mreferrer, hii inashikiliwa katika akiba ya msaada.",
     "wizard.economics.important_title" => "Ufichuzi Muhimu",
-    "wizard.economics.disclosure_small_rewards" => "Zawadi za kazi moja ni ndogo ($0.001 - $0.05). Mapato yanajikusanya kwa muda.",
-    "wizard.economics.disclosure_credit_cost" => "UNO inaendeshwa karibu bila faida. Tunafadhili mikopo yako kutoka sehemu yetu.",
+    "wizard.economics.disclosure_small_rewards" => "Zawadi za kazi binafsi ni ndogo. Mapato yanakusanywa kwa muda kulingana na upatikanaji wa kazi na muda wa kifaa kuwa hai.",
+    "wizard.economics.disclosure_credit_cost" => "Mikopo yako ya awali inafadhiliwa kutoka rasilimali za jukwaa kukusaidia kuanza.",
     "wizard.economics.disclosure_device_requirement" => "Unahitaji kifaa kilichounganishwa na intaneti na programu ikiendesha.",
     "wizard.economics.disclosure_uptime" => "Muda zaidi wa kuwa mtandaoni inamaanisha fursa zaidi za kazi na mapato ya juu.",
     "wizard.economics.who_should_not_title" => "Ambao Hawapaswi Kujiunga",

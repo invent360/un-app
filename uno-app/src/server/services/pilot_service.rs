@@ -80,19 +80,42 @@ impl PilotServiceImpl {
 #[async_trait::async_trait]
 impl PilotService for PilotServiceImpl {
     async fn can_enroll(&self, market_code: &str) -> Result<bool, AppError> {
-        // Check if pilot enrollment is enabled
-        if let Ok(Some(gate)) = self.launch_gate_repo.get_gate("pilot_enrollment").await {
-            if !gate.is_enabled {
+        // R5-16: Check master pilot_enrollment gate (fail-closed)
+        match self.launch_gate_repo.get_gate("pilot_enrollment").await {
+            Ok(Some(gate)) if gate.is_enabled => {
+                // Gate exists and is enabled, continue checks
+            }
+            Ok(Some(_)) => {
+                tracing::debug!(market = %market_code, "Master pilot_enrollment gate is disabled");
                 return Ok(false);
             }
-        } else {
-            return Ok(false);
+            Ok(None) => {
+                tracing::warn!(market = %market_code, "R5-16: Master pilot_enrollment gate missing, fail-closed");
+                return Ok(false);
+            }
+            Err(e) => {
+                tracing::error!(market = %market_code, error = %e, "R5-16: Error checking master gate, fail-closed");
+                return Ok(false);
+            }
         }
 
-        // Check market-specific gate
+        // R5-16: Check market-specific gate (fail-closed on missing)
         let market_gate = format!("pilot_market_{}", market_code.to_lowercase());
-        if let Ok(Some(gate)) = self.launch_gate_repo.get_gate(&market_gate).await {
-            if !gate.is_enabled {
+        match self.launch_gate_repo.get_gate(&market_gate).await {
+            Ok(Some(gate)) if gate.is_enabled => {
+                // Gate exists and is enabled, continue checks
+            }
+            Ok(Some(_)) => {
+                tracing::debug!(market = %market_code, gate = %market_gate, "Market gate is disabled");
+                return Ok(false);
+            }
+            Ok(None) => {
+                // R5-16: Missing market gate = fail-closed (not fall-through)
+                tracing::warn!(market = %market_code, gate = %market_gate, "R5-16: Market gate missing, fail-closed");
+                return Ok(false);
+            }
+            Err(e) => {
+                tracing::error!(market = %market_code, gate = %market_gate, error = %e, "R5-16: Error checking market gate, fail-closed");
                 return Ok(false);
             }
         }
@@ -105,47 +128,69 @@ impl PilotService for PilotServiceImpl {
             }
         }
 
+        tracing::debug!(market = %market_code, "No cohort with capacity");
         Ok(false)
     }
 
     async fn add_participant(&self, input: AddParticipantInput, actor: &str) -> Result<PilotParticipant, AppError> {
-        // Verify enrollment is allowed
-        if !self.can_enroll(&input.market_code).await? {
-            return Err(AppError::ValidationError("Pilot enrollment not available for this market".to_string()));
-        }
-
-        // Verify cohort has capacity
-        if !self.pilot_repo.cohort_has_capacity(&input.cohort_id).await? {
-            return Err(AppError::ValidationError("Cohort is at capacity".to_string()));
-        }
-
-        // Check if user already in cohort
+        // R5-16: Check if user already enrolled (before atomic enrollment)
         if let Some(_) = self.pilot_repo.get_participant_by_user(&input.external_user_id, &input.cohort_id).await? {
             return Err(AppError::ValidationError("User already enrolled in this cohort".to_string()));
         }
 
-        // Add participant
-        let participant = self.pilot_repo.add_participant(input.clone()).await?;
+        // R5-16: Atomic enrollment check - gates, quota, and capacity in one transaction
+        // This replaces the previous TOCTOU-vulnerable separate checks
+        let enrollment_result = self.pilot_repo
+            .atomic_enroll(&input.external_user_id, &input.market_code, Some(&input.cohort_id))
+            .await?;
 
-        // Update metrics
-        metrics::PILOT_PARTICIPANTS
-            .with_label_values(&[&input.market_code, "invited"])
-            .inc();
+        match enrollment_result {
+            Some((assigned_cohort_id, None)) => {
+                // Enrollment allowed, create participant
+                let mut final_input = input.clone();
+                final_input.cohort_id = assigned_cohort_id;
 
-        // Log audit event
-        self.log_audit(
-            AuditEventBuilder::new(AuditEventType::Create, AuditCategory::System)
-                .actor(ActorType::System, actor)
-                .resource("pilot_participant", participant.id.to_string())
-                .action("add_participant")
-                .outcome(AuditOutcome::Success)
-                .event_data(serde_json::json!({
-                    "cohort_id": &input.cohort_id,
-                    "market_code": &input.market_code,
-                }))
-        ).await;
+                let participant = self.pilot_repo.add_participant(final_input).await?;
 
-        Ok(participant)
+                // Update metrics
+                metrics::PILOT_PARTICIPANTS
+                    .with_label_values(&[&input.market_code, "invited"])
+                    .inc();
+
+                // Log audit event
+                self.log_audit(
+                    AuditEventBuilder::new(AuditEventType::Create, AuditCategory::System)
+                        .actor(ActorType::System, actor)
+                        .resource("pilot_participant", participant.id.to_string())
+                        .action("add_participant")
+                        .outcome(AuditOutcome::Success)
+                        .event_data(serde_json::json!({
+                            "cohort_id": &participant.cohort_id,
+                            "market_code": &input.market_code,
+                            "atomic_enrollment": true,
+                        }))
+                ).await;
+
+                Ok(participant)
+            }
+            Some((_, Some(rejection_reason))) => {
+                tracing::info!(
+                    market = %input.market_code,
+                    user = %input.external_user_id,
+                    reason = %rejection_reason,
+                    "R5-16: Atomic enrollment rejected"
+                );
+                Err(AppError::ValidationError(rejection_reason))
+            }
+            None => {
+                tracing::warn!(
+                    market = %input.market_code,
+                    user = %input.external_user_id,
+                    "R5-16: Atomic enrollment returned no result"
+                );
+                Err(AppError::ValidationError("Pilot enrollment not available".to_string()))
+            }
+        }
     }
 
     async fn transition_state(&self, input: TransitionStateInput) -> Result<PilotParticipant, AppError> {

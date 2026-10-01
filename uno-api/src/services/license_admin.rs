@@ -93,7 +93,7 @@ impl LicenseAdminService {
         }
 
         // Create license with custom ID if provided, otherwise auto-generate
-        let license = if let Some(ref custom_id) = input.id {
+        let mut license = if let Some(ref custom_id) = input.id {
             License::with_custom_id(
                 custom_id,
                 input.lease_code.clone(),
@@ -109,6 +109,18 @@ impl LicenseAdminService {
                 input.split_type,
             )
         };
+
+        // R5-06: Copy exact shares and provenance from input
+        if let (Some(uno), Some(ulo), Some(agent)) = (input.uno_share_pct, input.ulo_share_pct, input.agent_share_pct) {
+            license = license.with_exact_shares(uno, ulo, agent);
+        }
+        if let Some(ref system) = input.source_system {
+            license = license.with_provenance(
+                system.clone(),
+                input.source_version.clone(),
+                input.source_record_id.clone(),
+            );
+        }
 
         Ok(license)
     }

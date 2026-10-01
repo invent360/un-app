@@ -12,6 +12,8 @@ use crate::server::repositories::{
     DynImportRepository, DynPublicationRepository, DynEligibilityRepository,
     DynAllocationRepository, DynCreditOrderRepository,
     DynPilotRepository, DynEvidenceRepository, DynRetentionRepository,
+    // R5-08: Settlement item repository for per-party settlement tracking
+    DynSettlementItemRepository, SettlementItemRepositoryImpl,
     FaqRepositoryImpl, PostgresLicenseRepository, RbacRepositoryImpl,
     ReferralRepositoryImpl, ReviewRepositoryImpl, SchemaRepositoryImpl, StatsRepositoryImpl,
     TestimonialRepositoryImpl, SessionRepositoryImpl, LaunchGateRepositoryImpl,
@@ -31,6 +33,8 @@ use crate::server::repositories::{
     DynWebhookRepository, WebhookRepositoryImpl,
     DynCommunicationRepository, CommunicationRepositoryImpl,
     DynMediaAssetRepository, MediaAssetRepositoryImpl,
+    // R5-11: Media backup repository
+    DynMediaBackupRepository, MediaBackupRepositoryImpl,
 };
 use crate::server::services::{
     AuditServiceImpl, ContentItemServiceImpl, ContentServiceImpl, FaqServiceImpl, LicenseService,
@@ -49,6 +53,8 @@ use crate::server::services::{
     WebhookServiceImpl, DynWebhookService,
     CommunicationServiceImpl, DynCommunicationService,
     MediaAssetServiceImpl, DynMediaAssetService,
+    // R5-11: Media backup service
+    MediaBackupServiceImpl, DynMediaBackupService,
     // Phase 9 services
     PilotServiceImpl, DynPilotService,
     // R3-17: Retention service
@@ -162,6 +168,8 @@ pub struct ServiceFactory {
     pub communication_repository: DynCommunicationRepository,
     /// Media asset repository for file metadata (P6-01)
     pub media_asset_repository: DynMediaAssetRepository,
+    /// R5-11: Media backup repository for backup metadata
+    pub media_backup_repository: DynMediaBackupRepository,
     // Phase 7-8 services
     /// Forecast service for scenario calculations (P8-02)
     pub forecast_service: DynForecastService,
@@ -171,6 +179,8 @@ pub struct ServiceFactory {
     pub communication_service: DynCommunicationService,
     /// Media asset service for file operations (P6-01)
     pub media_asset_service: DynMediaAssetService,
+    /// R5-11: Media backup service for backup/restore operations
+    pub media_backup_service: DynMediaBackupService,
     // Phase 9 repositories and services
     /// Pilot repository for controlled rollout tracking (P9-08)
     pub pilot_repository: Option<DynPilotRepository>,
@@ -325,11 +335,16 @@ impl ServiceFactory {
             Arc::new(AllocationRepositoryImpl::new(pool.clone()));
         let credit_order_repository: DynCreditOrderRepository =
             Arc::new(CreditOrderRepositoryImpl::new(pool.clone()));
+        // R5-08: Create settlement item repository for per-party tracking
+        let settlement_item_repository: DynSettlementItemRepository =
+            Arc::new(SettlementItemRepositoryImpl::new(pool.clone()));
+        // R5-08: Settlement item repository is now required for per-party settlement
         let settlement_service: DynSettlementService = Arc::new(SettlementService::new(
             allocation_repository.clone(),
             credit_order_repository.clone(),
             immutable_audit_repository.clone(),
             outbox_repository.clone(),
+            settlement_item_repository,
         ));
 
         // Create Phase 7-8 repositories
@@ -351,6 +366,9 @@ impl ServiceFactory {
             Arc::new(CommunicationRepositoryImpl::new(pool.clone()));
         let media_asset_repository: DynMediaAssetRepository =
             Arc::new(MediaAssetRepositoryImpl::new(pool.clone()));
+        // R5-11: Create media backup repository
+        let media_backup_repository: DynMediaBackupRepository =
+            Arc::new(MediaBackupRepositoryImpl::new(pool.clone()));
 
         // Create Phase 7-8 services
         let forecast_service: DynForecastService =
@@ -361,6 +379,12 @@ impl ServiceFactory {
             Arc::new(CommunicationServiceImpl::new(communication_repository.clone()));
         let media_asset_service: DynMediaAssetService =
             Arc::new(MediaAssetServiceImpl::new(media_asset_repository.clone()));
+        // R5-11: Create media backup service
+        let media_backup_service: DynMediaBackupService =
+            Arc::new(MediaBackupServiceImpl::new(
+                media_backup_repository.clone(),
+                media_asset_repository.clone(),
+            ));
 
         // Create Phase 9 repositories and services
         let pilot_repository: DynPilotRepository =
@@ -454,11 +478,15 @@ impl ServiceFactory {
             webhook_repository,
             communication_repository,
             media_asset_repository,
+            // R5-11: Media backup
+            media_backup_repository,
             // Phase 7-8 services
             forecast_service,
             webhook_service,
             communication_service,
             media_asset_service,
+            // R5-11: Media backup service
+            media_backup_service,
             // Phase 9
             pilot_repository: Some(pilot_repository),
             evidence_repository: Some(evidence_repository),
@@ -515,11 +543,8 @@ impl ServiceFactory {
             return Err(format!("Media volume path is not a directory: {}", mount_path));
         }
 
-        // Check marker file in production
-        let is_production = std::env::var("PRODUCTION")
-            .or_else(|_| std::env::var("APP_ENV"))
-            .map(|v| v == "production" || v == "true" || v == "1")
-            .unwrap_or(false);
+        // R5-11: Use unified production mode resolver
+        let is_production = crate::server::config::is_production_mode();
 
         if is_production {
             let marker_path = path.join(".uno-volume");
@@ -549,14 +574,8 @@ impl ServiceFactory {
             }
         }
 
-        // Verify write access
-        let test_path = path.join(".write-test");
-        if let Err(e) = std::fs::write(&test_path, b"test") {
-            return Err(format!("Media volume not writable: {}", e));
-        }
-        if let Err(e) = std::fs::remove_file(&test_path) {
-            tracing::warn!("Failed to clean up write test file: {}", e);
-        }
+        // R5-11: Verify write access using safe temp file (no predictable filename)
+        crate::server::config::verify_writable(path)?;
 
         tracing::info!("Media volume verified: {}", mount_path);
         Ok(())

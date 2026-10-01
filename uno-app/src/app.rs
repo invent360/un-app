@@ -8,7 +8,7 @@ use leptos_router::{
 };
 
 use crate::routes::{
-    ClaimPage, ContactPage, FaqPage, GuidesPage, HomePage, PreviewPage, ReferralsPage, TasksPage,
+    AccountPage, AgentPage, ClaimPage, ContactPage, DashboardPage, FaqPage, GuidesPage, HomePage, OperatorPage, PreviewPage, ReferralsPage, SetupPage, SupportPage, TasksPage,
 };
 
 use crate::api::get_variants;
@@ -16,7 +16,8 @@ use crate::components::chatbot::ChatWidget;
 use crate::components::common::LocalePopup;
 use crate::components::layout::{Footer, Header};
 use crate::components::wizard::{provide_wizard_context, ClaimWizard};
-use crate::hooks::{provide_locale_context, provide_theme_context, t, use_locale};
+use crate::components::suitability::{provide_suitability_context, SuitabilityStepper};
+use crate::hooks::{provide_locale_context, provide_theme_context, provide_user_context, t, use_locale};
 #[cfg(feature = "debug-routes")]
 use crate::routes::DebugPage;
 
@@ -71,6 +72,12 @@ fn AppRouter() -> impl IntoView {
     // Provide wizard context at app level so it's available everywhere
     let wizard_state = provide_wizard_context();
 
+    // R5-13: Provide suitability context for eligibility checking
+    let suitability_state = provide_suitability_context();
+
+    // R5-13: Provide user session context for authenticated features
+    provide_user_context();
+
     // Get locale context for RTL support
     let locale_ctx = use_locale();
 
@@ -110,6 +117,9 @@ fn AppRouter() -> impl IntoView {
 
                 // Global claim wizard modal - available on any page
                 <ClaimWizard state=wizard_state.clone() />
+
+                // R5-13: Suitability stepper modal - eligibility checking
+                <SuitabilityStepper state=suitability_state />
             </div>
         </Router>
     }
@@ -132,6 +142,12 @@ fn ApplicationRoutes() -> impl IntoView {
                         <Route path=StaticSegment("contact") view=ContactPage/>
                         <Route path=StaticSegment("referrals") view=ReferralsPage/>
                         <Route path=StaticSegment("preview") view=PreviewPage/>
+                        <Route path=StaticSegment("dashboard") view=DashboardPage/>
+                        <Route path=StaticSegment("account") view=AccountPage/>
+                        <Route path=StaticSegment("setup") view=SetupPage/>
+                        <Route path=StaticSegment("support") view=SupportPage/>
+                        <Route path=StaticSegment("agent") view=AgentPage/>
+                        <Route path=StaticSegment("operator") view=OperatorPage/>
                         $($debug)*
                         <Route path=WildcardSegment("any") view=NotFound/>
                     </Routes>

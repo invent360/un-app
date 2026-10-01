@@ -12,6 +12,7 @@ mod tasks;
 mod referrals;
 mod cms_review;
 mod home;
+pub mod dashboard;
 
 pub use chatbot::*;
 pub use licenses::*;
@@ -22,6 +23,7 @@ pub use tasks::*;
 pub use referrals::*;
 pub use cms_review::*;
 pub use home::*;
+pub use dashboard::*;
 
 // Re-export server function registration (SSR only)
 #[cfg(feature = "ssr")]

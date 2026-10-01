@@ -582,20 +582,31 @@ impl CohortRepository for CohortRepositoryImpl {
     }
 
     async fn record_activity(&self, input: RecordActivityInput) -> Result<CohortDailyActivity, AppError> {
+        // R5-16: IMPORTANT - Event deduplication MUST happen BEFORE calling this method.
+        // The settlement service (allocation_repository.exists_by_provider_event) provides
+        // provider/event_id deduplication. This method assumes the caller has already
+        // verified this is a unique, non-duplicate event.
+        //
+        // The additive upsert below is intentional for INCREMENTAL data (today's new earnings).
+        // Do NOT call this method with cumulative snapshots - only incremental values.
+
         // Get cohort to calculate day number
         let cohort = self.get_cohort(input.cohort_id).await?
             .ok_or_else(|| AppError::NotFound(format!("Cohort {} not found", input.cohort_id)))?;
 
         let day_number = (input.activity_date - cohort.cohort_date).num_days() as i32 + 1;
 
-        // R4-03: Derive is_productive from earnings (any earnings = productive day)
+        // R5-16: is_productive = accepted reward day (earnings > 0)
+        // D7 completion requires 4 distinct accepted-reward days
         let is_productive = input.earnings_micros > 0;
 
+        // R5-03: Write to data_shared_bytes (source column) instead of
+        // data_collected_bytes which is now a GENERATED column
         let activity = sqlx::query_as::<_, CohortDailyActivity>(
             r#"
             INSERT INTO cohort_daily_activity (
                 cohort_id, activity_date, day_number, sessions_count,
-                tasks_completed, earnings_micros, data_collected_bytes,
+                tasks_completed, earnings_micros, data_shared_bytes,
                 device_type, app_version, is_productive
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
@@ -604,7 +615,7 @@ impl CohortRepository for CohortRepositoryImpl {
                 sessions_count = cohort_daily_activity.sessions_count + EXCLUDED.sessions_count,
                 tasks_completed = cohort_daily_activity.tasks_completed + EXCLUDED.tasks_completed,
                 earnings_micros = cohort_daily_activity.earnings_micros + EXCLUDED.earnings_micros,
-                data_collected_bytes = cohort_daily_activity.data_collected_bytes + EXCLUDED.data_collected_bytes,
+                data_shared_bytes = cohort_daily_activity.data_shared_bytes + EXCLUDED.data_shared_bytes,
                 device_type = COALESCE(EXCLUDED.device_type, cohort_daily_activity.device_type),
                 app_version = COALESCE(EXCLUDED.app_version, cohort_daily_activity.app_version),
                 is_productive = cohort_daily_activity.is_productive OR EXCLUDED.is_productive,
@@ -620,7 +631,7 @@ impl CohortRepository for CohortRepositoryImpl {
         .bind(input.sessions_count)
         .bind(input.tasks_completed)
         .bind(input.earnings_micros)
-        .bind(input.data_collected_bytes)
+        .bind(input.data_collected_bytes) // Value goes to data_shared_bytes
         .bind(&input.device_type)
         .bind(&input.app_version)
         .bind(is_productive)
@@ -628,8 +639,9 @@ impl CohortRepository for CohortRepositoryImpl {
         .await
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
-        // Update D7 progress if within first 7 days
-        if day_number <= 7 {
+        // R5-16: Update D7 progress ONLY if this is an accepted-reward day
+        // D7 is derived from "four distinct accepted-reward days", not session/activity counts
+        if day_number <= 7 && is_productive {
             self.update_d7_progress(input.cohort_id, input.activity_date).await?;
         }
 

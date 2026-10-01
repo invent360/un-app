@@ -49,6 +49,14 @@ pub enum AuthError {
     #[error("Nonce already used")]
     NonceReused,
 
+    /// R5-04: Method in signed request doesn't match actual HTTP method.
+    #[error("Method mismatch: signed for '{expected}' but received '{actual}'")]
+    MethodMismatch { expected: String, actual: String },
+
+    /// R5-04: Path in signed request doesn't match actual request path.
+    #[error("Path mismatch: signed for '{expected}' but received '{actual}'")]
+    PathMismatch { expected: String, actual: String },
+
     /// Unknown client ID.
     #[error("Unknown client: {0}")]
     UnknownClient(String),

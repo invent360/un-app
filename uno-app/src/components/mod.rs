@@ -9,5 +9,6 @@ pub mod license;
 #[cfg(feature = "hydrate")]
 pub mod sections;
 pub mod stats;
+pub mod suitability;
 pub mod tasks;
 pub mod wizard;

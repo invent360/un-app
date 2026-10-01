@@ -206,6 +206,102 @@ pub struct FailedItem {
 }
 
 // ============================================
+// R5-06: COMPOUND CURSOR TYPES
+// ============================================
+
+/// Compound cursor for deterministic pagination across restarts
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct SyncCursor {
+    pub sync_type: String,
+    pub cursor_timestamp: Option<DateTime<Utc>>,
+    pub cursor_id: Option<String>,
+    pub cursor_sequence: Option<i64>,
+    pub processed_count: i64,
+    pub status: String,
+}
+
+/// Input for updating sync cursor
+#[derive(Debug, Clone)]
+pub struct UpdateCursorInput {
+    pub sync_type: String,
+    pub cursor_timestamp: DateTime<Utc>,
+    pub cursor_id: String,
+    pub cursor_sequence: Option<i64>,
+    pub batch_size: Option<i32>,
+}
+
+/// License row for sync with compound cursor
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct SyncLicenseRow {
+    pub license_id: String,
+    pub lease_code: String,
+    pub claimed_at: Option<DateTime<Utc>>,
+    pub split_type: String,
+    pub uno_share_pct: Option<f64>,
+    pub ulo_share_pct: Option<f64>,
+    pub agent_share_pct: Option<f64>,
+    pub issued_to: Option<String>,
+    pub referral_id: Option<i32>,
+    pub is_last_batch: bool,
+}
+
+/// Quarantine reason codes
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum QuarantineReason {
+    MissingLeaseCode,
+    MissingValidityDates,
+    InvalidDateFormat,
+    MissingShares,
+    ValidationFailed,
+}
+
+impl QuarantineReason {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::MissingLeaseCode => "missing_lease_code",
+            Self::MissingValidityDates => "missing_validity_dates",
+            Self::InvalidDateFormat => "invalid_date_format",
+            Self::MissingShares => "missing_shares",
+            Self::ValidationFailed => "validation_failed",
+        }
+    }
+}
+
+/// Input for quarantining a license
+#[derive(Debug, Clone)]
+pub struct QuarantineInput {
+    pub source_license_id: String,
+    pub source_system: String,
+    pub reason_code: QuarantineReason,
+    pub reason_message: String,
+    pub source_record: Option<JsonValue>,
+    pub validation_errors: Option<JsonValue>,
+}
+
+/// Quarantined license record
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct QuarantinedLicense {
+    pub id: i64,
+    pub source_license_id: String,
+    pub source_system: String,
+    pub reason_code: String,
+    pub reason_message: Option<String>,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Per-item batch outcome for R5-06 correlation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchItemOutcome {
+    pub input_index: i32,
+    pub input_license_id: String,
+    pub result: ItemResult,
+    pub error_message: Option<String>,
+    pub quarantine_id: Option<i64>,
+}
+
+// ============================================
 // TRAIT DEFINITION
 // ============================================
 
@@ -244,6 +340,29 @@ pub trait PublicationRepository: Send + Sync {
         details: Option<JsonValue>,
         ip_address: Option<IpAddr>,
     ) -> Result<(), AppError>;
+
+    // R5-06: Compound cursor operations
+    async fn get_sync_cursor(&self, sync_type: &str) -> Result<Option<SyncCursor>, AppError>;
+    async fn update_sync_cursor(&self, input: UpdateCursorInput) -> Result<(), AppError>;
+    async fn fetch_licenses_for_sync(
+        &self,
+        cursor_timestamp: Option<DateTime<Utc>>,
+        cursor_id: Option<&str>,
+        limit: i32,
+    ) -> Result<Vec<SyncLicenseRow>, AppError>;
+
+    // R5-06: Quarantine operations
+    async fn quarantine_license(&self, input: QuarantineInput) -> Result<i64, AppError>;
+    async fn get_quarantined_licenses(&self, status: Option<&str>, limit: i32) -> Result<Vec<QuarantinedLicense>, AppError>;
+    async fn resolve_quarantine(&self, id: i64, resolved_by: &str, notes: Option<&str>) -> Result<(), AppError>;
+
+    // R5-06: Per-item batch outcomes
+    async fn create_batch_with_correlation(
+        &self,
+        input: CreatePublicationBatchInput,
+        input_license_ids: &[(i32, String)], // (input_index, license_id)
+    ) -> Result<PublicationBatch, AppError>;
+    async fn get_batch_outcomes(&self, correlation_id: Uuid) -> Result<Vec<BatchItemOutcome>, AppError>;
 }
 
 // ============================================
@@ -690,6 +809,331 @@ impl PublicationRepository for PublicationRepositoryImpl {
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         Ok(())
+    }
+
+    // ============================================
+    // R5-06: Compound Cursor Operations
+    // ============================================
+
+    async fn get_sync_cursor(&self, sync_type: &str) -> Result<Option<SyncCursor>, AppError> {
+        let result = sqlx::query_as::<_, SyncCursor>(
+            r#"
+            SELECT sync_type, cursor_timestamp, cursor_id, cursor_sequence, processed_count, status
+            FROM sync_cursors
+            WHERE sync_type = $1 AND status = 'active'
+            "#,
+        )
+        .bind(sync_type)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        Ok(result)
+    }
+
+    async fn update_sync_cursor(&self, input: UpdateCursorInput) -> Result<(), AppError> {
+        sqlx::query(
+            r#"
+            INSERT INTO sync_cursors (sync_type, cursor_timestamp, cursor_id, cursor_sequence, last_batch_size, processed_count)
+            VALUES ($1, $2, $3, $4, $5, COALESCE($5, 0))
+            ON CONFLICT (sync_type, direction) DO UPDATE SET
+                cursor_timestamp = EXCLUDED.cursor_timestamp,
+                cursor_id = EXCLUDED.cursor_id,
+                cursor_sequence = EXCLUDED.cursor_sequence,
+                last_batch_size = EXCLUDED.last_batch_size,
+                processed_count = sync_cursors.processed_count + COALESCE(EXCLUDED.last_batch_size, 0),
+                updated_at = NOW()
+            "#,
+        )
+        .bind(&input.sync_type)
+        .bind(input.cursor_timestamp)
+        .bind(&input.cursor_id)
+        .bind(input.cursor_sequence)
+        .bind(input.batch_size)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        tracing::debug!(
+            sync_type = %input.sync_type,
+            cursor_id = %input.cursor_id,
+            "R5-06: Sync cursor updated"
+        );
+
+        Ok(())
+    }
+
+    async fn fetch_licenses_for_sync(
+        &self,
+        cursor_timestamp: Option<DateTime<Utc>>,
+        cursor_id: Option<&str>,
+        limit: i32,
+    ) -> Result<Vec<SyncLicenseRow>, AppError> {
+        // R5-06: Fetch LIMIT + 1 rows to detect if there are more batches
+        // This is the correct way to detect last batch for cursor pagination
+        let fetch_limit = limit + 1;
+
+        #[derive(Debug, sqlx::FromRow)]
+        struct RawSyncRow {
+            license_id: String,
+            lease_code: String,
+            claimed_at: Option<DateTime<Utc>>,
+            split_type: String,
+            uno_share_pct: Option<f64>,
+            ulo_share_pct: Option<f64>,
+            agent_share_pct: Option<f64>,
+            issued_to: Option<String>,
+            referral_id: Option<i32>,
+        }
+
+        let raw_results = sqlx::query_as::<_, RawSyncRow>(
+            r#"
+            SELECT
+                l.id::VARCHAR(66) as license_id,
+                l.lease_code::VARCHAR(100),
+                l.claimed_at,
+                l.split_type::text,
+                l.uno_share_pct,
+                l.ulo_share_pct,
+                l.agent_share_pct,
+                l.issued_to,
+                l.referral_id
+            FROM licenses l
+            WHERE l.claimed = true
+              AND (
+                  $1::TIMESTAMPTZ IS NULL
+                  OR (l.claimed_at, l.id) > ($1::TIMESTAMPTZ, COALESCE($2, ''))
+              )
+            ORDER BY l.claimed_at ASC, l.id ASC
+            LIMIT $3
+            "#,
+        )
+        .bind(cursor_timestamp)
+        .bind(cursor_id)
+        .bind(fetch_limit)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        // R5-06: If we got fewer than LIMIT + 1 rows, this is the last batch
+        let is_last_batch = (raw_results.len() as i32) <= limit;
+
+        // Take only up to LIMIT rows (discard the extra row if present)
+        let results: Vec<SyncLicenseRow> = raw_results
+            .into_iter()
+            .take(limit as usize)
+            .map(|row| SyncLicenseRow {
+                license_id: row.license_id,
+                lease_code: row.lease_code,
+                claimed_at: row.claimed_at,
+                split_type: row.split_type,
+                uno_share_pct: row.uno_share_pct,
+                ulo_share_pct: row.ulo_share_pct,
+                agent_share_pct: row.agent_share_pct,
+                issued_to: row.issued_to,
+                referral_id: row.referral_id,
+                is_last_batch,
+            })
+            .collect();
+
+        tracing::debug!(
+            count = results.len(),
+            is_last_batch,
+            "R5-06: Fetched licenses for sync"
+        );
+
+        Ok(results)
+    }
+
+    // ============================================
+    // R5-06: Quarantine Operations
+    // ============================================
+
+    async fn quarantine_license(&self, input: QuarantineInput) -> Result<i64, AppError> {
+        let result = sqlx::query_as::<_, (i64,)>(
+            r#"
+            INSERT INTO publication_quarantine (
+                source_license_id, source_system, source_record,
+                reason_code, reason_message, validation_errors
+            )
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (source_license_id, source_system) DO UPDATE SET
+                reason_code = EXCLUDED.reason_code,
+                reason_message = EXCLUDED.reason_message,
+                validation_errors = EXCLUDED.validation_errors,
+                source_record = COALESCE(EXCLUDED.source_record, publication_quarantine.source_record),
+                updated_at = NOW()
+            RETURNING id
+            "#,
+        )
+        .bind(&input.source_license_id)
+        .bind(&input.source_system)
+        .bind(&input.source_record)
+        .bind(input.reason_code.as_str())
+        .bind(&input.reason_message)
+        .bind(&input.validation_errors)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        tracing::warn!(
+            source_license_id = %input.source_license_id,
+            reason = %input.reason_code.as_str(),
+            "R5-06: License quarantined"
+        );
+
+        Ok(result.0)
+    }
+
+    async fn get_quarantined_licenses(&self, status: Option<&str>, limit: i32) -> Result<Vec<QuarantinedLicense>, AppError> {
+        let status_filter = status.unwrap_or("quarantined");
+        let results = sqlx::query_as::<_, QuarantinedLicense>(
+            r#"
+            SELECT id, source_license_id, source_system, reason_code, reason_message, status, created_at
+            FROM publication_quarantine
+            WHERE status = $1
+            ORDER BY created_at DESC
+            LIMIT $2
+            "#,
+        )
+        .bind(status_filter)
+        .bind(limit)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        Ok(results)
+    }
+
+    async fn resolve_quarantine(&self, id: i64, resolved_by: &str, notes: Option<&str>) -> Result<(), AppError> {
+        sqlx::query(
+            r#"
+            UPDATE publication_quarantine
+            SET status = 'resolved', resolved_at = NOW(), resolved_by = $2, resolution_notes = $3
+            WHERE id = $1
+            "#,
+        )
+        .bind(id)
+        .bind(resolved_by)
+        .bind(notes)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        tracing::info!(quarantine_id = id, resolved_by = %resolved_by, "R5-06: Quarantine resolved");
+
+        Ok(())
+    }
+
+    // ============================================
+    // R5-06: Per-Item Batch Outcomes
+    // ============================================
+
+    async fn create_batch_with_correlation(
+        &self,
+        input: CreatePublicationBatchInput,
+        input_license_ids: &[(i32, String)], // (input_index, license_id)
+    ) -> Result<PublicationBatch, AppError> {
+        // Start transaction
+        let mut tx = self.pool.begin().await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        // Create batch
+        let batch = sqlx::query_as::<_, PublicationBatch>(
+            r#"
+            INSERT INTO license_publication_batches (
+                publisher_id, source_import_batch_id, operation, total_items, notes, status
+            )
+            VALUES ($1, $2, $3, $4, $5, 'pending')
+            RETURNING id, correlation_id, publisher_id, source_import_batch_id, operation,
+                      total_items, acknowledged_count, published_count, failed_count, pending_count,
+                      status, created_at, acknowledged_at, completed_at, notes, error_message
+            "#,
+        )
+        .bind(&input.publisher_id)
+        .bind(input.source_import_batch_id)
+        .bind(input.operation.as_str())
+        .bind(input_license_ids.len() as i32)
+        .bind(input.notes.as_deref())
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        // R5-06: Create items with input_index and input_license_id for correlation
+        for (input_index, license_id) in input_license_ids {
+            sqlx::query(
+                r#"
+                INSERT INTO license_publication_items (correlation_id, license_id, status, input_index, input_license_id)
+                VALUES ($1, $2, 'pending', $3, $4)
+                "#,
+            )
+            .bind(batch.correlation_id)
+            .bind(license_id)
+            .bind(input_index)
+            .bind(license_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        }
+
+        // Update pending count
+        sqlx::query(
+            "UPDATE license_publication_batches SET pending_count = $2 WHERE correlation_id = $1"
+        )
+        .bind(batch.correlation_id)
+        .bind(input_license_ids.len() as i32)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        tx.commit().await
+            .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        tracing::info!(
+            correlation_id = %batch.correlation_id,
+            operation = %input.operation.as_str(),
+            items = input_license_ids.len(),
+            "R5-06: Publication batch created with correlation"
+        );
+
+        Ok(batch)
+    }
+
+    async fn get_batch_outcomes(&self, correlation_id: Uuid) -> Result<Vec<BatchItemOutcome>, AppError> {
+        // R5-06: Return per-item outcomes correlated to input IDs
+        let results: Vec<(i32, String, Option<String>, Option<String>, Option<i64>)> = sqlx::query_as(
+            r#"
+            SELECT input_index, input_license_id, result, error_message, quarantine_id
+            FROM license_publication_items
+            WHERE correlation_id = $1
+            ORDER BY input_index
+            "#,
+        )
+        .bind(correlation_id)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        let outcomes = results
+            .into_iter()
+            .map(|(input_index, input_license_id, result, error_message, quarantine_id)| {
+                let result = match result.as_deref() {
+                    Some("success") => ItemResult::Success,
+                    Some("failed") => ItemResult::Failed,
+                    Some("skipped") => ItemResult::Skipped,
+                    _ => ItemResult::Skipped, // Default for pending items
+                };
+                BatchItemOutcome {
+                    input_index,
+                    input_license_id,
+                    result,
+                    error_message,
+                    quarantine_id,
+                }
+            })
+            .collect();
+
+        Ok(outcomes)
     }
 }
 

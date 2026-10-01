@@ -172,18 +172,62 @@ impl EventPublisher for WebhookPublisher {
     }
 }
 
-/// No-op publisher for testing or when no external target is configured
+/// R5-09: No delivery target configured - events cannot be published
+///
+/// In production, this publisher MUST fail to ensure events are not
+/// silently marked as published without actual delivery.
+/// Use `TestPublisher` for testing scenarios where you want to capture events.
 pub struct NullPublisher;
 
 #[async_trait]
 impl EventPublisher for NullPublisher {
-    async fn publish(&self, _event: &OutboxEvent) -> Result<(), AppError> {
-        // Events are marked as published but not actually sent anywhere
-        Ok(())
+    async fn publish(&self, event: &OutboxEvent) -> Result<(), AppError> {
+        // R5-09: MUST NOT silently consume events as published
+        // This will cause retry/dead-letter, alerting operators to configure a webhook
+        tracing::warn!(
+            event_id = %event.event_id,
+            event_type = %event.event_type,
+            "NullPublisher: No delivery target configured, event cannot be delivered"
+        );
+        Err(AppError::ConfigError(
+            "No webhook delivery target configured. Configure WEBHOOK_URL or disable outbox processing.".to_string()
+        ))
     }
 
     fn name(&self) -> &str {
         "null"
+    }
+}
+
+/// Test publisher that captures events for verification (use only in tests)
+#[cfg(test)]
+pub struct TestPublisher {
+    events: std::sync::Arc<std::sync::Mutex<Vec<OutboxEvent>>>,
+}
+
+#[cfg(test)]
+impl TestPublisher {
+    pub fn new() -> Self {
+        Self {
+            events: std::sync::Arc::new(std::sync::Mutex::new(Vec::new())),
+        }
+    }
+
+    pub fn events(&self) -> Vec<OutboxEvent> {
+        self.events.lock().unwrap().clone()
+    }
+}
+
+#[cfg(test)]
+#[async_trait]
+impl EventPublisher for TestPublisher {
+    async fn publish(&self, event: &OutboxEvent) -> Result<(), AppError> {
+        self.events.lock().unwrap().push(event.clone());
+        Ok(())
+    }
+
+    fn name(&self) -> &str {
+        "test"
     }
 }
 
@@ -248,8 +292,19 @@ impl OutboxPublisher {
         for event in events {
             match self.publish_single_event(&event).await {
                 Ok(()) => {
-                    self.outbox_repo.mark_published(event.event_id).await?;
-                    stats.published += 1;
+                    // R5-09: Use fenced version to prevent stale worker writes
+                    let success = self.outbox_repo
+                        .mark_published_fenced(event.event_id, self.worker_id)
+                        .await?;
+                    if success {
+                        stats.published += 1;
+                    } else {
+                        tracing::warn!(
+                            event_id = %event.event_id,
+                            worker_id = %self.worker_id,
+                            "Publish fenced: lease expired, event will be retried by another worker"
+                        );
+                    }
                 }
                 Err(e) => {
                     let should_dead_letter = event.publish_attempts >= self.config.max_retries;
@@ -261,8 +316,19 @@ impl OutboxPublisher {
                             error = %e,
                             "Event exceeded max retries, moving to dead letter"
                         );
-                        self.outbox_repo.mark_dead_letter(event.event_id, &e.to_string()).await?;
-                        stats.dead_lettered += 1;
+                        // R5-09: Use fenced version to prevent stale worker writes
+                        let success = self.outbox_repo
+                            .mark_dead_letter_fenced(event.event_id, &e.to_string(), self.worker_id)
+                            .await?;
+                        if success {
+                            stats.dead_lettered += 1;
+                        } else {
+                            tracing::warn!(
+                                event_id = %event.event_id,
+                                worker_id = %self.worker_id,
+                                "Dead-letter fenced: lease expired, skipping"
+                            );
+                        }
                     } else {
                         let retry_at = Utc::now() + self.calculate_retry_delay(event.publish_attempts);
                         tracing::debug!(
@@ -272,8 +338,19 @@ impl OutboxPublisher {
                             error = %e,
                             "Event publish failed, scheduling retry"
                         );
-                        self.outbox_repo.mark_failed(event.event_id, &e.to_string(), Some(retry_at)).await?;
-                        stats.failed += 1;
+                        // R5-09: Use fenced version to prevent stale worker writes
+                        let success = self.outbox_repo
+                            .mark_failed_fenced(event.event_id, &e.to_string(), Some(retry_at), self.worker_id)
+                            .await?;
+                        if success {
+                            stats.failed += 1;
+                        } else {
+                            tracing::warn!(
+                                event_id = %event.event_id,
+                                worker_id = %self.worker_id,
+                                "Mark-failed fenced: lease expired, skipping"
+                            );
+                        }
                     }
                 }
             }
@@ -338,8 +415,11 @@ mod tests {
             Ok(vec![])
         }
         async fn mark_published(&self, _: Uuid) -> Result<(), AppError> { Ok(()) }
+        async fn mark_published_fenced(&self, _: Uuid, _: Uuid) -> Result<bool, AppError> { Ok(true) }
         async fn mark_failed(&self, _: Uuid, _: &str, _: Option<chrono::DateTime<Utc>>) -> Result<(), AppError> { Ok(()) }
         async fn mark_dead_letter(&self, _: Uuid, _: &str) -> Result<(), AppError> { Ok(()) }
+        async fn mark_failed_fenced(&self, _: Uuid, _: &str, _: Option<chrono::DateTime<Utc>>, _: Uuid) -> Result<bool, AppError> { Ok(true) }
+        async fn mark_dead_letter_fenced(&self, _: Uuid, _: &str, _: Uuid) -> Result<bool, AppError> { Ok(true) }
         async fn get_retry_events(&self, _: i32) -> Result<Vec<OutboxEvent>, AppError> { Ok(vec![]) }
         async fn get_dead_letter_events(&self, _: i32, _: i32) -> Result<Vec<OutboxEvent>, AppError> { Ok(vec![]) }
         async fn replay_event(&self, _: Uuid) -> Result<OutboxEvent, AppError> { unimplemented!() }
@@ -354,6 +434,7 @@ mod tests {
         async fn get_expired_workers(&self) -> Result<Vec<crate::server::repositories::WorkerLease>, AppError> { Ok(vec![]) }
         async fn cleanup_old_inbox_events(&self, _: i32) -> Result<i64, AppError> { Ok(0) }
         async fn cleanup_old_outbox_events(&self, _: i32) -> Result<i64, AppError> { Ok(0) }
+        async fn recover_stale_publishing_events(&self) -> Result<i64, AppError> { Ok(0) }
     }
 
     #[test]

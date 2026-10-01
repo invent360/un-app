@@ -31,6 +31,7 @@ mod metrics_handler;
 mod pilot_handler;
 mod media_backup_handler;
 mod onboarding_handler;
+mod user_handler;
 
 use crate::server::middleware::{AdminAuth, RateLimitConfig, RateLimiter};
 use actix_web::web;
@@ -444,6 +445,14 @@ pub fn configure_api_routes(cfg: &mut web::ServiceConfig) {
             .route("/logout", web::post().to(session_handler::logout))
             .route("/validate", web::post().to(session_handler::validate_session))
             .route("/touch", web::post().to(session_handler::touch_session)),
+    );
+
+    // R5-13: User profile endpoints
+    cfg.service(
+        web::scope("/api/v1/user")
+            .wrap(RateLimiter::new(RateLimitConfig::default()))
+            .route("/me", web::get().to(user_handler::get_me))
+            .route("/status", web::get().to(user_handler::get_status)),
     );
 
     // License claim endpoint with strict rate limits (10 req/min per IP)

@@ -107,6 +107,28 @@ pub struct License {
     pub claimed_at: Option<DateTime<Utc>>,
     /// Creation timestamp.
     pub created_at: DateTime<Utc>,
+
+    // R5-06: Exact share percentages (truthful, not collapsed to enum)
+    /// Exact UNO share percentage (e.g., 47.50)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uno_share_pct: Option<f64>,
+    /// Exact ULO share percentage (e.g., 50.00)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ulo_share_pct: Option<f64>,
+    /// Exact agent share percentage (e.g., 2.50)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_share_pct: Option<f64>,
+
+    // R5-06: Source provenance
+    /// Source system identifier (e.g., "unetwork", "manual", "csv_import")
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_system: Option<String>,
+    /// Source version at import time
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_version: Option<String>,
+    /// Original record ID in source system
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_record_id: Option<String>,
 }
 
 impl License {
@@ -128,6 +150,13 @@ impl License {
             device_id: None,
             claimed_at: None,
             created_at: Utc::now(),
+            // R5-06: Optional fields
+            uno_share_pct: None,
+            ulo_share_pct: None,
+            agent_share_pct: None,
+            source_system: None,
+            source_version: None,
+            source_record_id: None,
         }
     }
 
@@ -154,7 +183,35 @@ impl License {
             device_id: None,
             claimed_at: None,
             created_at: Utc::now(),
+            // R5-06: Optional fields
+            uno_share_pct: None,
+            ulo_share_pct: None,
+            agent_share_pct: None,
+            source_system: None,
+            source_version: None,
+            source_record_id: None,
         }
+    }
+
+    /// R5-06: Set exact share percentages.
+    pub fn with_exact_shares(mut self, uno_pct: f64, ulo_pct: f64, agent_pct: f64) -> Self {
+        self.uno_share_pct = Some(uno_pct);
+        self.ulo_share_pct = Some(ulo_pct);
+        self.agent_share_pct = Some(agent_pct);
+        self
+    }
+
+    /// R5-06: Set source provenance.
+    pub fn with_provenance(
+        mut self,
+        system: impl Into<String>,
+        version: Option<String>,
+        record_id: Option<String>,
+    ) -> Self {
+        self.source_system = Some(system.into());
+        self.source_version = version;
+        self.source_record_id = record_id;
+        self
     }
 
     /// Check if the license is currently valid (not expired).
@@ -175,9 +232,14 @@ impl License {
 }
 
 /// Input for creating/publishing a new license.
+///
+/// R5-06: Supports both categorical split_type AND exact share percentages.
+/// The exact percentages should be used for truthful representation;
+/// split_type provides backwards-compatible categorization.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LicenseInput {
     /// License ID (optional, will be generated if not provided).
+    /// R5-06: Full upstream identifier preserved without truncation.
     /// Example: "0x0111e1758d35de5306c4feec2e87db6fcf593d055b22a32a4d49e1c1d1cb9281"
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
@@ -188,8 +250,30 @@ pub struct LicenseInput {
     pub valid_from: DateTime<Utc>,
     /// Valid until date.
     pub valid_to: DateTime<Utc>,
-    /// Revenue split type.
+    /// Revenue split type (categorical).
     pub split_type: SplitType,
+
+    // R5-06: Exact share percentages (truthful, not collapsed)
+    /// Exact UNO share percentage (e.g., 47.50)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uno_share_pct: Option<f64>,
+    /// Exact ULO share percentage (e.g., 50.00)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ulo_share_pct: Option<f64>,
+    /// Exact agent share percentage (e.g., 2.50)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_share_pct: Option<f64>,
+
+    // R5-06: Source provenance
+    /// Source system identifier (e.g., "unetwork", "manual", "csv_import")
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_system: Option<String>,
+    /// Source version at import time
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_version: Option<String>,
+    /// Original record ID in source system
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_record_id: Option<String>,
 }
 
 impl LicenseInput {
@@ -201,10 +285,17 @@ impl LicenseInput {
             valid_from,
             valid_to,
             split_type,
+            uno_share_pct: None,
+            ulo_share_pct: None,
+            agent_share_pct: None,
+            source_system: None,
+            source_version: None,
+            source_record_id: None,
         }
     }
 
     /// Set a custom ID.
+    /// R5-06: ID is preserved exactly as provided (no truncation).
     pub fn with_id(mut self, id: impl Into<String>) -> Self {
         self.id = Some(id.into());
         self
@@ -213,6 +304,22 @@ impl LicenseInput {
     /// Set a custom lease code.
     pub fn with_lease_code(mut self, code: impl Into<String>) -> Self {
         self.lease_code = code.into();
+        self
+    }
+
+    /// R5-06: Set exact share percentages (truthful, not collapsed).
+    pub fn with_exact_shares(mut self, uno_pct: f64, ulo_pct: f64, agent_pct: f64) -> Self {
+        self.uno_share_pct = Some(uno_pct);
+        self.ulo_share_pct = Some(ulo_pct);
+        self.agent_share_pct = Some(agent_pct);
+        self
+    }
+
+    /// R5-06: Set source provenance.
+    pub fn with_provenance(mut self, system: impl Into<String>, version: Option<String>, record_id: Option<String>) -> Self {
+        self.source_system = Some(system.into());
+        self.source_version = version;
+        self.source_record_id = record_id;
         self
     }
 }

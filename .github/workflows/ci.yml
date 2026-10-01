@@ -104,6 +104,17 @@ jobs:
         run: cargo test --locked -p uno-app --features ssr --lib
       - name: Registered portal routes against migrated PostgreSQL
         run: cargo test --locked -p uno-app --features ssr --test phase0_http
+      # R5-15: Run phase4-9 integration tests that require database
+      # These tests are marked #[ignore = "requires database connection"]
+      # but CI has PostgreSQL available, so run them with --include-ignored
+      - name: Phase 4 concurrent claims integration tests
+        run: cargo test --locked -p uno-app --features ssr --test phase4_concurrent_claims -- --include-ignored
+      - name: Phase 5 finance reconciliation tests
+        run: cargo test --locked -p uno-app --features ssr --test phase5_finance_reconciliation -- --include-ignored
+      - name: Phase 9 acceptance tests
+        run: cargo test --locked -p uno-app --features ssr --test phase9_acceptance -- --include-ignored
+      - name: Phase 9 concurrent claim tests
+        run: cargo test --locked -p uno-app --features ssr --test phase9_concurrent -- --include-ignored
       - name: Admin unit tests
         run: cargo test --locked -p uno-admin --features ssr --lib
 
@@ -151,11 +162,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.92.0
       - uses: Swatinem/rust-cache@v2
+      # R5-15: Build the actual worker binary, not uno-app
       - name: Compile worker binary
-        run: cargo build --locked -p uno-app --features ssr --bin uno-app
+        run: cargo build --locked -p uno-app --features ssr --bin worker
       - name: Record binary hash
         run: |
-          sha256sum target/debug/uno-app > worker-hash.txt
+          sha256sum target/debug/worker > worker-hash.txt
           echo "Worker binary hash:"
           cat worker-hash.txt
       - name: Upload worker hash

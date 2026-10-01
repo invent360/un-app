@@ -2,10 +2,17 @@
 //!
 //! Supports CMS preview mode via ?preview_token query parameter.
 //! Content is loaded from the CMS database.
+//!
+//! R5-13 Enhancements:
+//! - Device suitability detection
+//! - Task availability indicator
+//! - Single "Check Eligibility" CTA
+//! - Support identity display
 
 use leptos::prelude::*;
 use leptos_router::hooks::use_query_map;
 use crate::components::common::PreviewBanner;
+use crate::components::suitability::use_suitability_state;
 
 #[cfg(feature = "hydrate")]
 use crate::hooks::{t, use_locale};
@@ -30,8 +37,17 @@ pub fn HomePage() -> impl IntoView {
             // Show preview banner if in preview mode
             {move || is_preview.get().then(|| view! { <PreviewBanner /> })}
 
+            // R5-13: Task availability banner
+            <TaskAvailabilityBanner />
+
             // Dynamic CMS content (client-side only)
             <HomeContent preview_token=preview_token.clone() set_is_preview=set_is_preview />
+
+            // R5-13: Check eligibility CTA section
+            <EligibilityCTASection />
+
+            // R5-13: Support identity section
+            <SupportIdentitySection />
         </div>
     }
 }
@@ -363,5 +379,195 @@ fn HomeFaqSection(faqs: Vec<HomeFaqItem>) -> impl IntoView {
             </div>
         </section>
     }.into_any()
+}
+
+// ==============================================
+// R5-13 LANDING PAGE ENHANCEMENTS
+// ==============================================
+
+/// Task availability banner showing current status
+#[component]
+fn TaskAvailabilityBanner() -> impl IntoView {
+    // Mock task availability data - would come from API
+    let tasks_available = true;
+    let last_updated = "September 30, 2026";
+
+    if !tasks_available {
+        return view! {
+            <div class="task-availability-banner unavailable">
+                <div class="banner-content">
+                    <span class="banner-icon">"⏳"</span>
+                    <div class="banner-text">
+                        <span class="banner-title">"Tasks temporarily unavailable in your region"</span>
+                        <span class="banner-meta">"Check back soon • Last checked: "{last_updated}</span>
+                    </div>
+                </div>
+            </div>
+        }.into_any();
+    }
+
+    view! {
+        <div class="task-availability-banner available">
+            <div class="banner-content">
+                <span class="banner-icon">"✓"</span>
+                <div class="banner-text">
+                    <span class="banner-title">"Tasks are available in your region"</span>
+                    <span class="banner-meta">"Start earning today • Data as of "{last_updated}</span>
+                </div>
+            </div>
+        </div>
+    }.into_any()
+}
+
+/// Check eligibility CTA section
+#[component]
+fn EligibilityCTASection() -> impl IntoView {
+    // Get suitability state to trigger the modal
+    let suitability_state = use_suitability_state();
+
+    let open_eligibility_check = move |_| {
+        if let Some(state) = suitability_state.as_ref() {
+            state.open();
+        }
+    };
+
+    view! {
+        <section class="eligibility-cta-section">
+            <div class="container">
+                <div class="cta-card">
+                    <div class="cta-content">
+                        <h2>"Ready to Start Earning?"</h2>
+                        <p>"Check if your device is eligible and see your estimated earnings in just 2 minutes."</p>
+
+                        <div class="device-compatibility">
+                            <DeviceCompatibilityIndicator />
+                        </div>
+
+                        <button
+                            class="btn-primary btn-lg cta-button"
+                            on:click=open_eligibility_check
+                        >
+                            "Check Eligibility"
+                        </button>
+
+                        <p class="cta-note">
+                            "No payment required • No personal documents needed"
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+}
+
+/// Device compatibility indicator
+#[component]
+fn DeviceCompatibilityIndicator() -> impl IntoView {
+    // Detect device type from user agent
+    #[cfg(any(feature = "csr", feature = "hydrate"))]
+    let device_info = {
+        if let Some(window) = web_sys::window() {
+            if let Ok(Some(navigator)) = window.navigator().user_agent().map(Some) {
+                let ua = navigator.to_lowercase();
+                if ua.contains("android") {
+                    Some(("Android", true, "Your device is supported"))
+                } else if ua.contains("iphone") || ua.contains("ipad") {
+                    Some(("iOS", false, "iOS support coming soon"))
+                } else {
+                    Some(("Desktop/Other", false, "Mobile app required"))
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    };
+
+    #[cfg(not(any(feature = "csr", feature = "hydrate")))]
+    let device_info: Option<(&str, bool, &str)> = None;
+
+    match device_info {
+        Some((device, is_compatible, message)) => {
+            let class = if is_compatible {
+                "device-indicator compatible"
+            } else {
+                "device-indicator incompatible"
+            };
+
+            let icon = if is_compatible { "✓" } else { "ℹ" };
+
+            view! {
+                <div class=class>
+                    <span class="device-icon">{icon}</span>
+                    <span class="device-type">{device}</span>
+                    <span class="device-status">{message}</span>
+                </div>
+            }.into_any()
+        }
+        None => {
+            view! {
+                <div class="device-indicator unknown">
+                    <span class="device-icon">"📱"</span>
+                    <span class="device-status">"Checking device compatibility..."</span>
+                </div>
+            }.into_any()
+        }
+    }
+}
+
+/// Support identity section with accountable contact info
+#[component]
+fn SupportIdentitySection() -> impl IntoView {
+    view! {
+        <section class="support-identity-section">
+            <div class="container">
+                <div class="support-card">
+                    <h3>"Questions? We're Here to Help"</h3>
+
+                    <div class="support-contacts">
+                        <div class="contact-item">
+                            <span class="contact-icon">"📧"</span>
+                            <div class="contact-details">
+                                <span class="contact-label">"Email Support"</span>
+                                <a href="mailto:support@unetwork.io" class="contact-value">
+                                    "support@unetwork.io"
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <span class="contact-icon">"📖"</span>
+                            <div class="contact-details">
+                                <span class="contact-label">"Help Center"</span>
+                                <a href="/guides" class="contact-value">
+                                    "Guides & Tutorials"
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <span class="contact-icon">"❓"</span>
+                            <div class="contact-details">
+                                <span class="contact-label">"FAQ"</span>
+                                <a href="/faq" class="contact-value">
+                                    "Common Questions"
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="support-identity">
+                        <p class="identity-text">
+                            "UNO is operated by UNetwork Ltd. • "
+                            <a href="/terms">"Terms of Service"</a>
+                            " • "
+                            <a href="/privacy">"Privacy Policy"</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
 }
 

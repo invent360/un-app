@@ -6,26 +6,34 @@
 //! - Import/export with reproducibility
 //! - Golden fixture validation
 //!
-//! # R4-07: Engine Unification
+//! # R5-12: Unified Task-Driven Forecast
 //!
-//! This service implements scenario management and database persistence. The calculation
-//! engine here is a simplified version suitable for multi-country, multi-task scenarios.
-//!
-//! For detailed portfolio modeling with cohort tracking, credit renewal, and settlement
-//! lag, see `uno_api::services::forecast` which provides:
+//! This service uses the canonical calculation engine from `uno_api::services::forecast`.
+//! The engine provides:
 //! - 22+ validation rules (FC-01 through FC-22)
 //! - Cohort-based credit renewal tracking
 //! - Peak funding requirement analysis
 //! - Settlement lag modeling
 //! - Revenue identity guarantee: `pool = ulo + uno + referral`
 //!
-//! The canonical calculation engine is in uno-api; this service provides the
-//! enterprise workflow (scenarios, approval gates, golden fixtures) on top of it.
+//! The enterprise workflow (scenarios, approval gates, golden fixtures) wraps the
+//! canonical engine for database persistence and workflow management.
 
 use async_trait::async_trait;
 use chrono::{NaiveDate, Utc};
 use std::sync::Arc;
 use uuid::Uuid;
+
+// R5-12: Import canonical forecast engine
+#[cfg(feature = "ssr")]
+use uno_api::models::{
+    ForecastConfig as CanonicalConfig,
+    ForecastTask as CanonicalTask,
+    ForecastRow as CanonicalRow,
+    RateBasis,
+};
+#[cfg(feature = "ssr")]
+use uno_api::services::forecast as canonical_forecast;
 
 use crate::server::repositories::{
     DynForecastRepository, ForecastRepository, ForecastScenario, ForecastTask, ForecastResult,
@@ -116,159 +124,146 @@ pub struct WeeklyProjection {
     pub cumulative_funding_micros: i64,
 }
 
-/// Forecast engine for calculating weekly projections
-///
-/// This is a simplified calculation engine for multi-country, multi-task scenarios.
-/// For sophisticated portfolio modeling (cohort tracking, credit renewal, settlement lag),
-/// see `uno_api::services::forecast::simulate()` which implements the full algorithm
-/// ported from the JavaScript HTML calculator.
-///
-/// When higher fidelity is needed, convert scenarios to `uno_api::models::ForecastConfig`
-/// and use `uno_api::services::simulate()` for the calculation.
-pub struct ForecastEngine {
-    config: ForecastEngineConfig,
-}
+// R5-12: Deprecated ForecastEngine removed
+// All forecasts now use the canonical engine from uno_api::services::forecast::simulate()
 
-impl ForecastEngine {
-    pub fn new(config: ForecastEngineConfig) -> Self {
-        Self { config }
+// ============================================
+// R5-12: CANONICAL ENGINE CONVERSION
+// ============================================
+
+#[cfg(feature = "ssr")]
+mod canonical_conversion {
+    use super::*;
+    use crate::server::repositories::{ForecastScenario as DbScenario, ForecastTask as DbTask};
+
+    /// Helper to extract a value from JSON assumptions
+    fn get_json_f64(assumptions: &serde_json::Value, key: &str, default: f64) -> f64 {
+        assumptions.get(key)
+            .and_then(|v| v.as_f64())
+            .unwrap_or(default)
     }
 
-    /// Calculate weekly projections for a scenario
-    pub fn calculate_projections(
-        &self,
-        scenario: &ForecastScenario,
-        tasks: &[ForecastTask],
-    ) -> Vec<WeeklyProjection> {
-        let mut projections = Vec::new();
-        let mut cumulative_profit: i64 = 0;
-        let mut cumulative_funding: i64 = 0;
-        let mut break_even_reached = false;
-
-        // Track previous week's closing licenses by task
-        let mut prev_closing: std::collections::HashMap<String, i32> = std::collections::HashMap::new();
-
-        for week_num in 1..=scenario.forecast_weeks {
-            let week_start = scenario.start_date + chrono::Duration::days((week_num - 1) as i64 * 7);
-            let week_end = week_start + chrono::Duration::days(6);
-
-            for task in tasks {
-                let task_key = format!("{}:{}", task.country_code, task.task_code);
-
-                // Get previous closing (or 0 for first week)
-                let opening = *prev_closing.get(&task_key).unwrap_or(&0);
-
-                // Calculate new claims for this week
-                let new_claims = task.weekly_claim_target.unwrap_or(10);
-                let activations = ((new_claims as f64) * task.claim_to_activation_rate) as i32;
-
-                // Calculate churn (weekly churn = monthly / 4)
-                let weekly_churn_rate = task.monthly_churn_rate / 4.0;
-                let churned = ((opening as f64) * weekly_churn_rate) as i32;
-
-                // Calculate closing licenses
-                let closing = opening + activations - churned;
-                let active = closing;
-                let productive = ((closing as f64) * task.productivity_rate) as i32;
-
-                // Store for next week
-                prev_closing.insert(task_key.clone(), closing);
-
-                // Calculate revenue
-                let gross_revenue = (productive as i64) * task.daily_rate_micros * 7;
-                let participant_share = (gross_revenue * self.config.agreement_shares.participant_bps as i64) / 10000;
-                let referral_share = (gross_revenue * self.config.agreement_shares.referral_bps as i64) / 10000;
-                let uno_share = (gross_revenue * self.config.agreement_shares.uno_bps as i64) / 10000;
-
-                // Calculate costs
-                let acquisition_cost = (new_claims as i64) * task.acquisition_cost_per_user_micros;
-                let support_cost = (active as i64) * task.support_cost_per_user_monthly_micros / 4;
-                let hosting_cost = (active as i64) * self.config.hosting_cost_per_user_micros;
-                let messaging_cost = (active as i64) * self.config.messaging_cost_per_message_micros * 50; // ~50 msgs/user/week
-                let other_cost: i64 = 0;
-
-                let total_cost = acquisition_cost + support_cost + hosting_cost + messaging_cost + other_cost;
-
-                // Calculate profit
-                let net_profit = uno_share - total_cost;
-                cumulative_profit += net_profit;
-
-                // Track funding required (negative profit)
-                let funding_required = if net_profit < 0 { -net_profit } else { 0 };
-                cumulative_funding += funding_required;
-
-                // Check break-even
-                if cumulative_profit >= 0 && !break_even_reached {
-                    break_even_reached = true;
-                }
-
-                projections.push(WeeklyProjection {
-                    week_number: week_num,
-                    week_start,
-                    week_end,
-                    country_code: task.country_code.clone(),
-                    task_code: task.task_code.clone(),
-                    opening_licenses: opening,
-                    new_claims,
-                    activations,
-                    churned,
-                    closing_licenses: closing,
-                    active_licenses: active,
-                    productive_licenses: productive,
-                    gross_revenue_micros: gross_revenue,
-                    participant_share_micros: participant_share,
-                    referral_share_micros: referral_share,
-                    uno_share_micros: uno_share,
-                    acquisition_cost_micros: acquisition_cost,
-                    support_cost_micros: support_cost,
-                    hosting_cost_micros: hosting_cost,
-                    messaging_cost_micros: messaging_cost,
-                    other_cost_micros: other_cost,
-                    net_profit_micros: net_profit,
-                    cumulative_profit_micros: cumulative_profit,
-                    break_even_reached,
-                    funding_required_micros: funding_required,
-                    cumulative_funding_micros: cumulative_funding,
-                });
-            }
-        }
-
-        projections
+    fn get_json_u64(assumptions: &serde_json::Value, key: &str, default: u64) -> u64 {
+        assumptions.get(key)
+            .and_then(|v| v.as_u64())
+            .unwrap_or(default)
     }
 
-    /// Convert projection to ForecastResult
-    fn projection_to_result(scenario_id: Uuid, proj: &WeeklyProjection) -> ForecastResult {
+    /// Convert database scenario + tasks to canonical forecast config
+    ///
+    /// R5-12: This function maps the multi-country, multi-task database model
+    /// to the canonical single-config model. The canonical engine handles
+    /// cohort tracking, credit renewal, and settlement lag.
+    pub fn to_canonical_config(
+        scenario: &DbScenario,
+        tasks: &[DbTask],
+        engine_config: &ForecastEngineConfig,
+    ) -> (CanonicalConfig, Vec<CanonicalTask>) {
+        // Extract assumptions from scenario JSON
+        let assumptions = &scenario.assumptions;
+
+        // Build canonical config from scenario and engine defaults
+        let config = CanonicalConfig {
+            weeks: scenario.forecast_weeks as u32,
+            capacity: get_json_u64(assumptions, "capacity", 2500) as u32,
+            opening: get_json_u64(assumptions, "opening", 0) as u32,
+            new_net: get_json_u64(assumptions, "new_net", 250) as u32,
+            churn: get_json_f64(assumptions, "churn", 0.02),
+            success: get_json_f64(assumptions, "success", 0.85),
+            credit: get_json_f64(assumptions, "credit", 1.99),
+            support: get_json_f64(assumptions, "support", 0.25),
+            acquisition: get_json_f64(assumptions, "acquisition", 300.0),
+            coordination: get_json_f64(assumptions, "coordination", 150.0),
+            maintenance_acquisition: get_json_f64(assumptions, "maintenance_acquisition", 60.0),
+            maintenance_coordination: get_json_f64(assumptions, "maintenance_coordination", 60.0),
+            overhead: get_json_f64(assumptions, "overhead", 0.0),
+            setup: get_json_f64(assumptions, "setup", 450.0),
+            capital: get_json_f64(assumptions, "capital", 0.0),
+            amort_weeks: get_json_u64(assumptions, "amort_weeks", 104) as u32,
+            tax: get_json_f64(assumptions, "tax", 0.0),
+            fee: get_json_f64(assumptions, "fee", 0.0),
+            lag: get_json_u64(assumptions, "lag", 2) as u32,
+            opening_cash: get_json_f64(assumptions, "opening_cash", 25000.0),
+            // 50/40/10 split from engine config
+            uno: (engine_config.agreement_shares.uno_bps as f64) / 10000.0,
+            ulo: (engine_config.agreement_shares.participant_bps as f64) / 10000.0,
+            referral: (engine_config.agreement_shares.referral_bps as f64) / 10000.0,
+            up_usd: get_json_f64(assumptions, "up_usd", 1.0),
+            android: get_json_f64(assumptions, "android", 1.0),
+            ios: get_json_f64(assumptions, "ios", 0.0),
+            windows: get_json_f64(assumptions, "windows", 0.0),
+        };
+
+        // Convert database tasks to canonical tasks
+        let canonical_tasks: Vec<CanonicalTask> = tasks
+            .iter()
+            .map(|t| CanonicalTask {
+                name: t.task_name.clone(),
+                enabled: true, // All tasks in DB are enabled by definition
+                android: t.device_type.as_deref() != Some("ios") && t.device_type.as_deref() != Some("windows"),
+                ios: t.device_type.as_deref() == Some("ios") || t.device_type.as_deref() == Some("all"),
+                windows: t.device_type.as_deref() == Some("windows") || t.device_type.as_deref() == Some("all"),
+                // Convert micros to USD
+                rate: (t.daily_rate_micros as f64) / 1_000_000.0,
+                basis: RateBasis::Pool,
+                eligible: t.productivity_rate,
+                activity: t.productivity_rate, // Use productivity as activity factor
+                start: 1,
+                end: scenario.forecast_weeks as u32,
+                cap: 0.0, // No cap by default
+                extra: 0.0, // Extra costs handled separately
+                illustrative: false,
+            })
+            .collect();
+
+        (config, canonical_tasks)
+    }
+
+    /// Convert canonical forecast row to database result
+    ///
+    /// R5-12: Maps the 31-field canonical row to the database result format
+    pub fn from_canonical_row(
+        scenario_id: Uuid,
+        row: &CanonicalRow,
+        scenario: &DbScenario,
+    ) -> ForecastResult {
+        let week_start = scenario.start_date + chrono::Duration::days((row.week as i64 - 1) * 7);
+        let week_end = week_start + chrono::Duration::days(6);
+
+        // Convert USD to micros (multiply by 1,000,000)
+        let to_micros = |usd: f64| -> i64 { (usd * 1_000_000.0) as i64 };
+
         ForecastResult {
             id: Uuid::new_v4(),
             scenario_id,
-            week_number: proj.week_number,
-            week_start: proj.week_start,
-            week_end: proj.week_end,
-            country_code: Some(proj.country_code.clone()),
-            task_code: Some(proj.task_code.clone()),
-            opening_licenses: proj.opening_licenses,
-            new_claims: proj.new_claims,
-            activations: proj.activations,
-            churned: proj.churned,
-            closing_licenses: proj.closing_licenses,
-            active_licenses: proj.active_licenses,
-            productive_licenses: proj.productive_licenses,
-            gross_revenue_micros: proj.gross_revenue_micros,
-            participant_share_micros: proj.participant_share_micros,
-            referral_share_micros: proj.referral_share_micros,
-            uno_share_micros: proj.uno_share_micros,
-            acquisition_cost_micros: proj.acquisition_cost_micros,
-            support_cost_micros: proj.support_cost_micros,
-            hosting_cost_micros: proj.hosting_cost_micros,
-            messaging_cost_micros: proj.messaging_cost_micros,
-            other_cost_micros: proj.other_cost_micros,
-            total_cost_micros: proj.acquisition_cost_micros + proj.support_cost_micros +
-                               proj.hosting_cost_micros + proj.messaging_cost_micros + proj.other_cost_micros,
-            net_profit_micros: proj.net_profit_micros,
-            cumulative_profit_micros: proj.cumulative_profit_micros,
-            break_even_reached: proj.break_even_reached,
-            funding_required_micros: proj.funding_required_micros,
-            cumulative_funding_micros: proj.cumulative_funding_micros,
+            week_number: row.week as i32,
+            week_start,
+            week_end,
+            country_code: None, // Canonical engine is portfolio-level
+            task_code: None,    // Aggregated across all tasks
+            opening_licenses: row.opening as i32,
+            new_claims: row.additions as i32,
+            activations: row.additions as i32, // Same as additions in canonical model
+            churned: row.churn as i32,
+            closing_licenses: row.closing as i32,
+            active_licenses: row.closing as i32,
+            productive_licenses: row.closing as i32, // All closing are productive
+            gross_revenue_micros: to_micros(row.pool),
+            // ULO = participant share (50%)
+            participant_share_micros: to_micros(row.ulo),
+            referral_share_micros: to_micros(row.referral),
+            uno_share_micros: to_micros(row.uno),
+            acquisition_cost_micros: to_micros(row.acquisition),
+            support_cost_micros: to_micros(row.support),
+            hosting_cost_micros: to_micros(row.overhead), // Map overhead to hosting
+            messaging_cost_micros: 0, // Not tracked separately in canonical
+            other_cost_micros: to_micros(row.task_costs + row.coordination + row.fees),
+            total_cost_micros: to_micros(row.operating_costs),
+            net_profit_micros: to_micros(row.profit),
+            cumulative_profit_micros: to_micros(row.cumulative_profit),
+            break_even_reached: row.cumulative_profit >= 0.0,
+            funding_required_micros: to_micros(row.required_funding),
+            cumulative_funding_micros: to_micros(row.required_funding), // Use peak funding
             is_actual: false,
             created_at: Utc::now(),
         }
@@ -322,23 +317,25 @@ pub trait ForecastService: Send + Sync {
 // SERVICE IMPLEMENTATION
 // ============================================
 
+/// R5-12: Forecast service using canonical engine only
 pub struct ForecastServiceImpl {
     repo: DynForecastRepository,
-    engine: ForecastEngine,
+    /// Configuration for revenue shares and cost defaults
+    config: ForecastEngineConfig,
 }
 
 impl ForecastServiceImpl {
     pub fn new(repo: DynForecastRepository) -> Self {
         Self {
             repo,
-            engine: ForecastEngine::new(ForecastEngineConfig::default()),
+            config: ForecastEngineConfig::default(),
         }
     }
 
     pub fn with_config(repo: DynForecastRepository, config: ForecastEngineConfig) -> Self {
         Self {
             repo,
-            engine: ForecastEngine::new(config),
+            config,
         }
     }
 }
@@ -436,14 +433,58 @@ impl ForecastService for ForecastServiceImpl {
             return Err(AppError::ValidationError("Scenario has no tasks configured".to_string()));
         }
 
-        // Run the forecast engine
-        let projections = self.engine.calculate_projections(&scenario, &tasks);
+        // R5-12: Use canonical forecast engine from uno-api (only path)
+        #[cfg(feature = "ssr")]
+        let results = {
+            use canonical_conversion::{to_canonical_config, from_canonical_row};
 
-        // Convert projections to results
-        let results: Vec<ForecastResult> = projections
-            .iter()
-            .map(|p| ForecastEngine::projection_to_result(scenario_id, p))
-            .collect();
+            // Convert to canonical format
+            let (config, canonical_tasks) = to_canonical_config(&scenario, &tasks, &self.config);
+
+            // Run canonical simulation with full validation
+            let forecast_result = canonical_forecast::simulate(&config, &canonical_tasks)
+                .map_err(|errors| {
+                    let error_msgs: Vec<String> = errors.iter().map(|e| e.to_string()).collect();
+                    AppError::ValidationError(format!(
+                        "Forecast validation failed: {}",
+                        error_msgs.join("; ")
+                    ))
+                })?;
+
+            // Verify revenue identity holds (FC-07)
+            if !forecast_result.all_revenue_identities_hold() {
+                return Err(AppError::InternalServerError(
+                    "Forecast calculation violated revenue identity (pool != ulo + uno + referral)".to_string()
+                ));
+            }
+
+            // Convert canonical rows to database results
+            let results: Vec<ForecastResult> = forecast_result
+                .rows
+                .iter()
+                .map(|row| from_canonical_row(scenario_id, row, &scenario))
+                .collect();
+
+            tracing::info!(
+                scenario_id = %scenario_id,
+                weeks = forecast_result.rows.len(),
+                required_funding = forecast_result.required_funding,
+                first_positive_week = ?forecast_result.first_positive_week,
+                profit_payback = ?forecast_result.profit_payback,
+                cash_payback = ?forecast_result.cash_payback,
+                "R5-12: Canonical forecast completed"
+            );
+
+            results
+        };
+
+        // R5-12: Non-SSR builds should not call forecasts
+        #[cfg(not(feature = "ssr"))]
+        let results: Vec<ForecastResult> = {
+            return Err(AppError::InternalServerError(
+                "Forecast engine only available in SSR builds".to_string()
+            ));
+        };
 
         // Clear existing results and save new ones
         self.repo.clear_results(scenario_id).await?;

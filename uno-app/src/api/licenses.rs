@@ -243,12 +243,15 @@ pub async fn confirm_license_claim(
 // immutable referral attribution.
 
 /// Response from atomic reservation
+///
+/// R5-05: Does NOT include lease_code - credential is revealed only at confirmation
+/// when ownership is established.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct AtomicReservationResponse {
     pub success: bool,
     pub message: Option<String>,
     pub license_id: Option<String>,
-    pub lease_code: Option<String>,
+    /// R5-05: lease_code intentionally omitted - revealed only at confirm
     /// Session token required for confirmation - keep secure!
     pub session_token: Option<String>,
     /// When the reservation expires (2 minutes from now)
@@ -256,6 +259,8 @@ pub struct AtomicReservationResponse {
     pub split_type: Option<SplitType>,
     /// Whether the provided referral code was validated
     pub referral_validated: bool,
+    /// R5-05: Remaining capacity after this reservation
+    pub capacity_remaining: Option<i64>,
 }
 
 /// Atomically reserve a license with session binding (Phase 1 - New)
@@ -283,15 +288,16 @@ pub async fn atomic_reserve_license(
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
+    // R5-05: lease_code intentionally omitted - revealed only at confirm
     Ok(AtomicReservationResponse {
         success: response.success,
         message: response.message,
         license_id: response.license_id,
-        lease_code: response.lease_code,
         session_token: response.session_token,
         expires_at: response.expires_at,
         split_type: response.split_type,
         referral_validated: response.referral_validated,
+        capacity_remaining: response.capacity_remaining,
     })
 }
 

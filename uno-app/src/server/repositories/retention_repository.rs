@@ -3,6 +3,9 @@
 //! Manages retention policies and tracks cleanup operations.
 //! Policies are stored in the `retention_policies` table and define
 //! how long data should be kept in each table.
+//!
+//! R5-16: Safe table allowlist ensures that critical tables cannot be
+//! accidentally or maliciously purged.
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -10,6 +13,42 @@ use std::sync::Arc;
 
 use crate::server::db::ConnectionPool;
 use crate::types::AppError;
+
+// ============================================
+// R5-16: SAFE TABLE ALLOWLIST
+// ============================================
+// Only tables in this list can have retention policies applied.
+// NEVER add tables containing:
+// - Financial records (allocation_ledger, settlement_*, allocation_*)
+// - Audit trails (audit_logs, immutable_audit_events)
+// - License ownership (licenses, license_claims)
+// - Consent/legal records (consent_records, data_subject_requests)
+// - Active CMS content (content_items, faqs, testimonials)
+
+/// Tables that are ALLOWED to have retention cleanup
+/// All other tables are protected by default
+pub const RETENTION_ALLOWED_TABLES: &[&str] = &[
+    // Session/temporary data
+    "visitor_sessions",
+    "rate_limit_entries",
+    "nonces",
+    "device_fingerprints",
+    // Job queues (completed jobs only via deletion_condition)
+    "job_queue",
+    "outbox",
+    "inbox",
+    // Analytics aggregates (not source data)
+    "cohort_daily_activity",
+    "pilot_daily_snapshots",
+    // Notifications (after delivery confirmation)
+    "cohort_notifications",
+    "notification_queue",
+    // Support tickets (after resolution + retention period)
+    "support_tickets",
+    "support_messages",
+    // Sync checkpoints (old checkpoints only)
+    "sync_checkpoints",
+];
 
 // ============================================
 // TYPES
@@ -205,6 +244,26 @@ impl RetentionRepository for RetentionRepositoryImpl {
     }
 
     async fn execute_cleanup(&self, policy: &RetentionPolicy) -> Result<i64, AppError> {
+        // R5-16: Validate table is in allowlist before any cleanup
+        if !RETENTION_ALLOWED_TABLES.contains(&policy.table_name.as_str()) {
+            tracing::error!(
+                table = %policy.table_name,
+                "SECURITY: Attempted cleanup on protected table - BLOCKED"
+            );
+            return Err(AppError::BadRequest(format!(
+                "Table '{}' is not in the retention allowlist. Protected tables cannot be purged.",
+                policy.table_name
+            )));
+        }
+
+        // R5-16: Validate table name contains only safe characters (prevent SQL injection)
+        if !policy.table_name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+            return Err(AppError::BadRequest(format!(
+                "Invalid table name '{}': must contain only alphanumeric characters and underscores",
+                policy.table_name
+            )));
+        }
+
         // Skip if deletion_condition is empty or 'FALSE' (indefinite retention)
         if policy.deletion_condition.is_empty()
             || policy.deletion_condition.to_uppercase() == "FALSE"
@@ -254,6 +313,26 @@ impl RetentionRepository for RetentionRepositoryImpl {
     }
 
     async fn archive_before_cleanup(&self, policy: &RetentionPolicy) -> Result<i64, AppError> {
+        // R5-16: Validate table is in allowlist before any archive operation
+        if !RETENTION_ALLOWED_TABLES.contains(&policy.table_name.as_str()) {
+            tracing::error!(
+                table = %policy.table_name,
+                "SECURITY: Attempted archive on protected table - BLOCKED"
+            );
+            return Err(AppError::BadRequest(format!(
+                "Table '{}' is not in the retention allowlist",
+                policy.table_name
+            )));
+        }
+
+        // R5-16: Validate table name contains only safe characters
+        if !policy.table_name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+            return Err(AppError::BadRequest(format!(
+                "Invalid table name '{}': must contain only alphanumeric characters and underscores",
+                policy.table_name
+            )));
+        }
+
         // Only archive if configured to do so
         if !policy.archive_before_delete {
             return Ok(0);

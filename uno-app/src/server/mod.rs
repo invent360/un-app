@@ -2,6 +2,7 @@
 
 pub mod adapters;
 pub mod app;
+pub mod config;
 pub mod data_governance;
 pub mod db;
 pub mod geoip;

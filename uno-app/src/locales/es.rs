@@ -374,6 +374,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.activate.step2" => "Habilita la ejecucion en segundo plano para maximas ganancias",
     "wizard.activate.step3_title" => "3. Ganar",
     "wizard.activate.step3" => "Manten la app corriendo y observa crecer tus ganancias!",
+    "wizard.activate.completion_message" => "¡Felicidades! Estás listo para comenzar a ganar.",
+
+    // Wizard - Reserve Stage
+    "wizard.reserve.title" => "Reservando Tu Licencia",
+    "wizard.reserve.subtitle" => "Por favor espera mientras aseguramos tu licencia...",
+    "wizard.reserve.step_locking" => "Bloqueando licencia...",
+    "wizard.reserve.step_verifying" => "Verificando elegibilidad...",
+    "wizard.reserve.step_securing" => "Asegurando reserva...",
+    "wizard.reserve.security_notice" => "Tu licencia está siendo reservada exclusivamente para ti",
+    "wizard.reserve.error_title" => "Fallo en la Reserva",
+    "wizard.reserve.try_again" => "Intentar de Nuevo",
 
     // Wizard - Progress Bar
     "wizard.progress.review" => "Revisar",
@@ -406,7 +417,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Installation Guide
     "install.title" => "Guia de Instalacion",
     "install.android.title" => "Android",
-    "install.android.step1" => "Descarga el APK desde Google Play Store",
+    "install.android.step1" => "Descarga la aplicación desde Google Play Store",
     "install.android.step2" => "Abre el archivo descargado para instalar",
     "install.android.step3" => "Permite instalacion desde fuentes desconocidas si se solicita",
     "install.android.step4" => "Ingresa tu clave de licencia cuando se solicite",
@@ -515,13 +526,13 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.platform_title" => "Plataforma (40%)",
     "wizard.economics.platform_desc" => "Cubre costos de infraestructura, soporte y desarrollo",
     "wizard.economics.referrer_title" => "Referidor (10%)",
-    "wizard.economics.referrer_desc" => "Va a quien te refirio, o al fondo de operaciones",
+    "wizard.economics.referrer_desc" => "Designado para tu referidor. Si no tienes referidor, esto se mantiene en una reserva de soporte.",
     "wizard.economics.example_pool" => "Ejemplo: De un fondo de $10",
     "wizard.economics.important_title" => "Importante Saber",
-    "wizard.economics.disclosure_small_rewards" => "Las recompensas pueden ser pequenas inicialmente",
+    "wizard.economics.disclosure_small_rewards" => "Las recompensas de tareas individuales son pequeñas. Las ganancias se acumulan con el tiempo según la disponibilidad de tareas y el tiempo de actividad del dispositivo.",
     "wizard.economics.disclosure_device_requirement" => "Necesitas un dispositivo dedicado para mejores resultados",
     "wizard.economics.disclosure_uptime" => "El tiempo de actividad afecta directamente las ganancias",
-    "wizard.economics.disclosure_credit_cost" => "Los creditos de la plataforma financian las recompensas",
+    "wizard.economics.disclosure_credit_cost" => "Tus créditos iniciales son financiados con recursos de la plataforma para ayudarte a comenzar.",
     "wizard.economics.who_should_not_title" => "Esto NO es para ti si...",
     "wizard.economics.not_for_quick_money" => "Buscas dinero rapido o ingresos garantizados",
     "wizard.economics.not_for_shared_devices" => "Usas dispositivos compartidos que no puedes dejar activos",

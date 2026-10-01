@@ -1,13 +1,18 @@
 //! R3-13: Onboarding journey HTTP handlers
 //!
 //! Provides endpoints for user onboarding progress tracking and funnel analytics.
+//!
+//! R5-02: All user-facing onboarding endpoints require authentication.
+//! User identity is derived from the authenticated principal, never from request body/query.
+//! Client cannot set authoritative fields like device_verified - those require server verification.
 
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::server::app::ServiceFactory;
+use crate::server::extractors::auth::{get_authenticated_user, Permission};
 use crate::server::services::JourneyService;
 use crate::types::{OnboardingProgress, OnboardingState, SetupStep};
 
@@ -15,21 +20,16 @@ use crate::types::{OnboardingProgress, OnboardingState, SetupStep};
 // REQUEST/RESPONSE TYPES
 // ============================================
 
+// Admin-only request types (user_id from path, authenticated by AdminAuth middleware)
 #[derive(Debug, Deserialize)]
-pub struct GetProgressQuery {
+pub struct AdminGetProgressPath {
     pub user_id: Uuid,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ResumeRequest {
-    pub user_id: Uuid,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct TransitionRequest {
-    pub user_id: Uuid,
+pub struct AdminTransitionRequest {
     pub new_state: OnboardingState,
-    pub actor_id: Option<String>,
+    pub reason: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -47,36 +47,35 @@ pub struct FunnelMetricsQuery {
     pub to: DateTime<Utc>,
 }
 
+// User-facing request types (user_id derived from authenticated principal)
+// R5-02: No user_id in requests - always from auth token
+// R5-02: device_verified cannot be client-controlled - requires server verification
+
 #[derive(Debug, Deserialize)]
 pub struct CompleteEligibilityRequest {
-    pub user_id: Uuid,
     pub country_code: String,
-    pub device_verified: bool,
     pub referral_code: Option<String>,
+    // Note: device_verified is intentionally omitted - must be verified server-side
 }
 
 #[derive(Debug, Deserialize)]
 pub struct AcceptEconomicsRequest {
-    pub user_id: Uuid,
     pub consent_version: Uuid,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct CompleteSetupStepRequest {
-    pub user_id: Uuid,
     pub step: SetupStep,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ReserveLicenseRequest {
-    pub user_id: Uuid,
     pub license_id: Uuid,
-    pub expires_at: DateTime<Utc>,
+    // Note: expires_at is server-controlled for security
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ActivateLicenseRequest {
-    pub user_id: Uuid,
     pub license_id: Uuid,
 }
 
@@ -115,12 +114,35 @@ pub struct FunnelMetricsResponse {
 // HANDLERS
 // ============================================
 
-/// Get or create onboarding progress for a user
+/// Get or create onboarding progress for authenticated user
+/// R5-02: Requires authentication, derives user_id from principal
 pub async fn get_or_create_progress(
+    req: HttpRequest,
     factory: web::Data<ServiceFactory>,
-    query: web::Query<GetProgressQuery>,
 ) -> HttpResponse {
-    match factory.journey_service.get_or_create_progress(query.user_id).await {
+    // R5-02: Require authentication
+    let user = match get_authenticated_user(&req) {
+        Ok(u) => u,
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+    };
+
+    // R5-02: Parse user_id from authenticated principal
+    let user_id = match Uuid::parse_str(&user.id) {
+        Ok(id) => id,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(serde_json::json!({
+                "error": "Invalid user identifier",
+                "code": "BAD_REQUEST"
+            }));
+        }
+    };
+
+    match factory.journey_service.get_or_create_progress(user_id).await {
         Ok(progress) => HttpResponse::Ok().json(ProgressResponse { progress }),
         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({
             "error": e.to_string()
@@ -128,12 +150,33 @@ pub async fn get_or_create_progress(
     }
 }
 
-/// Get existing progress (if any)
+/// Get existing progress (admin endpoint - user_id from path)
 pub async fn get_progress(
+    req: HttpRequest,
     factory: web::Data<ServiceFactory>,
-    query: web::Query<GetProgressQuery>,
+    path: web::Path<AdminGetProgressPath>,
 ) -> HttpResponse {
-    match factory.journey_service.get_progress(query.user_id).await {
+    // R5-02: Require admin permission for viewing any user's progress
+    let user = match get_authenticated_user(&req) {
+        Ok(u) => u,
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+    };
+
+    // Admin endpoints require Operator permission (enforced by AdminAuth middleware,
+    // but we double-check here for defense in depth)
+    if user.require(Permission::Operator).is_err() {
+        return HttpResponse::Forbidden().json(serde_json::json!({
+            "error": "Operator permission required",
+            "code": "FORBIDDEN"
+        }));
+    }
+
+    match factory.journey_service.get_progress(path.user_id).await {
         Ok(Some(progress)) => HttpResponse::Ok().json(ProgressResponse { progress }),
         Ok(None) => HttpResponse::NotFound().json(serde_json::json!({
             "error": "No onboarding progress found for user"
@@ -144,12 +187,34 @@ pub async fn get_progress(
     }
 }
 
-/// Resume onboarding from paused state
+/// Resume onboarding from paused state (user-facing, requires auth)
+/// R5-02: User_id derived from authenticated principal
 pub async fn resume_onboarding(
+    req: HttpRequest,
     factory: web::Data<ServiceFactory>,
-    body: web::Json<ResumeRequest>,
 ) -> HttpResponse {
-    match factory.journey_service.resume_onboarding(body.user_id).await {
+    // R5-02: Require authentication
+    let user = match get_authenticated_user(&req) {
+        Ok(u) => u,
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+    };
+
+    let user_id = match Uuid::parse_str(&user.id) {
+        Ok(id) => id,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(serde_json::json!({
+                "error": "Invalid user identifier",
+                "code": "BAD_REQUEST"
+            }));
+        }
+    };
+
+    match factory.journey_service.resume_onboarding(user_id).await {
         Ok(progress) => HttpResponse::Ok().json(ProgressResponse { progress }),
         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({
             "error": e.to_string()
@@ -157,15 +222,37 @@ pub async fn resume_onboarding(
     }
 }
 
-/// Transition to new state
+/// Transition to new state (admin endpoint - user_id from path)
+/// R5-02: Actor derived from authenticated principal
 pub async fn transition_state(
+    req: HttpRequest,
     factory: web::Data<ServiceFactory>,
-    body: web::Json<TransitionRequest>,
+    path: web::Path<AdminGetProgressPath>,
+    body: web::Json<AdminTransitionRequest>,
 ) -> HttpResponse {
+    // R5-02: Require admin permission
+    let user = match get_authenticated_user(&req) {
+        Ok(u) => u,
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+    };
+
+    if user.require(Permission::Operator).is_err() {
+        return HttpResponse::Forbidden().json(serde_json::json!({
+            "error": "Operator permission required",
+            "code": "FORBIDDEN"
+        }));
+    }
+
+    // R5-02: Actor is always the authenticated user, not from request
     match factory.journey_service.transition_state(
-        body.user_id,
+        path.user_id,
         body.new_state.clone(),
-        body.actor_id.as_deref(),
+        Some(&user.id),
     ).await {
         Ok(progress) => HttpResponse::Ok().json(ProgressResponse { progress }),
         Err(e) => HttpResponse::BadRequest().json(serde_json::json!({
@@ -224,14 +311,42 @@ pub async fn get_funnel_metrics(
 }
 
 /// Complete eligibility check
+/// R5-02: Requires authentication, user_id from principal
+/// R5-02: device_verified is NOT client-controlled - server must verify independently
 pub async fn complete_eligibility(
+    req: HttpRequest,
     factory: web::Data<ServiceFactory>,
     body: web::Json<CompleteEligibilityRequest>,
 ) -> HttpResponse {
+    // R5-02: Require authentication
+    let user = match get_authenticated_user(&req) {
+        Ok(u) => u,
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+    };
+
+    let user_id = match Uuid::parse_str(&user.id) {
+        Ok(id) => id,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(serde_json::json!({
+                "error": "Invalid user identifier",
+                "code": "BAD_REQUEST"
+            }));
+        }
+    };
+
+    // R5-02: device_verified=false until server verifies device independently
+    // TODO: Implement actual device verification via upstream provider
+    let device_verified = false;
+
     match factory.journey_service.complete_eligibility(
-        body.user_id,
+        user_id,
         &body.country_code,
-        body.device_verified,
+        device_verified,
         body.referral_code.as_deref(),
     ).await {
         Ok(progress) => HttpResponse::Ok().json(ProgressResponse { progress }),
@@ -242,12 +357,35 @@ pub async fn complete_eligibility(
 }
 
 /// Accept economics/terms
+/// R5-02: Requires authentication, user_id from principal
 pub async fn accept_economics(
+    req: HttpRequest,
     factory: web::Data<ServiceFactory>,
     body: web::Json<AcceptEconomicsRequest>,
 ) -> HttpResponse {
+    // R5-02: Require authentication
+    let user = match get_authenticated_user(&req) {
+        Ok(u) => u,
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+    };
+
+    let user_id = match Uuid::parse_str(&user.id) {
+        Ok(id) => id,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(serde_json::json!({
+                "error": "Invalid user identifier",
+                "code": "BAD_REQUEST"
+            }));
+        }
+    };
+
     match factory.journey_service.accept_economics(
-        body.user_id,
+        user_id,
         body.consent_version,
     ).await {
         Ok(progress) => HttpResponse::Ok().json(ProgressResponse { progress }),
@@ -258,11 +396,34 @@ pub async fn accept_economics(
 }
 
 /// Complete setup step
+/// R5-02: Requires authentication, user_id from principal
 pub async fn complete_setup_step(
+    req: HttpRequest,
     factory: web::Data<ServiceFactory>,
     body: web::Json<CompleteSetupStepRequest>,
 ) -> HttpResponse {
-    match factory.journey_service.complete_setup_step(body.user_id, body.step).await {
+    // R5-02: Require authentication
+    let user = match get_authenticated_user(&req) {
+        Ok(u) => u,
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+    };
+
+    let user_id = match Uuid::parse_str(&user.id) {
+        Ok(id) => id,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(serde_json::json!({
+                "error": "Invalid user identifier",
+                "code": "BAD_REQUEST"
+            }));
+        }
+    };
+
+    match factory.journey_service.complete_setup_step(user_id, body.step).await {
         Ok(progress) => HttpResponse::Ok().json(ProgressResponse { progress }),
         Err(e) => HttpResponse::BadRequest().json(serde_json::json!({
             "error": e.to_string()
@@ -271,14 +432,41 @@ pub async fn complete_setup_step(
 }
 
 /// Reserve license
+/// R5-02: Requires authentication, user_id from principal
+/// R5-02: expires_at is server-controlled for security
 pub async fn reserve_license(
+    req: HttpRequest,
     factory: web::Data<ServiceFactory>,
     body: web::Json<ReserveLicenseRequest>,
 ) -> HttpResponse {
+    // R5-02: Require authentication
+    let user = match get_authenticated_user(&req) {
+        Ok(u) => u,
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+    };
+
+    let user_id = match Uuid::parse_str(&user.id) {
+        Ok(id) => id,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(serde_json::json!({
+                "error": "Invalid user identifier",
+                "code": "BAD_REQUEST"
+            }));
+        }
+    };
+
+    // R5-02: Server-controlled reservation expiry (15 minutes from now)
+    let expires_at = chrono::Utc::now() + chrono::Duration::minutes(15);
+
     match factory.journey_service.reserve_license(
-        body.user_id,
+        user_id,
         body.license_id,
-        body.expires_at,
+        expires_at,
     ).await {
         Ok(progress) => HttpResponse::Ok().json(ProgressResponse { progress }),
         Err(e) => HttpResponse::BadRequest().json(serde_json::json!({
@@ -288,11 +476,34 @@ pub async fn reserve_license(
 }
 
 /// Activate license (complete onboarding)
+/// R5-02: Requires authentication, user_id from principal
 pub async fn activate_license(
+    req: HttpRequest,
     factory: web::Data<ServiceFactory>,
     body: web::Json<ActivateLicenseRequest>,
 ) -> HttpResponse {
-    match factory.journey_service.activate_license(body.user_id, body.license_id).await {
+    // R5-02: Require authentication
+    let user = match get_authenticated_user(&req) {
+        Ok(u) => u,
+        Err(_) => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Authentication required",
+                "code": "UNAUTHORIZED"
+            }));
+        }
+    };
+
+    let user_id = match Uuid::parse_str(&user.id) {
+        Ok(id) => id,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(serde_json::json!({
+                "error": "Invalid user identifier",
+                "code": "BAD_REQUEST"
+            }));
+        }
+    };
+
+    match factory.journey_service.activate_license(user_id, body.license_id).await {
         Ok(progress) => HttpResponse::Ok().json(ProgressResponse { progress }),
         Err(e) => HttpResponse::BadRequest().json(serde_json::json!({
             "error": e.to_string()

@@ -62,7 +62,8 @@ struct LicenseRow {
     lease_from: Option<DateTime<Utc>>,
     lease_to: Option<DateTime<Utc>>,
     validation_last_success_at: Option<DateTime<Utc>>,
-    settings: Option<String>,
+    // R5-03: Use serde_json::Value for JSONB column
+    settings: Option<serde_json::Value>,
     synced_at: Option<DateTime<Utc>>,
     is_on_marketplace: Option<bool>,
     is_on_uno_marketplace: Option<bool>,
@@ -81,8 +82,9 @@ impl From<LicenseRow> for LicenseEntity {
             alias: row.alias,
             agent_id: row.agent_id.unwrap_or_default(),
             ulo_name: row.ulo_name.unwrap_or_default(),
-            uno_share: row.uno_share.unwrap_or(47.0),
-            agent_share: row.agent_share.unwrap_or(3.0),
+            // R5-03: Updated defaults to match new offer splits (40/10/50)
+            uno_share: row.uno_share.unwrap_or(40.0),
+            agent_share: row.agent_share.unwrap_or(10.0),
             ulo_share: row.ulo_share.unwrap_or(50.0),
             uptime: row.uptime.unwrap_or(0.0),
             is_online: row.is_online.unwrap_or(false),
@@ -101,7 +103,8 @@ impl From<LicenseRow> for LicenseEntity {
             lease_from: row.lease_from.map(|d| d.to_rfc3339()),
             lease_to: row.lease_to.map(|d| d.to_rfc3339()),
             validation_last_success_at: row.validation_last_success_at.map(|d| d.to_rfc3339()),
-            settings: row.settings,
+            // R5-03: Convert JSONB to String for entity
+            settings: row.settings.map(|v| v.to_string()),
             synced_at: row.synced_at.map(|d| d.to_rfc3339()),
             is_on_marketplace: row.is_on_marketplace.unwrap_or(false),
             is_on_uno_marketplace: row.is_on_uno_marketplace.unwrap_or(false),
@@ -376,7 +379,8 @@ impl LicenseRepositoryTrait for LicenseRepository {
             .bind(license.lease_from.as_ref().and_then(|s| DateTime::parse_from_rfc3339(s).ok()).map(|d| d.with_timezone(&Utc)))
             .bind(license.lease_to.as_ref().and_then(|s| DateTime::parse_from_rfc3339(s).ok()).map(|d| d.with_timezone(&Utc)))
             .bind(license.validation_last_success_at.as_ref().and_then(|s| DateTime::parse_from_rfc3339(s).ok()).map(|d| d.with_timezone(&Utc)))
-            .bind(&license.settings)
+            // R5-03: Parse settings String back to JSON for JSONB column
+            .bind(license.settings.as_ref().and_then(|s| serde_json::from_str::<serde_json::Value>(s).ok()))
             .bind(license.synced_at.as_ref().and_then(|s| DateTime::parse_from_rfc3339(s).ok()).map(|d| d.with_timezone(&Utc)))
             .bind(license.is_on_marketplace)
             .bind(license.is_on_uno_marketplace)
