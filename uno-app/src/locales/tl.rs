@@ -581,4 +581,18 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.not_for_shared_devices" => "Mga gumagamit ng shared o public devices",
     "wizard.economics.understand_proceed" => "Naiintindihan Ko - Magpatuloy Tayo",
     "wizard.economics.example_pool" => "Halimbawa ng Monthly Pool",
+
+    // F1-C: Suitability Earnings (non-hardcoded)
+    "suitability.your_earnings_potential" => "Ang Iyong Potensyal na Kita",
+    "suitability.earnings_potential_intro" => "Batay sa iyong device at koneksyon, narito ang iyong tinatantyang potensyal na kita.",
+    "suitability.earnings_potential_label" => "Antas ng Potensyal",
+    "suitability.earnings_high_desc" => "Ang iyong setup ay mainam para kumita. Asahan ang mga tuloy-tuloy na oportunidad.",
+    "suitability.earnings_medium_desc" => "Magandang potensyal na may espasyo para mapabuti ang uptime o koneksyon.",
+    "suitability.earnings_low_desc" => "Limitadong potensyal dahil sa mga limitasyon sa koneksyon o uptime.",
+    "suitability.earnings_vary_message" => "Ang aktwal na kita ay nag-iiba ayon sa rehiyon, availability ng task, at kondisyon ng network.",
+    "suitability.earnings_vary_region_task" => "Ang kita ay nag-iiba ayon sa rehiyon at availability ng task",
+    "suitability.complete_steps_for_estimate" => "Kumpletuhin ang mga nakaraang hakbang para makita ang iyong personalized na estimate.",
+
+    // F1-A: Support ticket creation
+    "support.ticket_created" => "Matagumpay na nagawa ang ticket!",
 };

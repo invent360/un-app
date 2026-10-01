@@ -581,4 +581,18 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.not_for_shared_devices" => "Ceux qui utilisent des appareils partages ou publics",
     "wizard.economics.understand_proceed" => "Je Comprends - Continuons",
     "wizard.economics.example_pool" => "Exemple de Pool Mensuel",
+
+    // F1-C: Suitability Earnings (non-hardcoded)
+    "suitability.your_earnings_potential" => "Votre Potentiel de Gains",
+    "suitability.earnings_potential_intro" => "En fonction de votre appareil et de votre connexion, voici votre potentiel de gains estime.",
+    "suitability.earnings_potential_label" => "Niveau de Potentiel",
+    "suitability.earnings_high_desc" => "Votre configuration est ideale pour gagner. Attendez-vous a des opportunites regulieres.",
+    "suitability.earnings_medium_desc" => "Bon potentiel avec de la marge pour ameliorer la disponibilite ou la connectivite.",
+    "suitability.earnings_low_desc" => "Potentiel limite en raison de contraintes de connectivite ou de disponibilite.",
+    "suitability.earnings_vary_message" => "Les gains reels varient selon la region, la disponibilite des taches et les conditions du reseau.",
+    "suitability.earnings_vary_region_task" => "Les gains varient selon la region et la disponibilite des taches",
+    "suitability.complete_steps_for_estimate" => "Completez les etapes precedentes pour voir votre estimation personnalisee.",
+
+    // F1-A: Support ticket creation
+    "support.ticket_created" => "Ticket cree avec succes !",
 };

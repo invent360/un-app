@@ -5,12 +5,15 @@
 //! high contention.
 //!
 //! Exit Gate G9 Criterion: 100 concurrent clients, 10 licenses = 10 owners
+//!
+//! F9: Each concurrent client uses a unique authenticated identity (JWT token)
+//! to prove distribution works with production-like session verification.
 
 #![cfg(feature = "ssr")]
 
 mod harness;
 
-use harness::TestHarness;
+use harness::{TestHarness, TestFixtures};
 use serde_json::json;
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -48,6 +51,10 @@ async fn concurrent_claims_exactly_n_winners_for_n_licenses() {
         let barrier = barrier.clone();
         let base_url = harness.url().to_string();
 
+        // F9: Generate unique authenticated identity for each concurrent client
+        let user_id = format!("test-user-concurrent-{}", client_id);
+        let token = TestFixtures::generate_test_token(&user_id, "participant");
+
         let handle = tokio::spawn(async move {
             // Wait for all clients to be ready
             barrier.wait().await;
@@ -55,10 +62,11 @@ async fn concurrent_claims_exactly_n_winners_for_n_licenses() {
             let client = reqwest::Client::new();
             let mut local_claims = Vec::new();
 
-            // Each client tries to claim all licenses
+            // Each client tries to claim all licenses with authenticated identity
             for code in &codes {
                 let response = client
                     .post(format!("{}/api/v1/licenses/claim", base_url))
+                    .header("Authorization", format!("Bearer {}", token))
                     .json(&json!({
                         "lease_code": code,
                         "device_id": format!("test-device-concurrent-{}", client_id)
@@ -104,13 +112,13 @@ async fn concurrent_claims_exactly_n_winners_for_n_licenses() {
         claimed_licenses.insert(code.clone());
     }
 
-    // R5-15: Assert that claims actually succeeded
+    // F9: Assert that claims actually succeeded
     // The number of successful claims should equal the number of licenses
     assert_eq!(
         claimed_licenses.len(),
         AVAILABLE_LICENSES,
         "Expected exactly {} successful claims, got {}. \
-         Ensure ENABLE_TEST_ISSUANCE is set in test harness.",
+         Run with: cargo test --features ssr,test-issuance",
         AVAILABLE_LICENSES,
         claimed_licenses.len()
     );
@@ -196,12 +204,17 @@ async fn concurrent_same_license_single_winner() {
         let success = success_count.clone();
         let base_url = harness.url().to_string();
 
+        // F9: Generate unique authenticated identity for each concurrent client
+        let user_id = format!("test-user-single-{}", client_id);
+        let token = TestFixtures::generate_test_token(&user_id, "participant");
+
         let handle = tokio::spawn(async move {
             barrier.wait().await;
 
             let client = reqwest::Client::new();
             let response = client
                 .post(format!("{}/api/v1/licenses/claim", base_url))
+                .header("Authorization", format!("Bearer {}", token))
                 .json(&json!({
                     "lease_code": code,
                     "device_id": format!("test-device-single-{}", client_id)
@@ -439,12 +452,17 @@ async fn concurrent_reservations_limited_by_quota() {
         let success = success_count.clone();
         let base_url = harness.url().to_string();
 
+        // F9: Generate authenticated admin identity for reservation
+        let admin_id = format!("test-admin-reserve-{}", i);
+        let token = TestFixtures::generate_test_token(&admin_id, "operator");
+
         let handle = tokio::spawn(async move {
             barrier.wait().await;
 
             let client = reqwest::Client::new();
             let response = client
                 .post(format!("{}/api/v1/admin/licenses/reserve", base_url))
+                .header("Authorization", format!("Bearer {}", token))
                 .header("X-API-Key", "test-api-key-phase9")
                 .json(&json!({
                     "user_id": format!("test-user-reserve-{}", i),

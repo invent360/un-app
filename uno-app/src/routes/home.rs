@@ -11,7 +11,7 @@
 
 use leptos::prelude::*;
 use leptos_router::hooks::use_query_map;
-use crate::components::common::PreviewBanner;
+use crate::components::common::{PreviewBanner, DevBadge};
 use crate::components::suitability::use_suitability_state;
 
 #[cfg(feature = "hydrate")]
@@ -411,7 +411,7 @@ fn TaskAvailabilityBanner() -> impl IntoView {
             <div class="banner-content">
                 <span class="banner-icon">"✓"</span>
                 <div class="banner-text">
-                    <span class="banner-title">"Tasks are available in your region"</span>
+                    <span class="banner-title">"Tasks are available in your region" <DevBadge /></span>
                     <span class="banner-meta">"Start earning today • Data as of "{last_updated}</span>
                 </div>
             </div>

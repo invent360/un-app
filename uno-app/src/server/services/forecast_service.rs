@@ -197,22 +197,53 @@ mod canonical_conversion {
         // Convert database tasks to canonical tasks
         let canonical_tasks: Vec<CanonicalTask> = tasks
             .iter()
-            .map(|t| CanonicalTask {
-                name: t.task_name.clone(),
-                enabled: true, // All tasks in DB are enabled by definition
-                android: t.device_type.as_deref() != Some("ios") && t.device_type.as_deref() != Some("windows"),
-                ios: t.device_type.as_deref() == Some("ios") || t.device_type.as_deref() == Some("all"),
-                windows: t.device_type.as_deref() == Some("windows") || t.device_type.as_deref() == Some("all"),
-                // Convert micros to USD
-                rate: (t.daily_rate_micros as f64) / 1_000_000.0,
-                basis: RateBasis::Pool,
-                eligible: t.productivity_rate,
-                activity: t.productivity_rate, // Use productivity as activity factor
-                start: 1,
-                end: scenario.forecast_weeks as u32,
-                cap: 0.0, // No cap by default
-                extra: 0.0, // Extra costs handled separately
-                illustrative: false,
+            .map(|t| {
+                // F7: Calculate task start/end weeks based on launch_date if provided
+                let start_week = t.launch_date
+                    .and_then(|ld| {
+                        let days_from_start = (ld - scenario.start_date).num_days();
+                        if days_from_start > 0 {
+                            Some((days_from_start / 7 + 1) as u32)
+                        } else {
+                            Some(1)
+                        }
+                    })
+                    .unwrap_or(1);
+
+                let end_week = t.end_date
+                    .and_then(|ed| {
+                        let days_from_start = (ed - scenario.start_date).num_days();
+                        if days_from_start > 0 {
+                            Some((days_from_start / 7 + 1) as u32)
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or(scenario.forecast_weeks as u32);
+
+                CanonicalTask {
+                    name: t.task_name.clone(),
+                    enabled: true, // All tasks in DB are enabled by definition
+                    android: t.device_type.as_deref() != Some("ios") && t.device_type.as_deref() != Some("windows"),
+                    ios: t.device_type.as_deref() == Some("ios") || t.device_type.as_deref() == Some("all"),
+                    windows: t.device_type.as_deref() == Some("windows") || t.device_type.as_deref() == Some("all"),
+                    // Convert micros to USD
+                    rate: (t.daily_rate_micros as f64) / 1_000_000.0,
+                    basis: RateBasis::Pool,
+                    // F7 FIX: eligible is the productivity rate (eligibility factor)
+                    eligible: t.productivity_rate,
+                    // F7 FIX: activity should be 1.0 (not productivity_rate which would cause squaring)
+                    // The productivity_rate already accounts for the effective participation
+                    activity: 1.0,
+                    start: start_week,
+                    end: end_week,
+                    // F7 FIX: Use max_capacity for supply cap (0.0 means unlimited)
+                    cap: t.max_capacity.map(|c| c as f64).unwrap_or(0.0),
+                    // F7 FIX: Include incremental per-device costs from support cost
+                    // Convert from monthly to weekly (divide by 4.33)
+                    extra: (t.support_cost_per_user_monthly_micros as f64) / 1_000_000.0 / 4.33,
+                    illustrative: false,
+                }
             })
             .collect();
 
@@ -222,6 +253,13 @@ mod canonical_conversion {
     /// Convert canonical forecast row to database result
     ///
     /// R5-12: Maps the 31-field canonical row to the database result format
+    ///
+    /// F7: Cost field mapping (preserves itemization where possible):
+    /// - `acquisition_cost_micros` <- row.acquisition (customer acquisition)
+    /// - `support_cost_micros` <- row.support (support costs)
+    /// - `hosting_cost_micros` <- row.overhead + row.coordination (infrastructure + coordination)
+    /// - `messaging_cost_micros` <- row.fees (platform fees, historically messaging)
+    /// - `other_cost_micros` <- row.task_costs + row.capital_charge + row.tax (task + financial)
     pub fn from_canonical_row(
         scenario_id: Uuid,
         row: &CanonicalRow,
@@ -253,17 +291,22 @@ mod canonical_conversion {
             participant_share_micros: to_micros(row.ulo),
             referral_share_micros: to_micros(row.referral),
             uno_share_micros: to_micros(row.uno),
+            // F7: Preserve itemized costs where possible
             acquisition_cost_micros: to_micros(row.acquisition),
             support_cost_micros: to_micros(row.support),
-            hosting_cost_micros: to_micros(row.overhead), // Map overhead to hosting
-            messaging_cost_micros: 0, // Not tracked separately in canonical
-            other_cost_micros: to_micros(row.task_costs + row.coordination + row.fees),
+            // F7: hosting includes overhead + coordination (infrastructure costs)
+            hosting_cost_micros: to_micros(row.overhead + row.coordination),
+            // F7: messaging field used for fees (platform transaction fees)
+            messaging_cost_micros: to_micros(row.fees),
+            // F7: other includes task-specific costs + financial charges
+            other_cost_micros: to_micros(row.task_costs + row.capital_charge + row.tax),
             total_cost_micros: to_micros(row.operating_costs),
             net_profit_micros: to_micros(row.profit),
             cumulative_profit_micros: to_micros(row.cumulative_profit),
             break_even_reached: row.cumulative_profit >= 0.0,
             funding_required_micros: to_micros(row.required_funding),
-            cumulative_funding_micros: to_micros(row.required_funding), // Use peak funding
+            // F7: Use cumulative cash metric for cumulative funding
+            cumulative_funding_micros: to_micros(row.required_funding.max(-row.cumulative_cash)),
             is_actual: false,
             created_at: Utc::now(),
         }

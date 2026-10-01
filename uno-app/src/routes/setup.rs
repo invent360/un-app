@@ -4,7 +4,7 @@
 //! Shows OS-specific instructions and tracks progress.
 
 use leptos::prelude::*;
-use crate::hooks::{use_user, UserLoadState};
+use crate::hooks::{use_user, UserLoadState, t};
 
 /// Setup page component (protected)
 #[component]
@@ -28,7 +28,7 @@ fn SetupContent() -> impl IntoView {
                     view! {
                         <div class="setup-loading">
                             <div class="loading-spinner"></div>
-                            <p>"Loading..."</p>
+                            <p>{t("setup.loading")}</p>
                         </div>
                     }.into_any()
                 }
@@ -36,9 +36,9 @@ fn SetupContent() -> impl IntoView {
                     view! {
                         <div class="setup-unauthenticated">
                             <div class="auth-required-card">
-                                <h2>"Sign In Required"</h2>
-                                <p>"Please sign in and claim a license first."</p>
-                                <a href="/" class="btn-primary">"Get Started"</a>
+                                <h2>{t("setup.signin_required")}</h2>
+                                <p>{t("setup.signin_claim_first")}</p>
+                                <a href="/" class="btn-primary">{t("setup.get_started")}</a>
                             </div>
                         </div>
                     }.into_any()
@@ -46,7 +46,7 @@ fn SetupContent() -> impl IntoView {
                 UserLoadState::Error => {
                     view! {
                         <div class="setup-error">
-                            <p>"Error loading setup. Please try again."</p>
+                            <p>{t("setup.error_loading")}</p>
                         </div>
                     }.into_any()
                 }
@@ -56,9 +56,9 @@ fn SetupContent() -> impl IntoView {
                             if profile.license_id.is_none() {
                                 view! {
                                     <div class="setup-no-license">
-                                        <h2>"No License Found"</h2>
-                                        <p>"You need to claim a license before setting up the app."</p>
-                                        <a href="/" class="btn-primary">"Claim License"</a>
+                                        <h2>{t("setup.no_license_found")}</h2>
+                                        <p>{t("setup.claim_license_first")}</p>
+                                        <a href="/" class="btn-primary">{t("setup.claim_license")}</a>
                                     </div>
                                 }.into_any()
                             } else {
@@ -68,8 +68,8 @@ fn SetupContent() -> impl IntoView {
                         None => {
                             view! {
                                 <div class="setup-unauthenticated">
-                                    <p>"Please sign in to continue."</p>
-                                    <a href="/" class="btn-primary">"Go Home"</a>
+                                    <p>{t("setup.signin_continue")}</p>
+                                    <a href="/" class="btn-primary">{t("setup.go_home")}</a>
                                 </div>
                             }.into_any()
                         }
@@ -135,15 +135,15 @@ fn SetupWizard(license_id: String) -> impl IntoView {
     view! {
         <div class="setup-wizard">
             <div class="setup-header">
-                <h1>"Set Up Your UNO App"</h1>
-                <p class="setup-subtitle">"Follow these steps to start earning"</p>
+                <h1>{t("setup.wizard_title")}</h1>
+                <p class="setup-subtitle">{t("setup.wizard_subtitle")}</p>
             </div>
 
             // Progress indicator
             <div class="setup-progress">
                 <SetupProgressStep
                     number=1
-                    label="Download"
+                    label=t("setup.step_download")
                     is_active=move || current_step.get() == 1
                     is_completed=move || completed_steps.get().get(0).copied().unwrap_or(false)
                     on_click=move |_| go_to_step(1)
@@ -151,7 +151,7 @@ fn SetupWizard(license_id: String) -> impl IntoView {
                 <div class="progress-connector"></div>
                 <SetupProgressStep
                     number=2
-                    label="Install"
+                    label=t("setup.step_install")
                     is_active=move || current_step.get() == 2
                     is_completed=move || completed_steps.get().get(1).copied().unwrap_or(false)
                     on_click=move |_| go_to_step(2)
@@ -159,7 +159,7 @@ fn SetupWizard(license_id: String) -> impl IntoView {
                 <div class="progress-connector"></div>
                 <SetupProgressStep
                     number=3
-                    label="Configure"
+                    label=t("setup.step_configure")
                     is_active=move || current_step.get() == 3
                     is_completed=move || completed_steps.get().get(2).copied().unwrap_or(false)
                     on_click=move |_| go_to_step(3)
@@ -167,7 +167,7 @@ fn SetupWizard(license_id: String) -> impl IntoView {
                 <div class="progress-connector"></div>
                 <SetupProgressStep
                     number=4
-                    label="Activate"
+                    label=t("setup.step_activate")
                     is_active=move || current_step.get() == 4
                     is_completed=move || completed_steps.get().get(3).copied().unwrap_or(false)
                     on_click=move |_| go_to_step(4)
@@ -225,7 +225,7 @@ fn SetupWizard(license_id: String) -> impl IntoView {
 #[component]
 fn SetupProgressStep<F>(
     number: u8,
-    label: &'static str,
+    #[prop(into)] label: String,
     #[prop(into)] is_active: Signal<bool>,
     #[prop(into)] is_completed: Signal<bool>,
     on_click: F,
@@ -253,7 +253,7 @@ where
                     view! { <span>{number}</span> }.into_any()
                 }}
             </div>
-            <span class="step-label">{label}</span>
+            <span class="step-label">{label.clone()}</span>
         </button>
     }
 }
@@ -266,9 +266,9 @@ where
 {
     view! {
         <div class="setup-step-content download-step">
-            <h2>"Download the UNO App"</h2>
+            <h2>{t("setup.download_title")}</h2>
             <p class="step-description">
-                "Get the official UNO app from the Play Store to start earning."
+                {t("setup.download_description")}
             </p>
 
             <div class="download-options">
@@ -277,15 +277,15 @@ where
                     <div class="platform-icon android">
                         <span>"🤖"</span>
                     </div>
-                    <h3>"Android"</h3>
-                    <p>"Requires Android 8.0 or later"</p>
+                    <h3>{t("setup.android")}</h3>
+                    <p>{t("setup.android_requirement")}</p>
                     <a
                         href="https://play.google.com/store/apps/details?id=com.uno.app"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="btn-primary download-btn"
                     >
-                        "Download from Play Store"
+                        {t("setup.download_play_store")}
                     </a>
                 </div>
 
@@ -294,10 +294,10 @@ where
                     <div class="platform-icon ios">
                         <span>"🍎"</span>
                     </div>
-                    <h3>"iOS"</h3>
-                    <p>"Coming Soon"</p>
+                    <h3>{t("setup.ios")}</h3>
+                    <p>{t("setup.coming_soon")}</p>
                     <button class="btn-secondary download-btn" disabled=true>
-                        "App Store - Coming Soon"
+                        {t("setup.app_store_coming_soon")}
                     </button>
                 </div>
             </div>
@@ -305,13 +305,13 @@ where
             <div class="download-notice">
                 <span class="info-icon">"ℹ"</span>
                 <p>
-                    "Only download from official sources. Never install from unknown links."
+                    {t("setup.download_notice")}
                 </p>
             </div>
 
             <div class="step-actions">
                 <button class="btn-primary" on:click=move |_| on_complete.clone()()>
-                    "I've Downloaded the App"
+                    {t("setup.downloaded_app")}
                 </button>
             </div>
         </div>
@@ -327,59 +327,58 @@ where
 {
     view! {
         <div class="setup-step-content install-step">
-            <h2>"Install & Grant Permissions"</h2>
+            <h2>{t("setup.install_title")}</h2>
             <p class="step-description">
-                "Complete these steps to enable the app to earn for you."
+                {t("setup.install_description")}
             </p>
 
             <div class="checklist">
                 <div class="checklist-item">
                     <span class="check-box">"☐"</span>
                     <div class="check-content">
-                        <strong>"Open the UNO app"</strong>
-                        <p>"Launch the app after installation completes"</p>
+                        <strong>{t("setup.install_open_app")}</strong>
+                        <p>{t("setup.install_open_app_desc")}</p>
                     </div>
                 </div>
 
                 <div class="checklist-item">
                     <span class="check-box">"☐"</span>
                     <div class="check-content">
-                        <strong>"Allow background activity"</strong>
-                        <p>"Enable the app to run in the background for continuous earning"</p>
+                        <strong>{t("setup.install_background")}</strong>
+                        <p>{t("setup.install_background_desc")}</p>
                     </div>
                 </div>
 
                 <div class="checklist-item">
                     <span class="check-box">"☐"</span>
                     <div class="check-content">
-                        <strong>"Disable battery optimization"</strong>
-                        <p>"Go to Settings → Apps → UNO → Battery → Don't optimize"</p>
+                        <strong>{t("setup.install_battery")}</strong>
+                        <p>{t("setup.install_battery_desc")}</p>
                     </div>
                 </div>
 
                 <div class="checklist-item">
                     <span class="check-box">"☐"</span>
                     <div class="check-content">
-                        <strong>"Enable auto-start (if available)"</strong>
-                        <p>"Some devices require this for apps to start after reboot"</p>
+                        <strong>{t("setup.install_autostart")}</strong>
+                        <p>{t("setup.install_autostart_desc")}</p>
                     </div>
                 </div>
             </div>
 
             <div class="permission-tips">
-                <h4>"Why these permissions?"</h4>
+                <h4>{t("setup.why_permissions")}</h4>
                 <p>
-                    "UNO uses your unused bandwidth to complete network tasks. "
-                    "These permissions ensure the app can run reliably and earn for you even when you're not using your phone."
+                    {t("setup.why_permissions_desc")}
                 </p>
             </div>
 
             <div class="step-actions">
                 <button class="btn-secondary" on:click=move |_| on_back.clone()()>
-                    "Back"
+                    {t("common.back")}
                 </button>
                 <button class="btn-primary" on:click=move |_| on_complete.clone()()>
-                    "I've Completed These Steps"
+                    {t("setup.completed_steps")}
                 </button>
             </div>
         </div>
@@ -401,33 +400,33 @@ where
 
     view! {
         <div class="setup-step-content configure-step">
-            <h2>"Connect Your License"</h2>
+            <h2>{t("setup.configure_title")}</h2>
             <p class="step-description">
-                "Link your license to the app to start earning."
+                {t("setup.configure_description")}
             </p>
 
             <div class="license-display">
-                <label>"Your License Key"</label>
+                <label>{t("setup.your_license_key")}</label>
                 <div class="license-key">
                     <span class="key-value">{short_license}</span>
-                    <button class="copy-btn" title="Copy to clipboard">
+                    <button class="copy-btn" title={t("setup.copy_to_clipboard")}>
                         "📋"
                     </button>
                 </div>
             </div>
 
             <div class="configure-instructions">
-                <h4>"In the UNO App:"</h4>
+                <h4>{t("setup.in_uno_app")}</h4>
                 <ol>
-                    <li>"Open the app and go to Settings"</li>
-                    <li>"Tap 'Enter License Key'"</li>
-                    <li>"Paste your license key"</li>
-                    <li>"Tap 'Activate'"</li>
+                    <li>{t("setup.configure_step1")}</li>
+                    <li>{t("setup.configure_step2")}</li>
+                    <li>{t("setup.configure_step3")}</li>
+                    <li>{t("setup.configure_step4")}</li>
                 </ol>
             </div>
 
             <div class="qr-code-section">
-                <p>"Or scan this QR code with the app:"</p>
+                <p>{t("setup.scan_qr_code")}</p>
                 <div class="qr-placeholder">
                     <span>"[QR Code]"</span>
                 </div>
@@ -435,10 +434,10 @@ where
 
             <div class="step-actions">
                 <button class="btn-secondary" on:click=move |_| on_back.clone()()>
-                    "Back"
+                    {t("common.back")}
                 </button>
                 <button class="btn-primary" on:click=move |_| on_complete.clone()()>
-                    "I've Connected My License"
+                    {t("setup.connected_license")}
                 </button>
             </div>
         </div>
@@ -454,39 +453,39 @@ where
 {
     view! {
         <div class="setup-step-content activate-step">
-            <h2>"You're All Set!"</h2>
+            <h2>{t("setup.activate_title")}</h2>
             <p class="step-description">
-                "Your device is now configured to earn with UNO."
+                {t("setup.activate_description")}
             </p>
 
             <div class="success-icon">"🎉"</div>
 
             <div class="next-steps">
-                <h4>"What happens now?"</h4>
+                <h4>{t("setup.what_happens_now")}</h4>
                 <ul>
-                    <li>"The app will start processing tasks automatically"</li>
-                    <li>"Keep your device connected to WiFi when possible"</li>
-                    <li>"Check your dashboard to track earnings"</li>
-                    <li>"Complete D1, D7, and D30 milestones to maximize rewards"</li>
+                    <li>{t("setup.next_step1")}</li>
+                    <li>{t("setup.next_step2")}</li>
+                    <li>{t("setup.next_step3")}</li>
+                    <li>{t("setup.next_step4")}</li>
                 </ul>
             </div>
 
             <div class="tips-card">
-                <h4>"Tips for Maximum Earnings"</h4>
+                <h4>{t("setup.tips_title")}</h4>
                 <ul>
-                    <li>"Keep the app running in the background"</li>
-                    <li>"Connect to WiFi instead of mobile data"</li>
-                    <li>"Keep your device charged or plugged in"</li>
-                    <li>"Don't force-close the app"</li>
+                    <li>{t("setup.tip1")}</li>
+                    <li>{t("setup.tip2")}</li>
+                    <li>{t("setup.tip3")}</li>
+                    <li>{t("setup.tip4")}</li>
                 </ul>
             </div>
 
             <div class="step-actions">
                 <button class="btn-secondary" on:click=move |_| on_back.clone()()>
-                    "Back"
+                    {t("common.back")}
                 </button>
                 <a href="/dashboard" class="btn-primary">
-                    "Go to Dashboard"
+                    {t("setup.go_to_dashboard")}
                 </a>
             </div>
         </div>

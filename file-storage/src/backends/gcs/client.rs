@@ -523,4 +523,71 @@ impl FileStorageClient for GoogleCloudStorageClient {
     fn backend_name(&self) -> &'static str {
         "google_cloud_storage"
     }
+
+    async fn upload_raw(
+        &self,
+        backup_id: &str,
+        bytes: Vec<u8>,
+        filename: &str,
+        mime_type: &str,
+    ) -> Result<String> {
+        // F5: Raw upload without image validation for backup purposes
+        // Use backup_id as prefix directory in GCS
+
+        // Validate backup_id (UUID-like, alphanumeric only)
+        if backup_id.is_empty()
+            || backup_id.len() > 128
+            || !backup_id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+        {
+            return Err(StorageError::InvalidUrl("Invalid backup identifier".into()));
+        }
+
+        // Validate filename
+        if filename.is_empty()
+            || filename.len() > 255
+            || filename.contains(['/', '\\'])
+            || filename.contains("..")
+        {
+            return Err(StorageError::InvalidUrl("Invalid backup filename".into()));
+        }
+
+        // Check file size
+        if bytes.len() as u64 > self.config.max_file_size {
+            return Err(StorageError::FileTooLarge {
+                size: bytes.len() as u64,
+                limit: self.config.max_file_size,
+            });
+        }
+
+        // Create object name: backup_id/filename
+        let object_name = format!("backups/{}/{}", backup_id, filename);
+
+        let access_token = self.auth.get_access_token().await?;
+        self.upload_single_file(&object_name, &bytes, mime_type, &access_token).await
+    }
+
+    async fn get_raw(&self, backup_id: &str, filename: &str) -> Result<Vec<u8>> {
+        // F5: Raw download for backup restoration
+
+        // Validate backup_id
+        if backup_id.is_empty()
+            || backup_id.len() > 128
+            || !backup_id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+        {
+            return Err(StorageError::InvalidUrl("Invalid backup identifier".into()));
+        }
+
+        // Validate filename
+        if filename.is_empty()
+            || filename.len() > 255
+            || filename.contains(['/', '\\'])
+            || filename.contains("..")
+        {
+            return Err(StorageError::InvalidUrl("Invalid backup filename".into()));
+        }
+
+        let object_name = format!("backups/{}/{}", backup_id, filename);
+        let access_token = self.auth.get_access_token().await?;
+        self.download_object(&object_name, &access_token).await
+    }
 }

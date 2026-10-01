@@ -93,6 +93,8 @@ pub struct ExtendedReservationResult {
 pub struct ConfirmRequest {
     pub license_id: String,
     pub session_token: String,
+    /// F2: Owner ID (authenticated user) for verification against reservation
+    pub owner_id: String,
     pub device_id: Option<String>,
     pub referral_code: Option<String>,
 }
@@ -305,8 +307,11 @@ impl ReservationService for ReservationServiceImpl {
         // R5-05: Use atomic_reserve_with_capacity to check capacity INSIDE the transaction
         // This prevents TOCTOU race conditions where two users could both pass a
         // non-locked capacity check and then both attempt to reserve.
+        // F2: Now includes user_id for owner binding
+        let user_id = request.user_id.as_deref().unwrap_or("anonymous");
         let result = self.claim_repo
             .atomic_reserve_with_capacity(
+                user_id,
                 request.split_type.as_deref(),
                 request.referral_code.as_deref(),
                 Some(MAX_OCCUPIED_LICENSES),
@@ -422,11 +427,12 @@ impl ReservationService for ReservationServiceImpl {
             }
         };
 
-        // Use atomic_confirm from claim repository
+        // F2: Use atomic_confirm with owner_id for owner verification
         let result = self.claim_repo
             .atomic_confirm(
                 &request.license_id,
                 &request.session_token,
+                &request.owner_id,
                 request.device_id.as_deref(),
                 referral_id,
             )

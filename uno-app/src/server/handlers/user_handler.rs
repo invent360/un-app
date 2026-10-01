@@ -76,8 +76,10 @@ pub struct CohortStatus {
 
 /// GET /api/v1/user/me
 /// Get current authenticated user's profile
+/// F3: Added pool for direct license status queries
 pub async fn get_me(
     req: HttpRequest,
+    pool: web::Data<crate::server::db::ConnectionPool>,
     cohort_repo: web::Data<DynCohortRepository>,
     exit_repo: web::Data<DynExitRepository>,
 ) -> HttpResponse {
@@ -162,14 +164,65 @@ pub async fn get_me(
         false
     };
 
-    // License status is simplified - we get it from cohort existence
-    let license_status = if license_id.is_some() {
-        Some(LicenseStatus {
-            state: if has_active_exit { "exiting".to_string() } else { "active".to_string() },
-            variant: None, // Could fetch from license table if needed
-            expires_at: None, // Could fetch from license table if needed
-            is_active: !has_active_exit,
-        })
+    // F3: Query actual license state from database instead of inferring from cohort
+    let license_status = if let Some(ref lid) = license_id {
+        // Fetch real license state
+        #[derive(sqlx::FromRow)]
+        struct LicenseRow {
+            claimed: bool,
+            is_quarantined: Option<bool>,
+            valid_to: chrono::DateTime<chrono::Utc>,
+            split_type: Option<String>,
+        }
+
+        match sqlx::query_as::<_, LicenseRow>(r#"
+            SELECT claimed, is_quarantined, valid_to, split_type::text
+            FROM licenses WHERE id = $1
+        "#)
+        .bind(lid)
+        .fetch_optional(pool.as_ref())
+        .await
+        {
+            Ok(Some(lic)) => {
+                let is_quarantined = lic.is_quarantined.unwrap_or(false);
+                let is_expired = lic.valid_to <= chrono::Utc::now();
+
+                let state = if has_active_exit {
+                    "exiting".to_string()
+                } else if is_quarantined {
+                    "quarantined".to_string()
+                } else if is_expired {
+                    "expired".to_string()
+                } else if !lic.claimed {
+                    "unclaimed".to_string()
+                } else {
+                    "active".to_string()
+                };
+
+                let is_active = lic.claimed && !is_quarantined && !is_expired && !has_active_exit;
+
+                Some(LicenseStatus {
+                    state,
+                    variant: lic.split_type,
+                    expires_at: Some(lic.valid_to.to_rfc3339()),
+                    is_active,
+                })
+            }
+            Ok(None) => {
+                tracing::warn!(license_id = %lid, "License not found in database");
+                None
+            }
+            Err(e) => {
+                tracing::error!(license_id = %lid, error = %e, "Failed to fetch license status");
+                // Return degraded response rather than failing completely
+                Some(LicenseStatus {
+                    state: if has_active_exit { "exiting".to_string() } else { "unknown".to_string() },
+                    variant: None,
+                    expires_at: None,
+                    is_active: !has_active_exit,
+                })
+            }
+        }
     } else {
         None
     };

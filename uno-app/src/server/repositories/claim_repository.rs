@@ -122,9 +122,13 @@ pub trait ClaimRepository: Send + Sync {
     /// R5-05: Same as atomic_reserve, but checks capacity ceiling INSIDE
     /// the transaction to prevent TOCTOU race conditions.
     ///
+    /// F2: Now requires user_id for owner binding. The user who reserves
+    /// must be the same user who confirms.
+    ///
     /// This is the recommended method for production use.
     async fn atomic_reserve_with_capacity(
         &self,
+        user_id: &str,
         split_type: Option<&str>,
         referral_code: Option<&str>,
         capacity_ceiling: Option<i64>,
@@ -134,15 +138,21 @@ pub trait ClaimRepository: Send + Sync {
     ///
     /// This performs in a single transaction:
     /// 1. Verify session_token matches reservation
-    /// 2. Verify reservation not expired
-    /// 3. UPDATE licenses SET claimed=true, referral_id (immutable), etc.
-    /// 4. UPDATE license_reservations SET status='claimed'
+    /// 2. Verify owner_id matches the user who made the reservation (F2)
+    /// 3. Verify reservation not expired
+    /// 4. UPDATE licenses SET claimed=true, issued_to, referral_id (immutable), etc.
+    /// 5. UPDATE license_reservations SET status='claimed'
+    ///
+    /// F2: The owner_id MUST match the user_id stored during reservation.
+    /// This prevents credential theft where an attacker who knows the
+    /// license_id could claim someone else's reservation.
     ///
     /// Referral attribution is immutable - once set, cannot be changed
     async fn atomic_confirm(
         &self,
         license_id: &str,
         session_token: &str,
+        owner_id: &str,
         device_id: Option<&str>,
         referral_id: Option<i32>,
     ) -> Result<ClaimResult, AppError>;
@@ -189,6 +199,195 @@ impl ClaimRepositoryImpl {
         let extra = hasher.finish();
 
         format!("{}_{:016x}", uuid, extra)
+    }
+
+    /// Internal method that performs the actual reservation attempt.
+    /// Called by atomic_reserve_with_capacity with retry logic.
+    async fn try_atomic_reserve(
+        &self,
+        user_id: &str,
+        split_type: Option<&str>,
+        referral_code: Option<&str>,
+        capacity_ceiling: Option<i64>,
+    ) -> Result<ReservationResult, AppError> {
+        let now = Utc::now();
+        let expires_at = now + Duration::seconds(RESERVATION_EXPIRY_SECS);
+        let session_token = Self::generate_session_token();
+
+        // F2: Start transaction and SET SERIALIZABLE isolation level
+        // This ensures capacity checks and reservations are serialized
+        let mut tx = self.db_pool.begin().await
+            .map_err(|e| AppError::Database(format!("Failed to start transaction: {}", e)))?;
+
+        // F2: Actually set SERIALIZABLE isolation (not just default READ COMMITTED)
+        sqlx::query("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| AppError::Database(format!("Failed to set isolation level: {}", e)))?;
+
+        // First, clean up any expired reservations to free licenses
+        sqlx::query(r#"
+            UPDATE licenses
+            SET reserved_until = NULL, reservation_token = NULL
+            WHERE reserved_until IS NOT NULL AND reserved_until < $1
+        "#)
+        .bind(now)
+        .execute(&mut *tx)
+        .await?;
+
+        // Also mark expired reservations in the reservations table
+        sqlx::query(r#"
+            UPDATE license_reservations
+            SET status = 'expired', released_at = $1
+            WHERE status = 'active' AND expires_at < $1
+        "#)
+        .bind(now)
+        .execute(&mut *tx)
+        .await?;
+
+        // R5-05: Check capacity ceiling INSIDE the transaction
+        // This count happens after cleanup and before we lock our target license
+        // INCLUDES: claimed licenses, active reservations, AND pending releases
+        let capacity_remaining = if let Some(ceiling) = capacity_ceiling {
+            let count: (i64,) = sqlx::query_as(
+                r#"
+                SELECT COUNT(*) as count
+                FROM licenses
+                WHERE claimed = true
+                   OR (reserved_until IS NOT NULL AND reserved_until > $1)
+                   OR (is_pending_release = true)
+                "#,
+            )
+            .bind(now)
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(|e| AppError::Database(format!("Capacity check failed: {}", e)))?;
+
+            if count.0 >= ceiling {
+                tracing::warn!(
+                    occupied = count.0,
+                    ceiling = ceiling,
+                    "Capacity ceiling reached (inside transaction)"
+                );
+                return Err(AppError::ValidationError(
+                    "License capacity has been reached. Please try again later.".into()
+                ));
+            }
+
+            Some(ceiling - count.0 - 1) // -1 because we're about to reserve one
+        } else {
+            None
+        };
+
+        // Select first available license with row-level lock
+        // R5-05: FOR UPDATE SKIP LOCKED ensures atomic acquisition
+        // R5-05: Do NOT select lease_code - credentials not revealed until confirm
+        let license: Option<LicenseReserveRow> = if let Some(st) = split_type {
+            sqlx::query_as::<_, LicenseReserveRow>(r#"
+                SELECT id, split_type::text as split_type
+                FROM licenses
+                WHERE claimed = false
+                  AND (reserved_until IS NULL OR reserved_until < $1)
+                  AND valid_from <= $1
+                  AND valid_to > $1
+                  AND split_type = $2::split_type
+                  AND (publication_status = 'published' OR publication_status IS NULL)
+                  AND (is_quarantined = false OR is_quarantined IS NULL)
+                  AND (is_pending_release = false OR is_pending_release IS NULL)
+                ORDER BY created_at ASC
+                LIMIT 1
+                FOR UPDATE SKIP LOCKED
+            "#)
+            .bind(now)
+            .bind(st)
+            .fetch_optional(&mut *tx)
+            .await?
+        } else {
+            sqlx::query_as::<_, LicenseReserveRow>(r#"
+                SELECT id, split_type::text as split_type
+                FROM licenses
+                WHERE claimed = false
+                  AND (reserved_until IS NULL OR reserved_until < $1)
+                  AND valid_from <= $1
+                  AND valid_to > $1
+                  AND (publication_status = 'published' OR publication_status IS NULL)
+                  AND (is_quarantined = false OR is_quarantined IS NULL)
+                  AND (is_pending_release = false OR is_pending_release IS NULL)
+                ORDER BY created_at ASC
+                LIMIT 1
+                FOR UPDATE SKIP LOCKED
+            "#)
+            .bind(now)
+            .fetch_optional(&mut *tx)
+            .await?
+        };
+
+        let license = license.ok_or_else(|| {
+            AppError::NotFound("No licenses available for reservation".into())
+        })?;
+
+        // R3-07: Validate referral code if provided (but don't attribute yet)
+        // Check that both the referral is active AND the agent is approved
+        let referral_validated = if let Some(code) = referral_code {
+            let valid: (bool,) = sqlx::query_as(
+                r#"
+                SELECT EXISTS(
+                    SELECT 1 FROM referrals r
+                    JOIN agents a ON r.agent_id = a.id
+                    WHERE r.referral_code = $1
+                      AND r.status = 'active'
+                      AND a.status = 'approved'
+                )
+                "#
+            )
+            .bind(code.to_uppercase())
+            .fetch_one(&mut *tx)
+            .await?;
+            valid.0
+        } else {
+            false
+        };
+
+        // Update license with reservation
+        sqlx::query(r#"
+            UPDATE licenses
+            SET reserved_until = $2, reservation_token = $3
+            WHERE id = $1
+        "#)
+        .bind(&license.id)
+        .bind(expires_at)
+        .bind(&session_token)
+        .execute(&mut *tx)
+        .await?;
+
+        // F2: Insert into reservations table with user_id for owner binding
+        sqlx::query(r#"
+            INSERT INTO license_reservations (license_id, session_token, user_id, reserved_at, expires_at, status)
+            VALUES ($1, $2, $3, $4, $5, 'active')
+            ON CONFLICT (license_id) DO UPDATE
+            SET session_token = $2, user_id = $3, reserved_at = $4, expires_at = $5, status = 'active', released_at = NULL
+        "#)
+        .bind(&license.id)
+        .bind(&session_token)
+        .bind(user_id)
+        .bind(now)
+        .bind(expires_at)
+        .execute(&mut *tx)
+        .await?;
+
+        // Commit transaction
+        tx.commit().await
+            .map_err(|e| AppError::Database(format!("Failed to commit reservation: {}", e)))?;
+
+        // R5-05: Return result WITHOUT lease_code - credential revealed only at confirm
+        Ok(ReservationResult {
+            license_id: license.id,
+            session_token,
+            expires_at,
+            split_type: license.split_type,
+            referral_validated,
+            capacity_remaining,
+        })
     }
 }
 
@@ -326,7 +525,8 @@ impl ClaimRepository for ClaimRepositoryImpl {
         split_type: Option<&str>,
         referral_code: Option<&str>,
     ) -> Result<ReservationResult, AppError> {
-        self.atomic_reserve_with_capacity(split_type, referral_code, None).await
+        // Delegate without user binding - DEPRECATED, use atomic_reserve_with_capacity
+        self.atomic_reserve_with_capacity("anonymous", split_type, referral_code, None).await
     }
 
     /// Atomically reserve a license with capacity ceiling check
@@ -334,188 +534,49 @@ impl ClaimRepository for ClaimRepositoryImpl {
     /// R5-05: The capacity check is now inside the transaction with proper locking.
     /// This prevents TOCTOU race conditions where two users could both pass a
     /// non-locked capacity check and then both attempt to reserve.
+    ///
+    /// F2: Uses SERIALIZABLE isolation with retry logic for serialization failures.
+    /// Stores user_id to bind reservation to owner for confirmation.
     async fn atomic_reserve_with_capacity(
         &self,
+        user_id: &str,
         split_type: Option<&str>,
         referral_code: Option<&str>,
         capacity_ceiling: Option<i64>,
     ) -> Result<ReservationResult, AppError> {
-        let now = Utc::now();
-        let expires_at = now + Duration::seconds(RESERVATION_EXPIRY_SECS);
-        let session_token = Self::generate_session_token();
+        const MAX_SERIALIZATION_RETRIES: u32 = 3;
 
-        // Start transaction with SERIALIZABLE isolation for capacity safety
-        let mut tx = self.db_pool.begin().await
-            .map_err(|e| AppError::Database(format!("Failed to start transaction: {}", e)))?;
-
-        // First, clean up any expired reservations to free licenses
-        sqlx::query(r#"
-            UPDATE licenses
-            SET reserved_until = NULL, reservation_token = NULL
-            WHERE reserved_until IS NOT NULL AND reserved_until < $1
-        "#)
-        .bind(now)
-        .execute(&mut *tx)
-        .await?;
-
-        // Also mark expired reservations in the reservations table
-        sqlx::query(r#"
-            UPDATE license_reservations
-            SET status = 'expired', released_at = $1
-            WHERE status = 'active' AND expires_at < $1
-        "#)
-        .bind(now)
-        .execute(&mut *tx)
-        .await?;
-
-        // R5-05: Check capacity ceiling INSIDE the transaction
-        // This count happens after cleanup and before we lock our target license
-        // INCLUDES: claimed licenses, active reservations, AND pending releases
-        let capacity_remaining = if let Some(ceiling) = capacity_ceiling {
-            let count: (i64,) = sqlx::query_as(
-                r#"
-                SELECT COUNT(*) as count
-                FROM licenses
-                WHERE claimed = true
-                   OR (reserved_until IS NOT NULL AND reserved_until > $1)
-                   OR (is_pending_release = true)
-                "#,
-            )
-            .bind(now)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(|e| AppError::Database(format!("Capacity check failed: {}", e)))?;
-
-            if count.0 >= ceiling {
-                tracing::warn!(
-                    occupied = count.0,
-                    ceiling = ceiling,
-                    "Capacity ceiling reached (inside transaction)"
-                );
-                return Err(AppError::ValidationError(
-                    "License capacity has been reached. Please try again later.".into()
-                ));
+        for attempt in 0..MAX_SERIALIZATION_RETRIES {
+            match self.try_atomic_reserve(user_id, split_type, referral_code, capacity_ceiling).await {
+                Ok(result) => return Ok(result),
+                Err(e) => {
+                    // Check if this is a serialization failure (PostgreSQL error code 40001)
+                    let error_str = e.to_string();
+                    if error_str.contains("40001") || error_str.contains("serialization") {
+                        if attempt < MAX_SERIALIZATION_RETRIES - 1 {
+                            tracing::warn!(
+                                attempt = attempt + 1,
+                                max_retries = MAX_SERIALIZATION_RETRIES,
+                                "Serialization failure in reservation, retrying"
+                            );
+                            // Brief backoff before retry
+                            tokio::time::sleep(tokio::time::Duration::from_millis(10 * (attempt as u64 + 1))).await;
+                            continue;
+                        }
+                    }
+                    return Err(e);
+                }
             }
+        }
 
-            Some(ceiling - count.0 - 1) // -1 because we're about to reserve one
-        } else {
-            None
-        };
-
-        // Select first available license with row-level lock
-        // R5-05: FOR UPDATE SKIP LOCKED ensures atomic acquisition
-        // R5-05: Do NOT select lease_code - credentials not revealed until confirm
-        let license: Option<LicenseReserveRow> = if let Some(st) = split_type {
-            sqlx::query_as::<_, LicenseReserveRow>(r#"
-                SELECT id, split_type::text as split_type
-                FROM licenses
-                WHERE claimed = false
-                  AND (reserved_until IS NULL OR reserved_until < $1)
-                  AND valid_from <= $1
-                  AND valid_to > $1
-                  AND split_type = $2::split_type
-                  AND (publication_status = 'published' OR publication_status IS NULL)
-                  AND (is_quarantined = false OR is_quarantined IS NULL)
-                  AND (is_pending_release = false OR is_pending_release IS NULL)
-                ORDER BY created_at ASC
-                LIMIT 1
-                FOR UPDATE SKIP LOCKED
-            "#)
-            .bind(now)
-            .bind(st)
-            .fetch_optional(&mut *tx)
-            .await?
-        } else {
-            sqlx::query_as::<_, LicenseReserveRow>(r#"
-                SELECT id, split_type::text as split_type
-                FROM licenses
-                WHERE claimed = false
-                  AND (reserved_until IS NULL OR reserved_until < $1)
-                  AND valid_from <= $1
-                  AND valid_to > $1
-                  AND (publication_status = 'published' OR publication_status IS NULL)
-                  AND (is_quarantined = false OR is_quarantined IS NULL)
-                  AND (is_pending_release = false OR is_pending_release IS NULL)
-                ORDER BY created_at ASC
-                LIMIT 1
-                FOR UPDATE SKIP LOCKED
-            "#)
-            .bind(now)
-            .fetch_optional(&mut *tx)
-            .await?
-        };
-
-        let license = license.ok_or_else(|| {
-            AppError::NotFound("No licenses available for reservation".into())
-        })?;
-
-        // R3-07: Validate referral code if provided (but don't attribute yet)
-        // Check that both the referral is active AND the agent is approved
-        let referral_validated = if let Some(code) = referral_code {
-            let valid: (bool,) = sqlx::query_as(
-                r#"
-                SELECT EXISTS(
-                    SELECT 1 FROM referrals r
-                    JOIN agents a ON r.agent_id = a.id
-                    WHERE r.referral_code = $1
-                      AND r.status = 'active'
-                      AND a.status = 'approved'
-                )
-                "#
-            )
-            .bind(code.to_uppercase())
-            .fetch_one(&mut *tx)
-            .await?;
-            valid.0
-        } else {
-            false
-        };
-
-        // Update license with reservation
-        sqlx::query(r#"
-            UPDATE licenses
-            SET reserved_until = $2, reservation_token = $3
-            WHERE id = $1
-        "#)
-        .bind(&license.id)
-        .bind(expires_at)
-        .bind(&session_token)
-        .execute(&mut *tx)
-        .await?;
-
-        // Insert into reservations table for audit trail
-        sqlx::query(r#"
-            INSERT INTO license_reservations (license_id, session_token, reserved_at, expires_at, status)
-            VALUES ($1, $2, $3, $4, 'active')
-            ON CONFLICT (license_id) DO UPDATE
-            SET session_token = $2, reserved_at = $3, expires_at = $4, status = 'active', released_at = NULL
-        "#)
-        .bind(&license.id)
-        .bind(&session_token)
-        .bind(now)
-        .bind(expires_at)
-        .execute(&mut *tx)
-        .await?;
-
-        // Commit transaction
-        tx.commit().await
-            .map_err(|e| AppError::Database(format!("Failed to commit reservation: {}", e)))?;
-
-        // R5-05: Return result WITHOUT lease_code - credential revealed only at confirm
-        Ok(ReservationResult {
-            license_id: license.id,
-            session_token,
-            expires_at,
-            split_type: license.split_type,
-            referral_validated,
-            capacity_remaining,
-        })
+        Err(AppError::Database("Failed to reserve after max retries due to serialization conflicts".into()))
     }
 
     async fn atomic_confirm(
         &self,
         license_id: &str,
         session_token: &str,
+        owner_id: &str,
         device_id: Option<&str>,
         referral_id: Option<i32>,
     ) -> Result<ClaimResult, AppError> {
@@ -525,9 +586,9 @@ impl ClaimRepository for ClaimRepositoryImpl {
         let mut tx = self.db_pool.begin().await
             .map_err(|e| AppError::Database(format!("Failed to start transaction: {}", e)))?;
 
-        // Verify reservation exists and is valid
+        // F2: Verify reservation exists and is valid - includes user_id for owner check
         let reservation: Option<ReservationRow> = sqlx::query_as::<_, ReservationRow>(r#"
-            SELECT session_token, expires_at, status
+            SELECT session_token, user_id, expires_at, status
             FROM license_reservations
             WHERE license_id = $1
         "#)
@@ -550,9 +611,54 @@ impl ClaimRepository for ClaimRepositoryImpl {
             AppError::NotFound(format!("License {} not found", license_id))
         })?;
 
+        // F2: SECURITY FIX - Verify session token FIRST before revealing any credentials
+        // This prevents credential theft where an attacker with knowledge of license_id
+        // could obtain lease_code without valid session_token
+        let token_valid = if let Some(ref res) = reservation {
+            res.session_token == session_token && res.status == "active"
+        } else {
+            false
+        };
+
+        let license_token_valid = license.reservation_token.as_deref() == Some(session_token);
+
+        if !token_valid && !license_token_valid {
+            return Err(AppError::Unauthorized(
+                "Invalid or expired reservation token".into()
+            ));
+        }
+
+        // F2: SECURITY - Verify owner_id matches the user who made the reservation
+        // This prevents a different authenticated user from claiming someone else's reservation
+        if let Some(ref res) = reservation {
+            if let Some(ref stored_user_id) = res.user_id {
+                if stored_user_id != owner_id && stored_user_id != "anonymous" {
+                    tracing::warn!(
+                        license_id = %license_id,
+                        stored_user = %stored_user_id,
+                        claiming_user = %owner_id,
+                        "SECURITY: Owner mismatch in reservation confirmation"
+                    );
+                    return Err(AppError::Unauthorized(
+                        "This reservation belongs to a different user".into()
+                    ));
+                }
+            }
+        }
+
+        // Check expiry
+        if let Some(expires) = license.reserved_until {
+            if expires < now {
+                return Err(AppError::ValidationError(
+                    "Reservation has expired. Please reserve again.".into()
+                ));
+            }
+        }
+
+        // F2: NOW safe to check idempotency - token was verified above
         // If already claimed, return success (idempotent)
         if license.claimed {
-            // Fetch the claimed license data
+            // Fetch the claimed license data - credentials can be revealed since token was valid
             let result: ClaimResultRow = sqlx::query_as::<_, ClaimResultRow>(r#"
                 SELECT id, lease_code, claimed_at, referral_id, referral_attributed_at,
                        referral_agreement_version, COALESCE(referral_frozen, false) as referral_frozen
@@ -573,30 +679,6 @@ impl ClaimRepository for ClaimRepositoryImpl {
                 agreement_version: result.referral_agreement_version,
                 referral_frozen: result.referral_frozen,
             });
-        }
-
-        // Verify session token matches
-        let token_valid = if let Some(ref res) = reservation {
-            res.session_token == session_token && res.status == "active"
-        } else {
-            false
-        };
-
-        let license_token_valid = license.reservation_token.as_deref() == Some(session_token);
-
-        if !token_valid && !license_token_valid {
-            return Err(AppError::Unauthorized(
-                "Invalid or expired reservation token".into()
-            ));
-        }
-
-        // Check expiry
-        if let Some(expires) = license.reserved_until {
-            if expires < now {
-                return Err(AppError::ValidationError(
-                    "Reservation has expired. Please reserve again.".into()
-                ));
-            }
         }
 
         // Get current agreement version for referral attribution
@@ -658,24 +740,27 @@ impl ClaimRepository for ClaimRepositoryImpl {
 
         // Claim the license atomically
         // R5-05: Set referral_frozen = true to make attribution immutable (including no-referral)
+        // F2: Set issued_to = owner_id to bind license to authenticated user
         let bound_to_device = device_id.is_some();
         sqlx::query(r#"
             UPDATE licenses
             SET claimed = true,
                 claimed_at = $2,
-                bound_to_device = $3,
-                device_id = $4,
+                issued_to = $3,
+                bound_to_device = $4,
+                device_id = $5,
                 reserved_until = NULL,
                 reservation_token = NULL,
-                referral_id = COALESCE(referral_id, $5),
-                referral_attributed_at = COALESCE(referral_attributed_at, $6),
-                referral_agreement_version = COALESCE(referral_agreement_version, $7),
+                referral_id = COALESCE(referral_id, $6),
+                referral_attributed_at = COALESCE(referral_attributed_at, $7),
+                referral_agreement_version = COALESCE(referral_agreement_version, $8),
                 referral_frozen = true,
                 referral_frozen_at = COALESCE(referral_frozen_at, $2)
             WHERE id = $1 AND claimed = false
         "#)
         .bind(license_id)
         .bind(now)
+        .bind(owner_id)
         .bind(bound_to_device)
         .bind(device_id)
         .bind(final_referral_id)
@@ -840,6 +925,7 @@ struct LicenseReserveRow {
 #[derive(Debug, sqlx::FromRow)]
 struct ReservationRow {
     session_token: String,
+    user_id: Option<String>,
     expires_at: DateTime<Utc>,
     status: String,
 }

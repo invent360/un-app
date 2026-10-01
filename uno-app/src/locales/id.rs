@@ -581,4 +581,18 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.not_for_shared_devices" => "Mereka yang menggunakan perangkat bersama atau publik",
     "wizard.economics.understand_proceed" => "Saya Mengerti - Mari Lanjutkan",
     "wizard.economics.example_pool" => "Contoh Kumpulan Bulanan",
+
+    // F1-C: Suitability Earnings (non-hardcoded)
+    "suitability.your_earnings_potential" => "Potensi Penghasilan Anda",
+    "suitability.earnings_potential_intro" => "Berdasarkan perangkat dan koneksi Anda, inilah perkiraan potensi penghasilan Anda.",
+    "suitability.earnings_potential_label" => "Tingkat Potensi",
+    "suitability.earnings_high_desc" => "Pengaturan Anda ideal untuk menghasilkan. Harapkan peluang yang konsisten.",
+    "suitability.earnings_medium_desc" => "Potensi bagus dengan ruang untuk meningkatkan uptime atau konektivitas.",
+    "suitability.earnings_low_desc" => "Potensi terbatas karena batasan konektivitas atau uptime.",
+    "suitability.earnings_vary_message" => "Penghasilan aktual bervariasi menurut wilayah, ketersediaan tugas, dan kondisi jaringan.",
+    "suitability.earnings_vary_region_task" => "Penghasilan bervariasi menurut wilayah dan ketersediaan tugas",
+    "suitability.complete_steps_for_estimate" => "Selesaikan langkah-langkah sebelumnya untuk melihat perkiraan personal Anda.",
+
+    // F1-A: Support ticket creation
+    "support.ticket_created" => "Tiket berhasil dibuat!",
 };

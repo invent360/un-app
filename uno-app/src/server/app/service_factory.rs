@@ -338,8 +338,10 @@ impl ServiceFactory {
         // R5-08: Create settlement item repository for per-party tracking
         let settlement_item_repository: DynSettlementItemRepository =
             Arc::new(SettlementItemRepositoryImpl::new(pool.clone()));
-        // R5-08: Settlement item repository is now required for per-party settlement
+        // R5-08/F4: Settlement item repository is now required for per-party settlement
+        // F4: Pool added for transactional settlement execution
         let settlement_service: DynSettlementService = Arc::new(SettlementService::new(
+            pool.clone(),
             allocation_repository.clone(),
             credit_order_repository.clone(),
             immutable_audit_repository.clone(),

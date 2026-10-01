@@ -442,4 +442,83 @@ impl FileStorageClient for LocalStorageClient {
     fn backend_name(&self) -> &'static str {
         "local_filesystem"
     }
+
+    async fn upload_raw(
+        &self,
+        backup_id: &str,
+        bytes: Vec<u8>,
+        filename: &str,
+        _mime_type: &str,
+    ) -> Result<String> {
+        // F5: Validate backup_id (must be UUID-like, no path separators)
+        self.validate_resource_id(backup_id)?;
+
+        // F5: Validate filename (UUID-based, allow more extensions for raw files)
+        if filename.is_empty()
+            || filename.len() > 255
+            || filename.contains(['/', '\\'])
+            || filename.contains("..")
+        {
+            return Err(StorageError::InvalidUrl("Invalid backup filename".into()));
+        }
+
+        // F5: Check file size limit
+        if bytes.len() as u64 > self.config.max_file_size {
+            return Err(StorageError::FileTooLarge {
+                size: bytes.len() as u64,
+                limit: self.config.max_file_size,
+            });
+        }
+
+        let directory = self.directory(backup_id, true)?;
+        self.write_object(&directory, filename, &bytes)?;
+
+        Ok(format!("local://{}/{}", backup_id, filename))
+    }
+
+    async fn get_raw(&self, backup_id: &str, filename: &str) -> Result<Vec<u8>> {
+        // F5: Validate backup_id
+        self.validate_resource_id(backup_id)?;
+
+        // F5: Validate filename
+        if filename.is_empty()
+            || filename.len() > 255
+            || filename.contains(['/', '\\'])
+            || filename.contains("..")
+        {
+            return Err(StorageError::InvalidUrl("Invalid backup filename".into()));
+        }
+
+        let directory = self.directory(backup_id, false)?;
+        let fd = fs::openat(
+            &directory,
+            filename,
+            OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::CLOEXEC | OFlags::NONBLOCK,
+            Mode::empty(),
+        )
+        .map_err(io_error)?;
+
+        let mut file = File::from(fd);
+        let metadata = file.metadata()?;
+        if !metadata.is_file() {
+            return Err(StorageError::InvalidUrl(
+                "Object is not a regular file".into(),
+            ));
+        }
+
+        let limit = self.config.max_file_size;
+        if metadata.len() > limit {
+            return Err(StorageError::FileTooLarge {
+                size: metadata.len(),
+                limit,
+            });
+        }
+
+        let mut bytes = Vec::new();
+        Read::by_ref(&mut file)
+            .take(limit + 1)
+            .read_to_end(&mut bytes)?;
+
+        Ok(bytes)
+    }
 }

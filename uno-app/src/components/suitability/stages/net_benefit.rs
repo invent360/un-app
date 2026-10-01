@@ -1,9 +1,23 @@
 //! Net benefit stage for R5-13
 //!
-//! Shows realistic earnings estimate based on user's situation.
+//! Shows realistic earnings potential based on user's situation.
+//! Actual earnings vary by region and task availability.
 
 use leptos::prelude::*;
 use crate::components::suitability::state::SuitabilityState;
+use crate::hooks::t;
+
+/// Determine earnings potential level based on uptime potential
+fn get_earnings_potential_level(min: f64, max: f64) -> (&'static str, &'static str) {
+    let avg = (min + max) / 2.0;
+    if avg >= 2.0 {
+        ("High", "suitability.earnings_high_desc")
+    } else if avg >= 1.0 {
+        ("Medium", "suitability.earnings_medium_desc")
+    } else {
+        ("Low", "suitability.earnings_low_desc")
+    }
+}
 
 /// Net benefit/earnings estimate stage
 #[component]
@@ -12,34 +26,47 @@ pub fn NetBenefitStage(state: SuitabilityState) -> impl IntoView {
     let state_for_back = state.clone();
     let state_for_next = state.clone();
 
-    // Calculate earnings based on answers
-    let earnings = move || answers.get().estimated_earnings();
+    // Calculate earnings potential based on answers
+    let earnings_potential = move || answers.get().estimated_earnings();
 
     view! {
         <div class="suitability-stage net-benefit-stage">
-            <h3>"Your Estimated Earnings"</h3>
+            <h3>{t("suitability.your_earnings_potential")}</h3>
             <p class="stage-description">
-                "Based on your connection and device availability, here's what you can expect."
+                {t("suitability.earnings_potential_intro")}
             </p>
 
-            // Earnings estimate card
+            // Earnings potential card
             <div class="earnings-card">
                 {move || {
-                    if let Some((min, max)) = earnings() {
+                    if let Some((min, max)) = earnings_potential() {
+                        let (level, desc_key) = get_earnings_potential_level(min, max);
                         view! {
                             <div class="earnings-estimate">
-                                <span class="earnings-label">"Monthly Estimate"</span>
-                                <span class="earnings-amount">
-                                    {format!("${:.2} - ${:.2}", min, max)}
+                                <span class="earnings-label">{t("suitability.earnings_potential_label")}</span>
+                                <span class="earnings-amount earnings-level">
+                                    {level}
                                 </span>
                                 <span class="earnings-note">
-                                    "Actual earnings depend on task availability in your area"
+                                    {t(desc_key)}
                                 </span>
+                                <div class="earnings-variability">
+                                    <span class="info-icon">"ℹ"</span>
+                                    <span>{t("suitability.earnings_vary_message")}</span>
+                                </div>
                             </div>
                         }.into_any()
                     } else {
                         view! {
-                            <p class="no-estimate">"Complete the previous steps to see your estimate."</p>
+                            <div class="earnings-estimate variable">
+                                <span class="earnings-label">{t("suitability.earnings_potential_label")}</span>
+                                <span class="earnings-note variable-message">
+                                    {t("suitability.earnings_vary_region_task")}
+                                </span>
+                                <p class="variable-detail">
+                                    {t("suitability.complete_steps_for_estimate")}
+                                </p>
+                            </div>
                         }.into_any()
                     }
                 }}

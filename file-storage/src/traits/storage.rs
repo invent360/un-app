@@ -86,6 +86,39 @@ pub trait FileStorageClient: Send + Sync {
     /// * `storage_url` - Storage URL of the file to delete
     async fn delete_file(&self, storage_url: &str) -> Result<()>;
 
+    /// Upload raw bytes without image validation (F5: for backup/restore operations).
+    ///
+    /// Unlike `upload_file`, this method:
+    /// - Does NOT validate or re-encode image content
+    /// - Accepts any MIME type
+    /// - Uses a flat namespace with UUID-based resource IDs (no path separators)
+    ///
+    /// # Arguments
+    /// * `backup_id` - UUID backup identifier (alphanumeric, no slashes)
+    /// * `bytes` - Raw file content
+    /// * `filename` - Output filename (UUID-based, no path separators)
+    /// * `mime_type` - MIME type for metadata
+    ///
+    /// # Returns
+    /// Storage URL of the uploaded file
+    async fn upload_raw(
+        &self,
+        backup_id: &str,
+        bytes: Vec<u8>,
+        filename: &str,
+        mime_type: &str,
+    ) -> Result<String>;
+
+    /// Get raw file by backup path (F5: for backup/restore operations).
+    ///
+    /// # Arguments
+    /// * `backup_id` - UUID backup identifier
+    /// * `filename` - Filename within the backup
+    ///
+    /// # Returns
+    /// File content as bytes
+    async fn get_raw(&self, backup_id: &str, filename: &str) -> Result<Vec<u8>>;
+
     /// Convert storage URLs to display URLs.
     ///
     /// Storage URLs are compact format for database storage (e.g., "gcs://bucket/object").

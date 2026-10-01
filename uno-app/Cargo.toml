@@ -109,6 +109,10 @@ default = []
 # WARNING: Never enable debug-routes in production - exposes sensitive data!
 # Only enable for local development debugging.
 debug-routes = []
+# F9: Feature flag for enabling license issuance in tests.
+# NEVER enable in production - this bypasses issuance safety checks.
+# Use with: cargo test --features ssr,test-issuance
+test-issuance = []
 csr = ["leptos/csr", "dep:web-sys", "dep:wasm-bindgen-futures", "dep:gloo-timers", "dep:gloo-net", "dep:serde-wasm-bindgen", "dep:ember-fx-icons", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-utils", "ember-fx-components/csr", "ember-fx-core/csr"]
 hydrate = ["leptos/hydrate", "dep:web-sys", "dep:wasm-bindgen-futures", "dep:gloo-timers", "dep:gloo-net", "dep:serde-wasm-bindgen", "dep:ember-fx-icons", "dep:ember-fx-components", "dep:ember-fx-core", "dep:ember-fx-utils", "ember-fx-components/hydrate", "ember-fx-core/hydrate"]
 ssr = [
@@ -180,6 +184,7 @@ test-case = "3.3"
 pretty_assertions = "1.4"
 mockall = "0.12"
 tempfile = "3.10"
+jsonwebtoken = "9"  # F9: For generating test JWT tokens
 
 [[bin]]
 name = "migrate-images"

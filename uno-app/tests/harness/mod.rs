@@ -57,14 +57,26 @@ impl TestHarness {
         std::env::set_var("ADMIN_CLIENT_ID", "test-admin");
         std::env::set_var("ADMIN_SECRET_KEY", "test-secret-key-phase9");
 
-        // R5-15: Enable license issuance for tests so claim logic can be verified
-        std::env::set_var("ENABLE_TEST_ISSUANCE", "1");
+        // F9: License issuance is controlled by --features test-issuance
+        // Run tests with: cargo test --features ssr,test-issuance
+
+        // F9: Configure session verification with test RSA keys
+        let (public_keys, issuer, audience, _origin) = TestFixtures::test_session_config();
+        std::env::set_var("UNO_SESSION_PUBLIC_KEYS", &public_keys);
+        std::env::set_var("UNO_SESSION_ISSUER", &issuer);
+        std::env::set_var("UNO_SESSION_AUDIENCE", &audience);
+
+        // Set origin before creating factory (use localhost placeholder)
+        std::env::set_var("UNO_PUBLIC_ORIGIN", "http://127.0.0.1:0");
 
         // Create service factory with real dependencies
         let factory = ServiceFactory::new(pool.clone());
 
         // Start test server
         let server = TestServer::start(factory).await;
+
+        // Update origin with actual server URL
+        std::env::set_var("UNO_PUBLIC_ORIGIN", server.url());
 
         // Create HTTP client
         let client = TestClient::new(server.url());
@@ -98,11 +110,21 @@ impl TestHarness {
         std::env::set_var("ADMIN_CLIENT_ID", "test-admin");
         std::env::set_var("ADMIN_SECRET_KEY", "test-secret-key-phase9");
 
-        // R5-15: Enable license issuance for tests so claim logic can be verified
-        std::env::set_var("ENABLE_TEST_ISSUANCE", "1");
+        // F9: License issuance is controlled by --features test-issuance
+        // Run tests with: cargo test --features ssr,test-issuance
+
+        // F9: Configure session verification with test RSA keys
+        let (public_keys, issuer, audience, _origin) = TestFixtures::test_session_config();
+        std::env::set_var("UNO_SESSION_PUBLIC_KEYS", &public_keys);
+        std::env::set_var("UNO_SESSION_ISSUER", &issuer);
+        std::env::set_var("UNO_SESSION_AUDIENCE", &audience);
+        std::env::set_var("UNO_PUBLIC_ORIGIN", "http://127.0.0.1:0");
 
         let factory = ServiceFactory::new(pool.clone());
         let server = TestServer::start(factory).await;
+
+        // Update origin with actual server URL
+        std::env::set_var("UNO_PUBLIC_ORIGIN", server.url());
         let client = TestClient::new(server.url());
         let fixtures = TestFixtures::new(pool.clone());
 

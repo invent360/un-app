@@ -5,7 +5,8 @@
 
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::hooks::{use_user, UserLoadState};
+use crate::hooks::{t, use_user, UserLoadState};
+use crate::components::common::DevBanner;
 
 /// Gate status summary
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -68,7 +69,7 @@ fn OperatorContent() -> impl IntoView {
                     view! {
                         <div class="operator-loading">
                             <div class="loading-spinner"></div>
-                            <p>"Loading operator cockpit..."</p>
+                            <p>{t("operator.loading")}</p>
                         </div>
                     }.into_any()
                 }
@@ -76,9 +77,9 @@ fn OperatorContent() -> impl IntoView {
                     view! {
                         <div class="operator-unauthenticated">
                             <div class="auth-required-card">
-                                <h2>"Sign In Required"</h2>
-                                <p>"Please sign in to access the operator cockpit."</p>
-                                <a href="/" class="btn-primary">"Go to Home"</a>
+                                <h2>{t("operator.signin_required")}</h2>
+                                <p>{t("operator.signin_message")}</p>
+                                <a href="/" class="btn-primary">{t("operator.go_home")}</a>
                             </div>
                         </div>
                     }.into_any()
@@ -86,7 +87,7 @@ fn OperatorContent() -> impl IntoView {
                 UserLoadState::Error => {
                     view! {
                         <div class="operator-error">
-                            <p>"Error loading operator cockpit. Please try again."</p>
+                            <p>{t("operator.error_loading")}</p>
                         </div>
                     }.into_any()
                 }
@@ -98,9 +99,9 @@ fn OperatorContent() -> impl IntoView {
                                 view! {
                                     <div class="operator-unauthorized">
                                         <div class="unauthorized-card">
-                                            <h2>"Access Denied"</h2>
-                                            <p>"You don't have permission to access the operator cockpit."</p>
-                                            <a href="/dashboard" class="btn-primary">"Go to Dashboard"</a>
+                                            <h2>{t("operator.access_denied")}</h2>
+                                            <p>{t("operator.no_permission")}</p>
+                                            <a href="/dashboard" class="btn-primary">{t("operator.go_dashboard")}</a>
                                         </div>
                                     </div>
                                 }.into_any()
@@ -111,8 +112,8 @@ fn OperatorContent() -> impl IntoView {
                         None => {
                             view! {
                                 <div class="operator-unauthenticated">
-                                    <p>"Please sign in to access the operator cockpit."</p>
-                                    <a href="/" class="btn-primary">"Go Home"</a>
+                                    <p>{t("operator.signin_message")}</p>
+                                    <a href="/" class="btn-primary">{t("operator.go_home")}</a>
                                 </div>
                             }.into_any()
                         }
@@ -134,14 +135,18 @@ fn OperatorCockpit(operator_id: String) -> impl IntoView {
 
     view! {
         <div class="operator-cockpit">
+            <DevBanner
+                title="Demo Mode"
+                description="Gates, targets, and metrics shown below are for demonstration purposes."
+            />
             <div class="cockpit-header">
                 <div class="header-main">
-                    <h1>"Operator Cockpit"</h1>
-                    <p class="cockpit-subtitle">"Monitor gates, targets, and exceptions"</p>
+                    <h1>{t("operator.cockpit_title")}</h1>
+                    <p class="cockpit-subtitle">{t("operator.cockpit_subtitle")}</p>
                 </div>
                 <div class="header-meta">
                     <span class="data-freshness">{data_freshness}</span>
-                    <button class="btn-secondary btn-sm">"Refresh"</button>
+                    <button class="btn-secondary btn-sm">{t("operator.refresh")}</button>
                 </div>
             </div>
 
@@ -151,25 +156,25 @@ fn OperatorCockpit(operator_id: String) -> impl IntoView {
                     class=move || if active_section.get() == "overview" { "tab-btn active" } else { "tab-btn" }
                     on:click=move |_| set_active_section.set("overview".to_string())
                 >
-                    "Gates Overview"
+                    {t("operator.tab_gates_overview")}
                 </button>
                 <button
                     class=move || if active_section.get() == "targets" { "tab-btn active" } else { "tab-btn" }
                     on:click=move |_| set_active_section.set("targets".to_string())
                 >
-                    "Acquisition Targets"
+                    {t("operator.tab_acquisition_targets")}
                 </button>
                 <button
                     class=move || if active_section.get() == "exceptions" { "tab-btn active" } else { "tab-btn" }
                     on:click=move |_| set_active_section.set("exceptions".to_string())
                 >
-                    "Exceptions"
+                    {t("operator.tab_exceptions")}
                 </button>
                 <button
                     class=move || if active_section.get() == "forecast" { "tab-btn active" } else { "tab-btn" }
                     on:click=move |_| set_active_section.set("forecast".to_string())
                 >
-                    "Forecast"
+                    {t("operator.tab_forecast")}
                 </button>
             </div>
 
@@ -231,9 +236,9 @@ fn GatesOverviewSection() -> impl IntoView {
         <div class="gates-overview">
             <div class="overview-summary">
                 <h3>
-                    "System Health: "
+                    {t("operator.system_health")} " "
                     <span class=if healthy_count == total_count { "healthy" } else { "warning" }>
-                        {healthy_count}"/" {total_count} " gates healthy"
+                        {healthy_count}"/" {total_count} " " {t("operator.gates_healthy")}
                     </span>
                 </h3>
             </div>
@@ -258,10 +263,10 @@ fn GateCard(gate: GateStatus) -> impl IntoView {
     };
 
     let status_text = match gate.status {
-        GateHealthStatus::Healthy => "Healthy",
-        GateHealthStatus::Warning => "Warning",
-        GateHealthStatus::Critical => "Critical",
-        GateHealthStatus::Unknown => "Unknown",
+        GateHealthStatus::Healthy => t("operator.status_healthy"),
+        GateHealthStatus::Warning => t("operator.status_warning"),
+        GateHealthStatus::Critical => t("operator.status_critical"),
+        GateHealthStatus::Unknown => t("operator.status_unknown"),
     };
 
     let percentage = (gate.current_value as f64 / gate.threshold as f64 * 100.0).min(100.0);
@@ -284,7 +289,7 @@ fn GateCard(gate: GateStatus) -> impl IntoView {
                 </div>
             </div>
             <div class="gate-footer">
-                <span class="gate-updated">"Updated: "{gate.last_updated}</span>
+                <span class="gate-updated">{t("operator.updated")} {gate.last_updated}</span>
             </div>
         </div>
     }
@@ -328,16 +333,16 @@ fn AcquisitionTargetsSection() -> impl IntoView {
     view! {
         <div class="acquisition-targets">
             <div class="targets-header">
-                <h3>"Regional Acquisition Targets"</h3>
-                <p class="targets-note">"Targets shown with gate prerequisite status"</p>
+                <h3>{t("operator.regional_targets")}</h3>
+                <p class="targets-note">{t("operator.targets_note")}</p>
             </div>
 
             <div class="targets-table">
                 <div class="table-header">
-                    <span>"Region"</span>
-                    <span>"Progress"</span>
-                    <span>"Gate Prerequisites"</span>
-                    <span>"Status"</span>
+                    <span>{t("operator.region")}</span>
+                    <span>{t("operator.progress")}</span>
+                    <span>{t("operator.gate_prerequisites")}</span>
+                    <span>{t("operator.status")}</span>
                 </div>
                 {targets.into_iter().map(|target| view! {
                     <TargetRow target=target />
@@ -375,7 +380,7 @@ fn TargetRow(target: AcquisitionTarget) -> impl IntoView {
                 }).collect::<Vec<_>>()}
             </div>
             <span class=if target.gates_met { "target-status active" } else { "target-status blocked" }>
-                {if target.gates_met { "Active" } else { "Blocked" }}
+                {if target.gates_met { t("operator.active") } else { t("operator.blocked") }}
             </span>
         </div>
     }
@@ -426,9 +431,9 @@ fn ExceptionsSection() -> impl IntoView {
         <div class="exceptions-section">
             <div class="exceptions-header">
                 <h3>
-                    "Active Exceptions"
+                    {t("operator.active_exceptions")}
                     {(high_severity > 0).then(|| view! {
-                        <span class="high-severity-badge">{high_severity}" high severity"</span>
+                        <span class="high-severity-badge">{high_severity}" " {t("operator.high_severity")}</span>
                     })}
                 </h3>
             </div>
@@ -456,14 +461,14 @@ fn ExceptionCard(exception: ExceptionItem) -> impl IntoView {
         <div class=severity_class>
             <div class="exception-header">
                 <span class="exception-type">{exception.exception_type}</span>
-                <span class="exception-count">{exception.count}" occurrences"</span>
+                <span class="exception-count">{exception.count}" " {t("operator.occurrences")}</span>
             </div>
             <p class="exception-description">{exception.description}</p>
             <div class="exception-footer">
-                <span class="exception-date">"Since: "{exception.created_at}</span>
+                <span class="exception-date">{t("operator.since")} {exception.created_at}</span>
                 <div class="exception-actions">
-                    <button class="btn-text">"View Details"</button>
-                    <button class="btn-primary btn-sm">"Investigate"</button>
+                    <button class="btn-text">{t("operator.view_details")}</button>
+                    <button class="btn-primary btn-sm">{t("operator.investigate")}</button>
                 </div>
             </div>
         </div>
@@ -476,94 +481,94 @@ fn ForecastSection() -> impl IntoView {
     view! {
         <div class="forecast-section">
             <div class="forecast-header">
-                <h3>"Scenario Comparison"</h3>
-                <p class="forecast-note">"Compare different growth scenarios and their resource requirements"</p>
+                <h3>{t("operator.scenario_comparison")}</h3>
+                <p class="forecast-note">{t("operator.scenario_comparison_note")}</p>
             </div>
 
             <div class="scenario-grid">
                 // Conservative scenario
                 <div class="scenario-card">
-                    <h4>"Conservative"</h4>
+                    <h4>{t("operator.scenario_conservative")}</h4>
                     <div class="scenario-metrics">
                         <div class="metric-row">
-                            <span>"New users (30d)"</span>
+                            <span>{t("operator.new_users_30d")}</span>
                             <span class="metric-value">"2,500"</span>
                         </div>
                         <div class="metric-row">
-                            <span>"License demand"</span>
+                            <span>{t("operator.license_demand")}</span>
                             <span class="metric-value">"3,000"</span>
                         </div>
                         <div class="metric-row">
-                            <span>"Funding required"</span>
+                            <span>{t("operator.funding_required")}</span>
                             <span class="metric-value">"$45,000"</span>
                         </div>
                         <div class="metric-row">
-                            <span>"Support tickets"</span>
+                            <span>{t("operator.support_tickets")}</span>
                             <span class="metric-value">"~200"</span>
                         </div>
                     </div>
                     <div class="scenario-gates">
-                        <span class="gate-status ok">"All gates met"</span>
+                        <span class="gate-status ok">{t("operator.all_gates_met")}</span>
                     </div>
                 </div>
 
                 // Moderate scenario
                 <div class="scenario-card highlighted">
-                    <div class="scenario-badge">"Current Trajectory"</div>
-                    <h4>"Moderate"</h4>
+                    <div class="scenario-badge">{t("operator.current_trajectory")}</div>
+                    <h4>{t("operator.scenario_moderate")}</h4>
                     <div class="scenario-metrics">
                         <div class="metric-row">
-                            <span>"New users (30d)"</span>
+                            <span>{t("operator.new_users_30d")}</span>
                             <span class="metric-value">"5,000"</span>
                         </div>
                         <div class="metric-row">
-                            <span>"License demand"</span>
+                            <span>{t("operator.license_demand")}</span>
                             <span class="metric-value">"6,500"</span>
                         </div>
                         <div class="metric-row">
-                            <span>"Funding required"</span>
+                            <span>{t("operator.funding_required")}</span>
                             <span class="metric-value">"$95,000"</span>
                         </div>
                         <div class="metric-row">
-                            <span>"Support tickets"</span>
+                            <span>{t("operator.support_tickets")}</span>
                             <span class="metric-value">"~450"</span>
                         </div>
                     </div>
                     <div class="scenario-gates">
-                        <span class="gate-status warning">"Support capacity needed"</span>
+                        <span class="gate-status warning">{t("operator.support_capacity_needed")}</span>
                     </div>
                 </div>
 
                 // Aggressive scenario
                 <div class="scenario-card">
-                    <h4>"Aggressive"</h4>
+                    <h4>{t("operator.scenario_aggressive")}</h4>
                     <div class="scenario-metrics">
                         <div class="metric-row">
-                            <span>"New users (30d)"</span>
+                            <span>{t("operator.new_users_30d")}</span>
                             <span class="metric-value">"10,000"</span>
                         </div>
                         <div class="metric-row">
-                            <span>"License demand"</span>
+                            <span>{t("operator.license_demand")}</span>
                             <span class="metric-value">"13,000"</span>
                         </div>
                         <div class="metric-row">
-                            <span>"Funding required"</span>
+                            <span>{t("operator.funding_required")}</span>
                             <span class="metric-value">"$190,000"</span>
                         </div>
                         <div class="metric-row">
-                            <span>"Support tickets"</span>
+                            <span>{t("operator.support_tickets")}</span>
                             <span class="metric-value">"~900"</span>
                         </div>
                     </div>
                     <div class="scenario-gates">
-                        <span class="gate-status critical">"3 gates blocked"</span>
+                        <span class="gate-status critical">{t("operator.gates_blocked")}</span>
                     </div>
                 </div>
             </div>
 
             <div class="forecast-disclaimer">
                 <span class="info-icon">"ℹ"</span>
-                <p>"Forecasts are based on current trends and historical data. Actual results may vary. Data source: Analytics pipeline (updated hourly)."</p>
+                <p>{t("operator.forecast_disclaimer")}</p>
             </div>
         </div>
     }

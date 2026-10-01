@@ -305,6 +305,7 @@ pub async fn atomic_reserve_license(
 ///
 /// This is the secure version that:
 /// - Requires the session token from reservation
+/// - F2: Verifies owner_id matches the user who made the reservation
 /// - Verifies the reservation hasn't expired
 /// - Atomically sets claimed=true AND referral_id in one transaction
 /// - Referral attribution is immutable (once set, cannot be changed)
@@ -317,10 +318,21 @@ pub async fn atomic_confirm_claim(
     referral_code: Option<String>,
 ) -> Result<ClaimResponse, ServerFnError> {
     use actix_web::web::Data;
+    use actix_web::HttpRequest;
     use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
+    use crate::server::extractors::auth::get_authenticated_user;
 
     let factory: Data<ServiceFactory> = extract().await?;
+    let req: HttpRequest = extract().await?;
+
+    // F2: Try to get authenticated user ID for owner verification
+    // During onboarding, users may not be fully authenticated yet - in that case
+    // we use "anonymous" and rely on session_token as primary authorization
+    let owner_id = match get_authenticated_user(&req) {
+        Ok(auth_user) => auth_user.id,
+        Err(_) => "anonymous".to_string(),
+    };
 
     // Get referral ID if code provided
     let referral_id = if let Some(code) = referral_code {
@@ -338,7 +350,8 @@ pub async fn atomic_confirm_claim(
     };
 
     // Use atomic confirm - this does everything in one transaction
-    factory.license_service.atomic_confirm(&license_id, &session_token, device_id, referral_id)
+    // F2: Now includes owner_id for verification against reservation's user_id
+    factory.license_service.atomic_confirm(&license_id, &session_token, &owner_id, device_id, referral_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }

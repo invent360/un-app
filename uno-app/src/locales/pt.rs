@@ -581,4 +581,18 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.not_for_shared_devices" => "Quem usa dispositivos compartilhados ou publicos",
     "wizard.economics.understand_proceed" => "Eu Entendo - Vamos Continuar",
     "wizard.economics.example_pool" => "Exemplo de Pool Mensal",
+
+    // F1-C: Suitability Earnings (non-hardcoded)
+    "suitability.your_earnings_potential" => "Seu Potencial de Ganhos",
+    "suitability.earnings_potential_intro" => "Com base no seu dispositivo e conexão, aqui está seu potencial estimado de ganhos.",
+    "suitability.earnings_potential_label" => "Nível de Potencial",
+    "suitability.earnings_high_desc" => "Sua configuração é ideal para ganhar. Espere oportunidades consistentes.",
+    "suitability.earnings_medium_desc" => "Bom potencial com espaço para melhorar uptime ou conectividade.",
+    "suitability.earnings_low_desc" => "Potencial limitado devido a restrições de conectividade ou uptime.",
+    "suitability.earnings_vary_message" => "Os ganhos reais variam por região, disponibilidade de tarefas e condições da rede.",
+    "suitability.earnings_vary_region_task" => "Os ganhos variam por região e disponibilidade de tarefas",
+    "suitability.complete_steps_for_estimate" => "Complete as etapas anteriores para ver sua estimativa personalizada.",
+
+    // F1-A: Support ticket creation
+    "support.ticket_created" => "Ticket criado com sucesso!",
 };

@@ -5457,6 +5457,7 @@ dependencies = [
  "hmac 0.12.1",
  "hostname",
  "ipnetwork 0.20.0",
+ "jsonwebtoken",
  "leptos",
  "leptos_actix",
  "leptos_meta",

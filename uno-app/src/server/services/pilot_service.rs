@@ -133,25 +133,15 @@ impl PilotService for PilotServiceImpl {
     }
 
     async fn add_participant(&self, input: AddParticipantInput, actor: &str) -> Result<PilotParticipant, AppError> {
-        // R5-16: Check if user already enrolled (before atomic enrollment)
-        if let Some(_) = self.pilot_repo.get_participant_by_user(&input.external_user_id, &input.cohort_id).await? {
-            return Err(AppError::ValidationError("User already enrolled in this cohort".to_string()));
-        }
-
-        // R5-16: Atomic enrollment check - gates, quota, and capacity in one transaction
-        // This replaces the previous TOCTOU-vulnerable separate checks
+        // F6: Use truly atomic enrollment that includes participant creation
+        // This replaces the previous two-step approach where add_participant could fail
+        // after quota/capacity was already consumed
         let enrollment_result = self.pilot_repo
-            .atomic_enroll(&input.external_user_id, &input.market_code, Some(&input.cohort_id))
+            .atomic_enroll_with_participant(input.clone())
             .await?;
 
         match enrollment_result {
-            Some((assigned_cohort_id, None)) => {
-                // Enrollment allowed, create participant
-                let mut final_input = input.clone();
-                final_input.cohort_id = assigned_cohort_id;
-
-                let participant = self.pilot_repo.add_participant(final_input).await?;
-
+            Ok(participant) => {
                 // Update metrics
                 metrics::PILOT_PARTICIPANTS
                     .with_label_values(&[&input.market_code, "invited"])
@@ -168,27 +158,20 @@ impl PilotService for PilotServiceImpl {
                             "cohort_id": &participant.cohort_id,
                             "market_code": &input.market_code,
                             "atomic_enrollment": true,
+                            "f6_fix": true,
                         }))
                 ).await;
 
                 Ok(participant)
             }
-            Some((_, Some(rejection_reason))) => {
+            Err(rejection_reason) => {
                 tracing::info!(
                     market = %input.market_code,
                     user = %input.external_user_id,
                     reason = %rejection_reason,
-                    "R5-16: Atomic enrollment rejected"
+                    "F6: Atomic enrollment rejected"
                 );
                 Err(AppError::ValidationError(rejection_reason))
-            }
-            None => {
-                tracing::warn!(
-                    market = %input.market_code,
-                    user = %input.external_user_id,
-                    "R5-16: Atomic enrollment returned no result"
-                );
-                Err(AppError::ValidationError("Pilot enrollment not available".to_string()))
             }
         }
     }

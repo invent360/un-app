@@ -581,4 +581,18 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.not_for_shared_devices" => "Wale wanaotumia vifaa vya pamoja au vya umma",
     "wizard.economics.understand_proceed" => "Ninaelewa - Tuendelee",
     "wizard.economics.example_pool" => "Mfano wa Mkusanyiko wa Mwezi",
+
+    // F1-C: Suitability Earnings (non-hardcoded)
+    "suitability.your_earnings_potential" => "Uwezo Wako wa Mapato",
+    "suitability.earnings_potential_intro" => "Kulingana na kifaa chako na muunganisho, hapa kuna makadirio ya uwezo wako wa mapato.",
+    "suitability.earnings_potential_label" => "Kiwango cha Uwezo",
+    "suitability.earnings_high_desc" => "Mpangilio wako ni bora kwa kupata. Tarajia fursa thabiti.",
+    "suitability.earnings_medium_desc" => "Uwezo mzuri na nafasi ya kuboresha uptime au muunganisho.",
+    "suitability.earnings_low_desc" => "Uwezo mdogo kwa sababu ya vikwazo vya muunganisho au uptime.",
+    "suitability.earnings_vary_message" => "Mapato halisi yanatofautiana kulingana na eneo, upatikanaji wa kazi, na hali ya mtandao.",
+    "suitability.earnings_vary_region_task" => "Mapato yanatofautiana kwa eneo na upatikanaji wa kazi",
+    "suitability.complete_steps_for_estimate" => "Kamilisha hatua zilizopita ili kuona makadirio yako binafsi.",
+
+    // F1-A: Support ticket creation
+    "support.ticket_created" => "Tiketi imeundwa kwa mafanikio!",
 };

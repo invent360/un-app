@@ -590,4 +590,18 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.not_for_shared_devices" => "أولئك الذين يستخدمون أجهزة مشتركة أو عامة",
     "wizard.economics.understand_proceed" => "أفهم - لنستمر",
     "wizard.economics.example_pool" => "مثال على المجمع الشهري",
+
+    // F1-C: Suitability Earnings (non-hardcoded)
+    "suitability.your_earnings_potential" => "إمكانية أرباحك",
+    "suitability.earnings_potential_intro" => "بناءً على جهازك واتصالك، إليك إمكانية أرباحك المقدرة.",
+    "suitability.earnings_potential_label" => "مستوى الإمكانية",
+    "suitability.earnings_high_desc" => "إعدادك مثالي للكسب. توقع فرصاً مستمرة.",
+    "suitability.earnings_medium_desc" => "إمكانية جيدة مع مجال لتحسين وقت التشغيل أو الاتصال.",
+    "suitability.earnings_low_desc" => "إمكانية محدودة بسبب قيود الاتصال أو وقت التشغيل.",
+    "suitability.earnings_vary_message" => "تختلف الأرباح الفعلية حسب المنطقة وتوفر المهام وظروف الشبكة.",
+    "suitability.earnings_vary_region_task" => "تختلف الأرباح حسب المنطقة وتوفر المهام",
+    "suitability.complete_steps_for_estimate" => "أكمل الخطوات السابقة لرؤية تقديرك المخصص.",
+
+    // F1-A: Support ticket creation
+    "support.ticket_created" => "تم إنشاء التذكرة بنجاح!",
 };

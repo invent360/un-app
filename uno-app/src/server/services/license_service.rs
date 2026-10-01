@@ -90,19 +90,18 @@ impl LicenseService {
     // Fail closed until Phase 4 replaces every legacy claim path with verified,
     // owner-bound issuance.
     //
-    // R5-15: Added test-mode bypass. In test builds with ENABLE_TEST_ISSUANCE=1,
-    // issuance is allowed so tests can verify claim logic works correctly.
-    // In production (without #[cfg(test)]), this ALWAYS fails closed.
+    // F9: Changed from environment variable to feature flag for better security.
+    // To run tests with issuance enabled: cargo test --features ssr,test-issuance
+    // In production (without feature flag), this ALWAYS fails closed.
     fn ensure_issuance_ready() -> Result<(), AppError> {
-        #[cfg(test)]
+        #[cfg(feature = "test-issuance")]
         {
-            // In test builds, check for explicit opt-in
-            if std::env::var("ENABLE_TEST_ISSUANCE").is_ok() {
-                return Ok(());
-            }
+            // Feature flag enabled - allow issuance for testing
+            return Ok(());
         }
 
-        // Production and non-opted-in tests: fail closed
+        // Production (no feature flag): fail closed
+        #[allow(unreachable_code)]
         Err(AppError::LicenseUnavailable(
             "Licence issuance is paused pending secure allocation".into(),
         ))
@@ -134,11 +133,14 @@ impl LicenseService {
     /// Atomically confirm a reservation and claim the license (Phase 2)
     ///
     /// Requires the session token from the reservation.
+    /// F2: Now requires owner_id - the authenticated user who is claiming.
+    /// This is verified against the user_id stored during reservation.
     /// Referral attribution is immutable - once set, cannot be changed.
     pub async fn atomic_confirm(
         &self,
         license_id: &str,
         session_token: &str,
+        owner_id: &str,
         device_id: Option<String>,
         referral_id: Option<i32>,
     ) -> Result<ClaimResponse, AppError> {
@@ -149,7 +151,7 @@ impl LicenseService {
             .ok_or_else(|| AppError::ConfigError("Claim repository not configured".into()))?;
 
         let result = claim_repo
-            .atomic_confirm(license_id, session_token, device_id.as_deref(), referral_id)
+            .atomic_confirm(license_id, session_token, owner_id, device_id.as_deref(), referral_id)
             .await?;
 
         // Convert to ClaimResponse

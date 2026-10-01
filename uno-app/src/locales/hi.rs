@@ -581,4 +581,18 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.economics.not_for_shared_devices" => "जो साझा या सार्वजनिक डिवाइस का उपयोग कर रहे हैं",
     "wizard.economics.understand_proceed" => "मैं समझता हूं - चलो जारी रखें",
     "wizard.economics.example_pool" => "उदाहरण मासिक पूल",
+
+    // F1-C: Suitability Earnings (non-hardcoded)
+    "suitability.your_earnings_potential" => "आपकी कमाई की संभावना",
+    "suitability.earnings_potential_intro" => "आपके डिवाइस और कनेक्शन के आधार पर, यहाँ आपकी अनुमानित कमाई की संभावना है।",
+    "suitability.earnings_potential_label" => "संभावना स्तर",
+    "suitability.earnings_high_desc" => "आपका सेटअप कमाने के लिए आदर्श है। लगातार अवसरों की उम्मीद करें।",
+    "suitability.earnings_medium_desc" => "अपटाइम या कनेक्टिविटी में सुधार की गुंजाइश के साथ अच्छी संभावना।",
+    "suitability.earnings_low_desc" => "कनेक्टिविटी या अपटाइम की सीमाओं के कारण सीमित संभावना।",
+    "suitability.earnings_vary_message" => "वास्तविक कमाई क्षेत्र, कार्य उपलब्धता और नेटवर्क स्थितियों के अनुसार भिन्न होती है।",
+    "suitability.earnings_vary_region_task" => "कमाई क्षेत्र और कार्य उपलब्धता के अनुसार भिन्न होती है",
+    "suitability.complete_steps_for_estimate" => "अपना व्यक्तिगत अनुमान देखने के लिए पिछले चरणों को पूरा करें।",
+
+    // F1-A: Support ticket creation
+    "support.ticket_created" => "टिकट सफलतापूर्वक बनाया गया!",
 };

@@ -5,7 +5,8 @@
 
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::hooks::{use_user, UserLoadState};
+use crate::hooks::{use_user, UserLoadState, t};
+use crate::components::common::DevBanner;
 
 /// Assigned user for agent queue
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,7 +59,7 @@ fn AgentContent() -> impl IntoView {
                     view! {
                         <div class="agent-loading">
                             <div class="loading-spinner"></div>
-                            <p>"Loading agent workspace..."</p>
+                            <p>{t("agent.loading")}</p>
                         </div>
                     }.into_any()
                 }
@@ -66,9 +67,9 @@ fn AgentContent() -> impl IntoView {
                     view! {
                         <div class="agent-unauthenticated">
                             <div class="auth-required-card">
-                                <h2>"Sign In Required"</h2>
-                                <p>"Please sign in to access the agent workspace."</p>
-                                <a href="/" class="btn-primary">"Go to Home"</a>
+                                <h2>{t("agent.signin_required")}</h2>
+                                <p>{t("agent.signin_message")}</p>
+                                <a href="/" class="btn-primary">{t("agent.go_home")}</a>
                             </div>
                         </div>
                     }.into_any()
@@ -76,7 +77,7 @@ fn AgentContent() -> impl IntoView {
                 UserLoadState::Error => {
                     view! {
                         <div class="agent-error">
-                            <p>"Error loading agent workspace. Please try again."</p>
+                            <p>{t("agent.error_loading")}</p>
                         </div>
                     }.into_any()
                 }
@@ -88,9 +89,9 @@ fn AgentContent() -> impl IntoView {
                                 view! {
                                     <div class="agent-unauthorized">
                                         <div class="unauthorized-card">
-                                            <h2>"Access Denied"</h2>
-                                            <p>"You don't have permission to access the agent workspace."</p>
-                                            <a href="/dashboard" class="btn-primary">"Go to Dashboard"</a>
+                                            <h2>{t("agent.access_denied")}</h2>
+                                            <p>{t("agent.no_permission")}</p>
+                                            <a href="/dashboard" class="btn-primary">{t("agent.go_dashboard")}</a>
                                         </div>
                                     </div>
                                 }.into_any()
@@ -101,8 +102,8 @@ fn AgentContent() -> impl IntoView {
                         None => {
                             view! {
                                 <div class="agent-unauthenticated">
-                                    <p>"Please sign in to access the agent workspace."</p>
-                                    <a href="/" class="btn-primary">"Go Home"</a>
+                                    <p>{t("agent.signin_message")}</p>
+                                    <a href="/" class="btn-primary">{t("agent.go_home")}</a>
                                 </div>
                             }.into_any()
                         }
@@ -135,30 +136,34 @@ fn AgentWorkspace(agent_id: String) -> impl IntoView {
 
     view! {
         <div class="agent-workspace">
+            <DevBanner
+                title="Demo Mode"
+                description="Commission and referral data shown below is for demonstration purposes."
+            />
             <div class="workspace-header">
-                <h1>"Agent Workspace"</h1>
-                <p class="workspace-subtitle">"Manage your referrals and track commissions"</p>
+                <h1>{t("agent.workspace_title")}</h1>
+                <p class="workspace-subtitle">{t("agent.workspace_subtitle")}</p>
             </div>
 
             // Stats overview
             <div class="agent-stats">
                 <StatsCard
-                    title="Total Referrals"
+                    title=t("agent.total_referrals")
                     value=referral_stats.total_referrals.to_string()
                     icon="👥"
                 />
                 <StatsCard
-                    title="Active Users"
+                    title=t("agent.active_users")
                     value=referral_stats.active_referrals.to_string()
                     icon="✅"
                 />
                 <StatsCard
-                    title="Conversion Rate"
+                    title=t("agent.conversion_rate")
                     value=format!("{:.0}%", referral_stats.conversion_rate * 100.0)
                     icon="📈"
                 />
                 <StatsCard
-                    title="Pending Activation"
+                    title=t("agent.pending_activation")
                     value=referral_stats.pending_activation.to_string()
                     icon="⏳"
                 />
@@ -184,7 +189,7 @@ fn AgentWorkspace(agent_id: String) -> impl IntoView {
 
 /// Stats card component
 #[component]
-fn StatsCard(title: &'static str, value: String, icon: &'static str) -> impl IntoView {
+fn StatsCard(title: String, value: String, icon: &'static str) -> impl IntoView {
     view! {
         <div class="stats-card">
             <div class="stats-icon">{icon}</div>
@@ -221,10 +226,10 @@ fn ReferralCard(referral_code: String, referral_link: String) -> impl IntoView {
 
     view! {
         <div class="referral-card">
-            <h3>"Your Referral Link"</h3>
+            <h3>{t("agent.your_referral_link")}</h3>
 
             <div class="referral-code-display">
-                <span class="code-label">"Code:"</span>
+                <span class="code-label">{t("agent.code_label")}</span>
                 <span class="code-value">{referral_code}</span>
             </div>
 
@@ -236,16 +241,16 @@ fn ReferralCard(referral_code: String, referral_link: String) -> impl IntoView {
                     class="link-input"
                 />
                 <button class="copy-btn" on:click=copy_link>
-                    {move || if copied.get() { "Copied!" } else { "Copy" }}
+                    {move || if copied.get() { t("agent.copied") } else { t("agent.copy") }}
                 </button>
             </div>
 
             <div class="referral-tips">
-                <h4>"Tips for more referrals"</h4>
+                <h4>{t("agent.tips_title")}</h4>
                 <ul>
-                    <li>"Share with friends and family"</li>
-                    <li>"Post on social media groups"</li>
-                    <li>"Explain the benefits clearly"</li>
+                    <li>{t("agent.tip_1")}</li>
+                    <li>{t("agent.tip_2")}</li>
+                    <li>{t("agent.tip_3")}</li>
                 </ul>
             </div>
         </div>
@@ -266,28 +271,28 @@ fn CommissionCard(commission: CommissionSummary) -> impl IntoView {
 
     view! {
         <div class="commission-card">
-            <h3>"Commission Summary"</h3>
+            <h3>{t("agent.commission_summary")}</h3>
 
             <div class="commission-breakdown">
                 <div class="commission-row earned">
-                    <span class="commission-label">"Earned (confirmed)"</span>
+                    <span class="commission-label">{t("agent.earned")}</span>
                     <span class="commission-value">{earned}</span>
                 </div>
                 <div class="commission-row pending">
-                    <span class="commission-label">"Pending"</span>
+                    <span class="commission-label">{t("agent.pending")}</span>
                     <span class="commission-value">{pending}</span>
                 </div>
                 <div class="commission-row paid">
-                    <span class="commission-label">"Paid out"</span>
+                    <span class="commission-label">{t("agent.paid_out")}</span>
                     <span class="commission-value">{paid}</span>
                 </div>
                 <div class="commission-row total">
-                    <span class="commission-label">"Total lifetime"</span>
+                    <span class="commission-label">{t("agent.total_lifetime")}</span>
                     <span class="commission-value">{total}</span>
                 </div>
             </div>
 
-            <p class="commission-note">"Commissions are calculated at 5% of referred user earnings"</p>
+            <p class="commission-note">{t("agent.commission_note")}</p>
         </div>
     }
 }
@@ -348,9 +353,9 @@ fn UserQueueSection(agent_id: String) -> impl IntoView {
         <div class="user-queue-section">
             <div class="queue-header">
                 <h3>
-                    "Assigned Users"
+                    {t("agent.assigned_users")}
                     {(attention_count > 0).then(|| view! {
-                        <span class="attention-badge">{attention_count}" need attention"</span>
+                        <span class="attention-badge">{attention_count}" "{t("agent.need_attention")}</span>
                     })}
                 </h3>
             </div>
@@ -397,7 +402,7 @@ fn UserQueueCard(user: AssignedUser) -> impl IntoView {
                 <div class="user-details">
                     <span class="user-name">{display_name}</span>
                     <span class="user-meta">
-                        "Day "{cohort_day}" • Last active: "{last_active}
+                        {t("agent.day")} " " {cohort_day} " • " {t("agent.last_active")} ": " {last_active}
                     </span>
                 </div>
             </div>
@@ -408,9 +413,9 @@ fn UserQueueCard(user: AssignedUser) -> impl IntoView {
                 })}
             </div>
             <div class="user-actions">
-                <button class="btn-text">"View"</button>
+                <button class="btn-text">{t("agent.view")}</button>
                 {needs_attention.then(|| view! {
-                    <button class="btn-primary btn-sm">"Resolve"</button>
+                    <button class="btn-primary btn-sm">{t("agent.resolve")}</button>
                 })}
             </div>
         </div>

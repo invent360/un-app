@@ -208,23 +208,40 @@ pub struct SuitabilityAnswers {
 }
 
 impl SuitabilityAnswers {
-    /// Calculate estimated monthly earnings in USD
+    /// Calculate estimated monthly earnings potential
+    ///
+    /// NOTE: Actual earnings vary by region, task availability, and network conditions.
+    /// This provides a rough estimate based on device uptime potential.
+    ///
+    /// Returns None if earnings cannot be estimated, indicating user should see
+    /// "Earnings vary by region and task availability" message instead.
     pub fn estimated_earnings(&self) -> Option<(f64, f64)> {
         let connectivity = self.connectivity?;
         let power = self.power?;
 
-        // Base earnings: $2-5/month for full-time operation
-        let base_min = 2.0;
-        let base_max = 5.0;
-
-        // Adjust for connectivity and power
+        // Calculate uptime potential (0.0-1.0 scale)
         let hours_ratio = power.hours_per_day() / 24.0;
         let connectivity_mult = connectivity.earnings_multiplier();
+        let uptime_potential = hours_ratio * connectivity_mult;
 
-        let min_earnings = base_min * hours_ratio * connectivity_mult;
-        let max_earnings = base_max * hours_ratio * connectivity_mult;
+        // If uptime is too low, return None to show variable earnings message
+        if uptime_potential < 0.1 {
+            return None;
+        }
 
-        Some((min_earnings, max_earnings))
+        // Earnings potential indicator (not actual dollar amounts)
+        // These represent relative potential, not guaranteed earnings
+        // Actual rates come from task availability in user's market
+        let base_potential_min = uptime_potential * 1.0; // Low activity scenario
+        let base_potential_max = uptime_potential * 3.0; // High activity scenario
+
+        Some((base_potential_min, base_potential_max))
+    }
+
+    /// Returns true if user should see variable earnings message
+    /// instead of specific estimates
+    pub fn should_show_variable_earnings_message(&self) -> bool {
+        self.estimated_earnings().is_none()
     }
 
     /// Check if all required fields are filled

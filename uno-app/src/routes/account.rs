@@ -4,7 +4,7 @@
 //! Protected route - requires authentication.
 
 use leptos::prelude::*;
-use crate::hooks::{use_user, UserLoadState, UserProfile, LicenseStatus, CohortStatus};
+use crate::hooks::{use_user, UserLoadState, UserProfile, LicenseStatus, CohortStatus, t};
 
 /// Account page component (protected)
 #[component]
@@ -31,7 +31,7 @@ fn AccountContent() -> impl IntoView {
                     view! { <AccountUnauthenticated /> }.into_any()
                 }
                 UserLoadState::Error => {
-                    let error_msg = user_ctx.error.get().unwrap_or_else(|| "Unknown error".to_string());
+                    let error_msg = user_ctx.error.get().unwrap_or_else(|| t("account.unknown_error"));
                     view! { <AccountError message=error_msg /> }.into_any()
                 }
                 UserLoadState::Loaded => {
@@ -55,7 +55,7 @@ fn AccountLoading() -> impl IntoView {
     view! {
         <div class="account-loading">
             <div class="loading-spinner"></div>
-            <p>"Loading your account..."</p>
+            <p>{t("account.loading")}</p>
         </div>
     }
 }
@@ -66,9 +66,9 @@ fn AccountUnauthenticated() -> impl IntoView {
     view! {
         <div class="account-unauthenticated">
             <div class="auth-required-card">
-                <h2>"Sign In Required"</h2>
-                <p>"Please sign in to view your account."</p>
-                <a href="/" class="btn-primary">"Go to Home"</a>
+                <h2>{t("account.signin_required")}</h2>
+                <p>{t("account.signin_message")}</p>
+                <a href="/" class="btn-primary">{t("account.go_home")}</a>
             </div>
         </div>
     }
@@ -80,14 +80,14 @@ fn AccountError(message: String) -> impl IntoView {
     view! {
         <div class="account-error">
             <div class="error-card">
-                <h2>"Something went wrong"</h2>
+                <h2>{t("account.error_title")}</h2>
                 <p>{message}</p>
                 <button class="btn-secondary" on:click=move |_| {
                     #[cfg(any(feature = "csr", feature = "hydrate"))]
                     {
                         let _ = web_sys::window().unwrap().location().reload();
                     }
-                }>"Try Again"</button>
+                }>{t("account.try_again")}</button>
             </div>
         </div>
     }
@@ -106,8 +106,8 @@ fn AuthenticatedAccount(profile: UserProfile) -> impl IntoView {
     view! {
         <div class="account-authenticated">
             <div class="account-header">
-                <h1>"Your Account"</h1>
-                <p class="account-subtitle">"Manage your profile and settings"</p>
+                <h1>{t("account.title")}</h1>
+                <p class="account-subtitle">{t("account.subtitle")}</p>
             </div>
 
             <div class="account-grid">
@@ -141,10 +141,10 @@ fn AuthenticatedAccount(profile: UserProfile) -> impl IntoView {
 #[component]
 fn ProfileCard(user_id: String, role: String) -> impl IntoView {
     let role_display = match role.as_str() {
-        "admin" => "Administrator".to_string(),
-        "operator" => "Operator".to_string(),
-        "agent" => "Agent".to_string(),
-        "participant" => "Participant".to_string(),
+        "admin" => t("account.role_admin"),
+        "operator" => t("account.role_operator"),
+        "agent" => t("account.role_agent"),
+        "participant" => t("account.role_participant"),
         _ => role.clone(),
     };
 
@@ -157,7 +157,7 @@ fn ProfileCard(user_id: String, role: String) -> impl IntoView {
     view! {
         <div class="account-card profile-card">
             <div class="card-header">
-                <h3>"Profile"</h3>
+                <h3>{t("account.profile_section")}</h3>
             </div>
             <div class="card-content">
                 <div class="profile-avatar">
@@ -165,11 +165,11 @@ fn ProfileCard(user_id: String, role: String) -> impl IntoView {
                 </div>
                 <div class="profile-info">
                     <div class="info-row">
-                        <span class="info-label">"User ID"</span>
+                        <span class="info-label">{t("account.user_id")}</span>
                         <span class="info-value">{short_id}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">"Role"</span>
+                        <span class="info-label">{t("account.role")}</span>
                         <span class="info-value role-badge">{role_display}</span>
                     </div>
                 </div>
@@ -206,7 +206,7 @@ fn SetupProgressCard(
     view! {
         <div class="account-card setup-progress-card">
             <div class="card-header">
-                <h3>"Setup Progress"</h3>
+                <h3>{t("account.setup_progress")}</h3>
                 <span class="progress-label">{current_step}"/" {total_steps}</span>
             </div>
             <div class="card-content">
@@ -216,31 +216,31 @@ fn SetupProgressCard(
                 <div class="setup-steps">
                     <SetupStep
                         number=1
-                        label="Claim License"
+                        label=t("account.step_claim_license")
                         completed=license_id.is_some()
                         active=license_id.is_none()
                     />
                     <SetupStep
                         number=2
-                        label="Install App"
+                        label=t("account.step_install_app")
                         completed=cohort_status.as_ref().map(|c| c.d1_completed).unwrap_or(false)
                         active=license_id.is_some() && cohort_status.as_ref().map(|c| !c.d1_completed).unwrap_or(true)
                     />
                     <SetupStep
                         number=3
-                        label="First Active Day"
+                        label=t("account.step_first_active_day")
                         completed=cohort_status.as_ref().map(|c| c.d1_completed).unwrap_or(false)
                         active=false
                     />
                     <SetupStep
                         number=4
-                        label="D7 Milestone"
+                        label=t("account.step_d7_milestone")
                         completed=cohort_status.as_ref().map(|c| c.d7_completed).unwrap_or(false)
                         active=cohort_status.as_ref().map(|c| c.d1_completed && !c.d7_completed).unwrap_or(false)
                     />
                     <SetupStep
                         number=5
-                        label="D30 Graduation"
+                        label=t("account.step_d30_graduation")
                         completed=cohort_status.as_ref().map(|c| c.d30_completed).unwrap_or(false)
                         active=cohort_status.as_ref().map(|c| c.d7_completed && !c.d30_completed).unwrap_or(false)
                     />
@@ -248,11 +248,11 @@ fn SetupProgressCard(
 
                 {if license_id.is_none() {
                     view! {
-                        <a href="/" class="btn-primary btn-sm">"Get Started"</a>
+                        <a href="/" class="btn-primary btn-sm">{t("account.get_started")}</a>
                     }.into_any()
                 } else if cohort_status.as_ref().map(|c| !c.d1_completed).unwrap_or(true) {
                     view! {
-                        <a href="/setup" class="btn-primary btn-sm">"Continue Setup"</a>
+                        <a href="/setup" class="btn-primary btn-sm">{t("account.continue_setup")}</a>
                     }.into_any()
                 } else {
                     view! {}.into_any()
@@ -264,7 +264,7 @@ fn SetupProgressCard(
 
 /// Individual setup step
 #[component]
-fn SetupStep(number: u8, label: &'static str, completed: bool, active: bool) -> impl IntoView {
+fn SetupStep(number: u8, label: String, completed: bool, active: bool) -> impl IntoView {
     let class = if completed {
         "setup-step completed"
     } else if active {
@@ -297,7 +297,7 @@ fn LicenseStatusCard(
     view! {
         <div class="account-card license-status-card">
             <div class="card-header">
-                <h3>"License"</h3>
+                <h3>{t("account.license")}</h3>
             </div>
             <div class="card-content">
                 {match (license_id, license_status) {
@@ -313,29 +313,29 @@ fn LicenseStatusCard(
                         view! {
                             <div class="license-info">
                                 <div class="license-id">
-                                    <span class="label">"License ID"</span>
+                                    <span class="label">{t("account.license_id")}</span>
                                     <span class="value">{lid[..12.min(lid.len())].to_string()}"..."</span>
                                 </div>
                                 <div class="license-state">
-                                    <span class="label">"Status"</span>
+                                    <span class="label">{t("account.status")}</span>
                                     <span class=status_class>{status.state}</span>
                                 </div>
                                 {status.variant.map(|v| view! {
                                     <div class="license-variant">
-                                        <span class="label">"Variant"</span>
+                                        <span class="label">{t("account.variant")}</span>
                                         <span class="value">{v}</span>
                                     </div>
                                 })}
                                 {status.expires_at.map(|exp| view! {
                                     <div class="license-expiry">
-                                        <span class="label">"Expires"</span>
+                                        <span class="label">{t("account.expires")}</span>
                                         <span class="value">{exp}</span>
                                     </div>
                                 })}
                                 {has_active_exit.then(|| view! {
                                     <div class="exit-notice">
                                         <span class="warning-icon">"!"</span>
-                                        <span>"Exit request in progress"</span>
+                                        <span>{t("account.exit_in_progress")}</span>
                                     </div>
                                 })}
                             </div>
@@ -344,8 +344,8 @@ fn LicenseStatusCard(
                     _ => {
                         view! {
                             <div class="no-license">
-                                <p>"No license associated with your account."</p>
-                                <a href="/" class="btn-primary btn-sm">"Claim a License"</a>
+                                <p>{t("account.no_license")}</p>
+                                <a href="/" class="btn-primary btn-sm">{t("account.claim_license")}</a>
                             </div>
                         }.into_any()
                     }
@@ -361,31 +361,31 @@ fn QuickActionsCard(has_license: bool) -> impl IntoView {
     view! {
         <div class="account-card quick-actions-card">
             <div class="card-header">
-                <h3>"Quick Actions"</h3>
+                <h3>{t("account.quick_actions")}</h3>
             </div>
             <div class="card-content">
                 <div class="action-list">
                     <a href="/dashboard" class="action-item">
                         <span class="action-icon">"📊"</span>
-                        <span class="action-label">"Dashboard"</span>
+                        <span class="action-label">{t("account.action_dashboard")}</span>
                     </a>
                     {has_license.then(|| view! {
                         <a href="/setup" class="action-item">
                             <span class="action-icon">"📱"</span>
-                            <span class="action-label">"App Setup"</span>
+                            <span class="action-label">{t("account.action_app_setup")}</span>
                         </a>
                     })}
                     <a href="/guides" class="action-item">
                         <span class="action-icon">"📖"</span>
-                        <span class="action-label">"Guides"</span>
+                        <span class="action-label">{t("account.action_guides")}</span>
                     </a>
                     <a href="/contact" class="action-item">
                         <span class="action-icon">"💬"</span>
-                        <span class="action-label">"Support"</span>
+                        <span class="action-label">{t("account.action_support")}</span>
                     </a>
                     <a href="/referrals" class="action-item">
                         <span class="action-icon">"👥"</span>
-                        <span class="action-label">"Referrals"</span>
+                        <span class="action-label">{t("account.action_referrals")}</span>
                     </a>
                 </div>
             </div>
@@ -398,53 +398,53 @@ fn QuickActionsCard(has_license: bool) -> impl IntoView {
 fn AccountSettings() -> impl IntoView {
     view! {
         <div class="account-settings">
-            <h2>"Settings"</h2>
+            <h2>{t("account.settings")}</h2>
             <div class="settings-grid">
                 // Notification preferences
                 <div class="settings-card">
-                    <h4>"Notifications"</h4>
+                    <h4>{t("account.notifications")}</h4>
                     <div class="setting-item">
                         <label>
                             <input type="checkbox" checked=true />
-                            <span>"Email notifications"</span>
+                            <span>{t("account.email_notifications")}</span>
                         </label>
                     </div>
                     <div class="setting-item">
                         <label>
                             <input type="checkbox" checked=true />
-                            <span>"Push notifications"</span>
+                            <span>{t("account.push_notifications")}</span>
                         </label>
                     </div>
                     <div class="setting-item">
                         <label>
                             <input type="checkbox" />
-                            <span>"Marketing updates"</span>
+                            <span>{t("account.marketing_updates")}</span>
                         </label>
                     </div>
                 </div>
 
                 // Privacy settings
                 <div class="settings-card">
-                    <h4>"Privacy"</h4>
+                    <h4>{t("account.privacy")}</h4>
                     <div class="setting-item">
-                        <a href="/privacy" class="settings-link">"Privacy Policy"</a>
+                        <a href="/privacy" class="settings-link">{t("account.privacy_policy")}</a>
                     </div>
                     <div class="setting-item">
-                        <a href="/terms" class="settings-link">"Terms of Service"</a>
+                        <a href="/terms" class="settings-link">{t("account.terms_of_service")}</a>
                     </div>
                     <div class="setting-item">
-                        <button class="btn-text">"Download My Data"</button>
+                        <button class="btn-text">{t("account.download_my_data")}</button>
                     </div>
                 </div>
 
                 // Danger zone
                 <div class="settings-card danger">
-                    <h4>"Account Actions"</h4>
+                    <h4>{t("account.account_actions")}</h4>
                     <div class="setting-item">
-                        <button class="btn-text warning">"Pause License"</button>
+                        <button class="btn-text warning">{t("account.pause_license")}</button>
                     </div>
                     <div class="setting-item">
-                        <button class="btn-text danger">"Request Exit"</button>
+                        <button class="btn-text danger">{t("account.request_exit")}</button>
                     </div>
                 </div>
             </div>

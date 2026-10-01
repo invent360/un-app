@@ -8,6 +8,7 @@ mod button;
 mod card;
 mod copy_button;
 mod design_system_switcher;
+mod dev_badge;
 mod error_display;
 mod icon;
 mod language_selector;
@@ -44,3 +45,4 @@ pub use testimonial_carousel::{TestimonialCarousel, TestimonialData, StarRating}
 pub use theme_switcher::ThemeSwitcher;
 pub use design_system_switcher::DesignSystemSwitcher;
 pub use preview_banner::PreviewBanner;
+pub use dev_badge::{DevBadge, DevBanner};

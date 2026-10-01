@@ -365,15 +365,61 @@ impl JourneyService for JourneyServiceImpl {
     async fn complete_eligibility(
         &self,
         user_id: Uuid,
-        _country_code: &str,
+        country_code: &str,
         device_verified: bool,
         referral_code: Option<&str>,
     ) -> Result<OnboardingProgress, AppError> {
+        // F3: Actually verify the country code against supported countries
+        // Check if the country has any active pilot cohorts (meaning it's supported)
+        let country_verified: bool = if country_code.is_empty() {
+            false
+        } else {
+            let result: (bool,) = sqlx::query_as(r#"
+                SELECT EXISTS(
+                    SELECT 1 FROM pilot_cohorts
+                    WHERE country_code = $1
+                      AND status = 'active'
+                      AND NOW() BETWEEN start_date AND COALESCE(end_date, '2099-12-31')
+                )
+            "#)
+            .bind(country_code.to_uppercase())
+            .fetch_one(&self.pool)
+            .await
+            .map_err(|e| AppError::Database(e.to_string()))?;
+            result.0
+        };
+
+        // F3: Actually validate the referral code against the database
+        // Check that referral exists, is active, and agent is approved
+        let referral_validated: Option<bool> = if let Some(code) = referral_code {
+            let code = code.trim().to_uppercase();
+            if code.is_empty() {
+                None
+            } else {
+                let result: (bool,) = sqlx::query_as(r#"
+                    SELECT EXISTS(
+                        SELECT 1 FROM referrals r
+                        JOIN agents a ON r.agent_id = a.id
+                        WHERE r.referral_code = $1
+                          AND r.status = 'active'
+                          AND a.status = 'approved'
+                    )
+                "#)
+                .bind(&code)
+                .fetch_one(&self.pool)
+                .await
+                .map_err(|e| AppError::Database(e.to_string()))?;
+                Some(result.0)
+            }
+        } else {
+            None
+        };
+
         let new_state = OnboardingState::Eligibility {
             progress: EligibilityProgress {
-                country_verified: true,
+                country_verified,
                 device_verified,
-                referral_validated: referral_code.map(|_| true),
+                referral_validated,
             },
             referral_code: referral_code.map(String::from),
         };
@@ -431,6 +477,44 @@ impl JourneyService for JourneyServiceImpl {
         user_id: Uuid,
         license_id: Uuid,
     ) -> Result<OnboardingProgress, AppError> {
+        // F3: Verify the license exists, is claimed by this user, and is not quarantined/expired
+        let license_valid: Option<(bool, bool, bool)> = sqlx::query_as(r#"
+            SELECT
+                claimed,
+                issued_to = $2 as is_owner,
+                (is_quarantined = false OR is_quarantined IS NULL) AND valid_to > NOW() as is_valid
+            FROM licenses
+            WHERE id = $1
+        "#)
+        .bind(license_id)
+        .bind(user_id.to_string())
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| AppError::Database(e.to_string()))?;
+
+        match license_valid {
+            None => {
+                return Err(AppError::NotFound(format!("License {} not found", license_id)));
+            }
+            Some((false, _, _)) => {
+                return Err(AppError::BadRequest("License has not been claimed yet".into()));
+            }
+            Some((_, false, _)) => {
+                tracing::warn!(
+                    license_id = %license_id,
+                    user_id = %user_id,
+                    "SECURITY: User attempted to activate license they don't own"
+                );
+                return Err(AppError::Unauthorized("This license belongs to a different user".into()));
+            }
+            Some((_, _, false)) => {
+                return Err(AppError::BadRequest("License is quarantined or expired".into()));
+            }
+            Some((true, true, true)) => {
+                // License is valid, claimed, owned by user, and not quarantined/expired
+            }
+        }
+
         let new_state = OnboardingState::Active {
             license_id,
             activated_at: Utc::now(),

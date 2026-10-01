@@ -5,7 +5,12 @@
 
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::hooks::{use_user, UserLoadState};
+use crate::hooks::{use_user, UserLoadState, t};
+use crate::components::common::DevBanner;
+use crate::api::support::{
+    submit_ticket, initiate_exit,
+    CreateTicketRequest, InitiateExitRequest,
+};
 
 /// Support ticket for display
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,7 +56,7 @@ fn SupportContent() -> impl IntoView {
                     view! {
                         <div class="support-loading">
                             <div class="loading-spinner"></div>
-                            <p>"Loading support..."</p>
+                            <p>{t("support.loading")}</p>
                         </div>
                     }.into_any()
                 }
@@ -59,9 +64,9 @@ fn SupportContent() -> impl IntoView {
                     view! {
                         <div class="support-unauthenticated">
                             <div class="auth-required-card">
-                                <h2>"Sign In Required"</h2>
-                                <p>"Please sign in to access support."</p>
-                                <a href="/" class="btn-primary">"Go to Home"</a>
+                                <h2>{t("support.signin_required")}</h2>
+                                <p>{t("support.signin_message")}</p>
+                                <a href="/" class="btn-primary">{t("support.go_home")}</a>
                             </div>
                         </div>
                     }.into_any()
@@ -69,7 +74,7 @@ fn SupportContent() -> impl IntoView {
                 UserLoadState::Error => {
                     view! {
                         <div class="support-error">
-                            <p>"Error loading support. Please try again."</p>
+                            <p>{t("support.error_loading")}</p>
                         </div>
                     }.into_any()
                 }
@@ -81,8 +86,8 @@ fn SupportContent() -> impl IntoView {
                         None => {
                             view! {
                                 <div class="support-unauthenticated">
-                                    <p>"Please sign in to access support."</p>
-                                    <a href="/" class="btn-primary">"Go Home"</a>
+                                    <p>{t("support.signin_message")}</p>
+                                    <a href="/" class="btn-primary">{t("support.go_home")}</a>
                                 </div>
                             }.into_any()
                         }
@@ -112,8 +117,8 @@ fn AuthenticatedSupport(user_id: String) -> impl IntoView {
     view! {
         <div class="support-authenticated">
             <div class="support-header">
-                <h1>"Help & Support"</h1>
-                <p class="support-subtitle">"Get help, track tickets, and manage your account"</p>
+                <h1>{t("support.help_title")}</h1>
+                <p class="support-subtitle">{t("support.help_subtitle")}</p>
             </div>
 
             // Quick help section
@@ -125,19 +130,19 @@ fn AuthenticatedSupport(user_id: String) -> impl IntoView {
                     class=move || if active_section.get() == "tickets" { "tab-btn active" } else { "tab-btn" }
                     on:click=move |_| set_active_section.set("tickets".to_string())
                 >
-                    "My Tickets"
+                    {t("support.tab_my_tickets")}
                 </button>
                 <button
                     class=move || if active_section.get() == "faq" { "tab-btn active" } else { "tab-btn" }
                     on:click=move |_| set_active_section.set("faq".to_string())
                 >
-                    "Common Questions"
+                    {t("support.tab_common_questions")}
                 </button>
                 <button
                     class=move || if active_section.get() == "account" { "tab-btn active" } else { "tab-btn" }
                     on:click=move |_| set_active_section.set("account".to_string())
                 >
-                    "Account Actions"
+                    {t("support.tab_account_actions")}
                 </button>
             </div>
 
@@ -174,7 +179,7 @@ fn AuthenticatedSupport(user_id: String) -> impl IntoView {
 
             // Exit flow modal
             {move || show_exit_flow.get().then(|| view! {
-                <ExitFlowModal is_open=show_exit_flow />
+                <ExitFlowModal user_id=user_id.clone() is_open=show_exit_flow />
             })}
         </div>
     }
@@ -189,28 +194,28 @@ fn QuickHelpSection() -> impl IntoView {
                 <a href="/guides" class="quick-help-card">
                     <span class="help-icon">"📖"</span>
                     <div class="help-content">
-                        <h4>"Getting Started"</h4>
-                        <p>"Setup guides and tutorials"</p>
+                        <h4>{t("support.quick_getting_started")}</h4>
+                        <p>{t("support.quick_getting_started_desc")}</p>
                     </div>
                 </a>
                 <a href="/faq" class="quick-help-card">
                     <span class="help-icon">"❓"</span>
                     <div class="help-content">
-                        <h4>"FAQ"</h4>
-                        <p>"Frequently asked questions"</p>
+                        <h4>{t("support.quick_faq")}</h4>
+                        <p>{t("support.quick_faq_desc")}</p>
                     </div>
                 </a>
                 <div class="quick-help-card">
                     <span class="help-icon">"💬"</span>
                     <div class="help-content">
-                        <h4>"Live Chat"</h4>
-                        <p>"Available 9am-5pm UTC"</p>
+                        <h4>{t("support.quick_live_chat")}</h4>
+                        <p>{t("support.quick_live_chat_desc")}</p>
                     </div>
                 </div>
                 <a href="mailto:support@unetwork.io" class="quick-help-card">
                     <span class="help-icon">"📧"</span>
                     <div class="help-content">
-                        <h4>"Email Support"</h4>
+                        <h4>{t("support.quick_email")}</h4>
                         <p>"support@unetwork.io"</p>
                     </div>
                 </a>
@@ -252,20 +257,24 @@ fn TicketSection(
 
     view! {
         <div class="ticket-section">
+            <DevBanner
+                title="Demo Mode"
+                description="Ticket data shown below is for demonstration purposes."
+            />
             <div class="ticket-header">
-                <h3>"Support Tickets"</h3>
+                <h3>{t("support.tickets_title")}</h3>
                 <button class="btn-primary" on:click=move |_| show_new_ticket.set(true)>
-                    "New Ticket"
+                    {t("support.new_ticket")}
                 </button>
             </div>
 
             // Open tickets
             <div class="ticket-group">
-                <h4 class="ticket-group-title">"Open Tickets" <span class="count">"("{open_tickets.len()}")"</span></h4>
+                <h4 class="ticket-group-title">{t("support.open_tickets")} <span class="count">"("{open_tickets.len()}")"</span></h4>
                 {if open_tickets.is_empty() {
                     view! {
                         <div class="empty-state">
-                            <p>"No open tickets"</p>
+                            <p>{t("support.no_open_tickets")}</p>
                         </div>
                     }.into_any()
                 } else {
@@ -281,11 +290,11 @@ fn TicketSection(
 
             // Closed tickets
             <div class="ticket-group">
-                <h4 class="ticket-group-title">"Resolved Tickets" <span class="count">"("{closed_tickets.len()}")"</span></h4>
+                <h4 class="ticket-group-title">{t("support.resolved_tickets")} <span class="count">"("{closed_tickets.len()}")"</span></h4>
                 {if closed_tickets.is_empty() {
                     view! {
                         <div class="empty-state">
-                            <p>"No resolved tickets"</p>
+                            <p>{t("support.no_resolved_tickets")}</p>
                         </div>
                     }.into_any()
                 } else {
@@ -319,18 +328,18 @@ fn TicketCard(ticket: SupportTicket) -> impl IntoView {
                 <div class="ticket-number">
                     {ticket.number.clone()}
                     {ticket.has_unread_reply.then(|| view! {
-                        <span class="unread-badge">"New"</span>
+                        <span class="unread-badge">{t("support.badge_new")}</span>
                     })}
                 </div>
                 <div class="ticket-subject">{ticket.subject}</div>
                 <div class="ticket-meta">
-                    <span class="ticket-date">"Created: "{ticket.created_at}</span>
-                    <span class="ticket-updated">"Updated: "{ticket.updated_at}</span>
+                    <span class="ticket-date">{t("support.created")}" "{ticket.created_at}</span>
+                    <span class="ticket-updated">{t("support.updated")}" "{ticket.updated_at}</span>
                 </div>
             </div>
             <div class="ticket-status">
                 <span class=status_class>{ticket.status}</span>
-                <button class="btn-text view-btn">"View"</button>
+                <button class="btn-text view-btn">{t("support.view")}</button>
             </div>
         </div>
     }
@@ -350,7 +359,7 @@ fn FaqSection() -> impl IntoView {
 
     view! {
         <div class="faq-section">
-            <h3>"Common Questions"</h3>
+            <h3>{t("support.common_questions")}</h3>
             <div class="faq-list">
                 {faqs.into_iter().map(|(question, answer)| view! {
                     <details class="faq-item">
@@ -360,7 +369,7 @@ fn FaqSection() -> impl IntoView {
                 }).collect::<Vec<_>>()}
             </div>
             <div class="faq-more">
-                <a href="/faq" class="btn-secondary">"View All FAQs"</a>
+                <a href="/faq" class="btn-secondary">{t("support.view_all_faqs")}</a>
             </div>
         </div>
     }
@@ -373,30 +382,30 @@ fn AccountActionsSection(
 ) -> impl IntoView {
     view! {
         <div class="account-actions-section">
-            <h3>"Account Actions"</h3>
+            <h3>{t("support.account_actions")}</h3>
 
             // Balance breakdown
             <div class="balance-card">
-                <h4>"Your Balance"</h4>
+                <h4>{t("support.your_balance")}</h4>
                 <div class="balance-breakdown">
                     <div class="balance-row">
-                        <span class="balance-label">"Earned (confirmed)"</span>
+                        <span class="balance-label">{t("support.balance_earned")}</span>
                         <span class="balance-value">"$12.50"</span>
                     </div>
                     <div class="balance-row">
-                        <span class="balance-label">"Pending (processing)"</span>
+                        <span class="balance-label">{t("support.balance_pending")}</span>
                         <span class="balance-value pending">"$3.20"</span>
                     </div>
                     <div class="balance-row">
-                        <span class="balance-label">"Paid out"</span>
+                        <span class="balance-label">{t("support.balance_paid")}</span>
                         <span class="balance-value paid">"$45.00"</span>
                     </div>
                     <div class="balance-row total">
-                        <span class="balance-label">"Total lifetime"</span>
+                        <span class="balance-label">{t("support.balance_total")}</span>
                         <span class="balance-value">"$60.70"</span>
                     </div>
                 </div>
-                <p class="balance-note">"Next payout scheduled for October 15, 2026"</p>
+                <p class="balance-note">{t("support.next_payout_note")}</p>
             </div>
 
             // Action cards
@@ -405,21 +414,21 @@ fn AccountActionsSection(
                 <div class="action-card">
                     <div class="action-icon pause">"⏸"</div>
                     <div class="action-info">
-                        <h4>"Pause License"</h4>
-                        <p>"Temporarily stop earning. Your license remains active and you can resume anytime."</p>
+                        <h4>{t("support.pause_license")}</h4>
+                        <p>{t("support.pause_license_desc")}</p>
                     </div>
-                    <button class="btn-secondary">"Pause"</button>
+                    <button class="btn-secondary">{t("support.pause_btn")}</button>
                 </div>
 
                 // Request exit
                 <div class="action-card warning">
                     <div class="action-icon exit">"🚪"</div>
                     <div class="action-info">
-                        <h4>"Request Exit"</h4>
-                        <p>"Permanently leave the program. Your pending balance will be paid out after processing."</p>
+                        <h4>{t("support.request_exit")}</h4>
+                        <p>{t("support.request_exit_desc")}</p>
                     </div>
                     <button class="btn-warning" on:click=move |_| show_exit_flow.set(true)>
-                        "Request Exit"
+                        {t("support.request_exit")}
                     </button>
                 </div>
             </div>
@@ -442,32 +451,32 @@ fn ExitStatusCard() -> impl IntoView {
 
     view! {
         <div class="exit-status-card">
-            <h4>"Exit Request Status"</h4>
+            <h4>{t("support.exit_status_title")}</h4>
             <div class="exit-timeline">
                 <div class="timeline-step completed">
                     <span class="step-icon">"✓"</span>
                     <div class="step-content">
-                        <span class="step-title">"Request Submitted"</span>
+                        <span class="step-title">{t("support.exit_step_submitted")}</span>
                         <span class="step-date">"Sept 25, 2026"</span>
                     </div>
                 </div>
                 <div class="timeline-step active">
                     <span class="step-icon">"•"</span>
                     <div class="step-content">
-                        <span class="step-title">"Processing Balance"</span>
-                        <span class="step-date">"In progress"</span>
+                        <span class="step-title">{t("support.exit_step_processing")}</span>
+                        <span class="step-date">{t("support.in_progress")}</span>
                     </div>
                 </div>
                 <div class="timeline-step">
                     <span class="step-icon">"○"</span>
                     <div class="step-content">
-                        <span class="step-title">"Final Payout"</span>
+                        <span class="step-title">{t("support.exit_step_payout")}</span>
                         <span class="step-date">"Estimated: Oct 10, 2026"</span>
                     </div>
                 </div>
             </div>
             <div class="exit-payout">
-                <span class="payout-label">"Final payout amount:"</span>
+                <span class="payout-label">{t("support.final_payout_amount")}</span>
                 <span class="payout-amount">"$15.70"</span>
             </div>
         </div>
@@ -484,32 +493,57 @@ fn NewTicketModal(user_id: String, is_open: RwSignal<bool>) -> impl IntoView {
 
     let close_modal = move |_| is_open.set(false);
 
+    let (submit_error, set_submit_error) = signal(Option::<String>::None);
+    let (submit_success, set_submit_success) = signal(Option::<String>::None);
+
     let handle_submit = move |ev: leptos::ev::SubmitEvent| {
         ev.prevent_default();
         set_is_submitting.set(true);
+        set_submit_error.set(None);
 
-        // TODO: Submit to API
-        // For now, just close after a delay
-        #[cfg(any(feature = "csr", feature = "hydrate"))]
-        {
-            leptos::task::spawn_local(async move {
-                gloo_timers::future::TimeoutFuture::new(1000).await;
-                is_open.set(false);
-            });
-        }
+        let request = CreateTicketRequest {
+            category: category.get(),
+            subject: subject.get(),
+            description: description.get(),
+        };
+
+        leptos::task::spawn_local(async move {
+            match submit_ticket(request).await {
+                Ok(response) => {
+                    if response.success {
+                        if let Some(ticket_num) = response.ticket_number {
+                            set_submit_success.set(Some(ticket_num));
+                            // Close after showing success briefly
+                            #[cfg(any(feature = "csr", feature = "hydrate"))]
+                            {
+                                gloo_timers::future::TimeoutFuture::new(2000).await;
+                                is_open.set(false);
+                            }
+                        }
+                    } else {
+                        set_submit_error.set(response.error.or(Some("Failed to create ticket".to_string())));
+                        set_is_submitting.set(false);
+                    }
+                }
+                Err(e) => {
+                    set_submit_error.set(Some(e.to_string()));
+                    set_is_submitting.set(false);
+                }
+            }
+        });
     };
 
     view! {
         <div class="modal-overlay" on:click=close_modal>
             <div class="modal-content new-ticket-modal" on:click=|ev| ev.stop_propagation()>
                 <div class="modal-header">
-                    <h3>"Create Support Ticket"</h3>
+                    <h3>{t("support.create_ticket")}</h3>
                     <button class="modal-close" on:click=close_modal>"×"</button>
                 </div>
 
                 <form class="ticket-form" on:submit=handle_submit>
                     <div class="form-group">
-                        <label for="category">"Category"</label>
+                        <label for="category">{t("support.category_label")}</label>
                         <select
                             id="category"
                             prop:value=move || category.get()
@@ -518,20 +552,20 @@ fn NewTicketModal(user_id: String, is_open: RwSignal<bool>) -> impl IntoView {
                                 set_category.set(value);
                             }
                         >
-                            <option value="general">"General Question"</option>
-                            <option value="technical">"Technical Issue"</option>
-                            <option value="payment">"Payment/Payout"</option>
-                            <option value="account">"Account/License"</option>
-                            <option value="other">"Other"</option>
+                            <option value="general">{t("support.category_general")}</option>
+                            <option value="technical">{t("support.category_technical")}</option>
+                            <option value="payment">{t("support.category_payment")}</option>
+                            <option value="account">{t("support.category_account")}</option>
+                            <option value="other">{t("support.category_other")}</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="subject">"Subject"</label>
+                        <label for="subject">{t("support.subject_label")}</label>
                         <input
                             type="text"
                             id="subject"
-                            placeholder="Brief description of your issue"
+                            placeholder={t("support.subject_placeholder")}
                             prop:value=move || subject.get()
                             on:input=move |ev| set_subject.set(event_target_value(&ev))
                             required=true
@@ -540,10 +574,10 @@ fn NewTicketModal(user_id: String, is_open: RwSignal<bool>) -> impl IntoView {
                     </div>
 
                     <div class="form-group">
-                        <label for="description">"Description"</label>
+                        <label for="description">{t("support.description_label")}</label>
                         <textarea
                             id="description"
-                            placeholder="Please provide details about your issue..."
+                            placeholder={t("support.description_placeholder")}
                             rows=5
                             prop:value=move || description.get()
                             on:input=move |ev| set_description.set(event_target_value(&ev))
@@ -551,21 +585,35 @@ fn NewTicketModal(user_id: String, is_open: RwSignal<bool>) -> impl IntoView {
                         ></textarea>
                     </div>
 
+                    {move || submit_error.get().map(|err| view! {
+                        <div class="error-message">
+                            <span class="error-icon">"✕"</span>
+                            <p>{err}</p>
+                        </div>
+                    })}
+
+                    {move || submit_success.get().map(|ticket_num| view! {
+                        <div class="success-message">
+                            <span class="success-icon">"✓"</span>
+                            <p>{t("support.ticket_created")}" #{ticket_num}"</p>
+                        </div>
+                    })}
+
                     <div class="form-note">
                         <span class="info-icon">"ℹ"</span>
-                        <p>"We typically respond within 24-48 hours. For urgent issues, use live chat during business hours."</p>
+                        <p>{t("support.response_time_note")}</p>
                     </div>
 
                     <div class="form-actions">
                         <button type="button" class="btn-secondary" on:click=close_modal>
-                            "Cancel"
+                            {t("common.cancel")}
                         </button>
                         <button
                             type="submit"
                             class="btn-primary"
                             disabled=move || is_submitting.get() || subject.get().is_empty() || description.get().is_empty()
                         >
-                            {move || if is_submitting.get() { "Submitting..." } else { "Submit Ticket" }}
+                            {move || if is_submitting.get() { t("support.submitting") } else { t("support.submit_ticket") }}
                         </button>
                     </div>
                 </form>
@@ -576,10 +624,15 @@ fn NewTicketModal(user_id: String, is_open: RwSignal<bool>) -> impl IntoView {
 
 /// Exit flow modal with confirmation
 #[component]
-fn ExitFlowModal(is_open: RwSignal<bool>) -> impl IntoView {
+fn ExitFlowModal(user_id: String, is_open: RwSignal<bool>) -> impl IntoView {
     let (step, set_step) = signal(1u8);
     let (confirm_text, set_confirm_text) = signal(String::new());
     let (is_processing, set_is_processing) = signal(false);
+    let (exit_error, set_exit_error) = signal(Option::<String>::None);
+    let (confirmation_number, set_confirmation_number) = signal(Option::<String>::None);
+
+    // Get user context for license_id
+    let user_ctx = use_user();
 
     let close_modal = move |_| is_open.set(false);
 
@@ -587,7 +640,7 @@ fn ExitFlowModal(is_open: RwSignal<bool>) -> impl IntoView {
         <div class="modal-overlay" on:click=close_modal>
             <div class="modal-content exit-flow-modal" on:click=|ev| ev.stop_propagation()>
                 <div class="modal-header">
-                    <h3>"Request Exit"</h3>
+                    <h3>{t("support.request_exit")}</h3>
                     <button class="modal-close" on:click=close_modal>"×"</button>
                 </div>
 
@@ -596,70 +649,113 @@ fn ExitFlowModal(is_open: RwSignal<bool>) -> impl IntoView {
                         <div class="exit-step">
                             <div class="warning-banner">
                                 <span class="warning-icon">"⚠"</span>
-                                <p>"This action is permanent. Please read carefully."</p>
+                                <p>{t("support.exit_warning")}</p>
                             </div>
 
-                            <h4>"What happens when you exit?"</h4>
+                            <h4>{t("support.exit_what_happens")}</h4>
                             <ul class="exit-details">
-                                <li>"Your license will be deactivated"</li>
-                                <li>"Any pending balance will be processed for payout"</li>
-                                <li>"Processing takes 7-14 business days"</li>
-                                <li>"You cannot rejoin with the same license"</li>
+                                <li>{t("support.exit_detail_1")}</li>
+                                <li>{t("support.exit_detail_2")}</li>
+                                <li>{t("support.exit_detail_3")}</li>
+                                <li>{t("support.exit_detail_4")}</li>
                             </ul>
 
                             <div class="balance-summary">
-                                <h4>"Your Current Balance"</h4>
+                                <h4>{t("support.your_current_balance")}</h4>
                                 <div class="summary-row">
-                                    <span>"Confirmed earnings"</span>
+                                    <span>{t("support.confirmed_earnings")}</span>
                                     <span>"$12.50"</span>
                                 </div>
                                 <div class="summary-row">
-                                    <span>"Pending (may change)"</span>
+                                    <span>{t("support.pending_may_change")}</span>
                                     <span>"$3.20"</span>
                                 </div>
                                 <div class="summary-row total">
-                                    <span>"Estimated final payout"</span>
+                                    <span>{t("support.estimated_final_payout")}</span>
                                     <span>"$15.70"</span>
                                 </div>
                             </div>
 
                             <div class="exit-actions">
                                 <button class="btn-secondary" on:click=close_modal>
-                                    "Cancel"
+                                    {t("common.cancel")}
                                 </button>
                                 <button class="btn-warning" on:click=move |_| set_step.set(2)>
-                                    "Continue"
+                                    {t("support.continue")}
                                 </button>
                             </div>
                         </div>
                     }.into_any(),
                     2 => view! {
                         <div class="exit-step confirmation">
-                            <h4>"Confirm Your Decision"</h4>
-                            <p>"To confirm exit, type "<strong>"EXIT"</strong>" below:"</p>
+                            <h4>{t("support.confirm_decision")}</h4>
+                            <p>{t("support.confirm_exit_instruction")}</p>
 
                             <input
                                 type="text"
                                 class="confirm-input"
-                                placeholder="Type EXIT"
+                                placeholder={t("support.type_exit")}
                                 prop:value=move || confirm_text.get()
                                 on:input=move |ev| set_confirm_text.set(event_target_value(&ev))
                             />
 
+                            {move || exit_error.get().map(|err| view! {
+                                <div class="error-message">
+                                    <span class="error-icon">"✕"</span>
+                                    <p>{err}</p>
+                                </div>
+                            })}
+
                             <div class="exit-actions">
                                 <button class="btn-secondary" on:click=move |_| set_step.set(1)>
-                                    "Back"
+                                    {t("common.back")}
                                 </button>
                                 <button
                                     class="btn-danger"
                                     disabled=move || confirm_text.get().to_uppercase() != "EXIT" || is_processing.get()
                                     on:click=move |_| {
                                         set_is_processing.set(true);
-                                        // TODO: Submit exit request to API
-                                        set_step.set(3);
+                                        set_exit_error.set(None);
+
+                                        // Get license_id from user context
+                                        let license_id = user_ctx.user.get()
+                                            .and_then(|u| u.license_id.clone());
+
+                                        match license_id {
+                                            Some(lid) => {
+                                                let request = InitiateExitRequest {
+                                                    license_id: lid,
+                                                    exit_reason: Some("User requested voluntary exit".to_string()),
+                                                };
+
+                                                leptos::task::spawn_local(async move {
+                                                    match initiate_exit(request).await {
+                                                        Ok(response) => {
+                                                            if response.success {
+                                                                if let Some(conf_num) = response.confirmation_number {
+                                                                    set_confirmation_number.set(Some(conf_num));
+                                                                }
+                                                                set_step.set(3);
+                                                            } else {
+                                                                set_exit_error.set(response.error.or(Some("Failed to process exit request".to_string())));
+                                                                set_is_processing.set(false);
+                                                            }
+                                                        }
+                                                        Err(e) => {
+                                                            set_exit_error.set(Some(e.to_string()));
+                                                            set_is_processing.set(false);
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                            None => {
+                                                set_exit_error.set(Some("No license found. Please contact support.".to_string()));
+                                                set_is_processing.set(false);
+                                            }
+                                        }
                                     }
                                 >
-                                    {move || if is_processing.get() { "Processing..." } else { "Confirm Exit" }}
+                                    {move || if is_processing.get() { t("support.processing") } else { t("support.confirm_exit") }}
                                 </button>
                             </div>
                         </div>
@@ -667,13 +763,16 @@ fn ExitFlowModal(is_open: RwSignal<bool>) -> impl IntoView {
                     3 => view! {
                         <div class="exit-step complete">
                             <div class="success-icon">"✓"</div>
-                            <h4>"Exit Request Submitted"</h4>
-                            <p>"Your exit request has been received. We'll process your final payout within 7-14 business days."</p>
-                            <p class="confirmation-number">"Confirmation: EXIT-2026092998"</p>
+                            <h4>{t("support.exit_submitted")}</h4>
+                            <p>{t("support.exit_submitted_message")}</p>
+                            <p class="confirmation-number">
+                                {t("support.confirmation")}" "
+                                {move || confirmation_number.get().unwrap_or_else(|| "EXIT-PENDING".to_string())}
+                            </p>
 
                             <div class="exit-actions">
                                 <button class="btn-primary" on:click=close_modal>
-                                    "Close"
+                                    {t("common.close")}
                                 </button>
                             </div>
                         </div>

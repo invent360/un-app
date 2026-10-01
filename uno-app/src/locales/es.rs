@@ -601,4 +601,18 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.common.back" => "Atras",
     "wizard.common.next" => "Siguiente",
     "wizard.common.close" => "Cerrar",
+
+    // F1-C: Suitability Earnings (non-hardcoded)
+    "suitability.your_earnings_potential" => "Tu Potencial de Ganancias",
+    "suitability.earnings_potential_intro" => "Basado en tu dispositivo y conexion, aqui esta tu potencial estimado de ganancias.",
+    "suitability.earnings_potential_label" => "Nivel de Potencial",
+    "suitability.earnings_high_desc" => "Tu configuracion es ideal para ganar. Espera oportunidades consistentes.",
+    "suitability.earnings_medium_desc" => "Buen potencial con espacio para mejorar el tiempo de actividad o la conectividad.",
+    "suitability.earnings_low_desc" => "Potencial limitado debido a restricciones de conectividad o tiempo de actividad.",
+    "suitability.earnings_vary_message" => "Las ganancias reales varian segun la region, disponibilidad de tareas y condiciones de red.",
+    "suitability.earnings_vary_region_task" => "Las ganancias varian segun region y disponibilidad de tareas",
+    "suitability.complete_steps_for_estimate" => "Completa los pasos anteriores para ver tu estimacion personalizada.",
+
+    // F1-A: Support ticket creation
+    "support.ticket_created" => "Ticket creado exitosamente!",
 };

@@ -153,7 +153,9 @@ pub trait SettlementServiceTrait: Send + Sync {
 
 /// Settlement service implementation
 /// R5-08: Settlement item repository is REQUIRED in production for per-party settlement
+/// F4: Pool added for transactional settlement execution
 pub struct SettlementService {
+    pool: crate::server::db::ConnectionPool,
     allocation_repo: Arc<dyn AllocationRepository + Send + Sync>,
     credit_order_repo: Arc<dyn CreditOrderRepository + Send + Sync>,
     audit_repo: Arc<dyn ImmutableAuditRepository + Send + Sync>,
@@ -165,8 +167,9 @@ pub struct SettlementService {
 
 impl SettlementService {
     // R5-08: Single constructor requires settlement item repository
-    // The old `new()` constructor without repository has been removed
+    // F4: Now requires pool for transactional settlement execution
     pub fn new(
+        pool: crate::server::db::ConnectionPool,
         allocation_repo: Arc<dyn AllocationRepository + Send + Sync>,
         credit_order_repo: Arc<dyn CreditOrderRepository + Send + Sync>,
         audit_repo: Arc<dyn ImmutableAuditRepository + Send + Sync>,
@@ -174,6 +177,7 @@ impl SettlementService {
         settlement_item_repo: Arc<dyn crate::server::repositories::SettlementItemRepository + Send + Sync>,
     ) -> Self {
         Self {
+            pool,
             allocation_repo,
             credit_order_repo,
             audit_repo,
@@ -183,16 +187,17 @@ impl SettlementService {
         }
     }
 
-    // R5-08: Deprecated alias - use new() instead
-    #[deprecated(note = "Use new() - settlement_item_repo is now required")]
+    // R5-08/F4: Deprecated alias - use new() instead
+    #[deprecated(note = "Use new() - pool and settlement_item_repo are now required")]
     pub fn with_settlement_items(
+        pool: crate::server::db::ConnectionPool,
         allocation_repo: Arc<dyn AllocationRepository + Send + Sync>,
         credit_order_repo: Arc<dyn CreditOrderRepository + Send + Sync>,
         audit_repo: Arc<dyn ImmutableAuditRepository + Send + Sync>,
         outbox_repo: DynOutboxRepository,
         settlement_item_repo: Arc<dyn crate::server::repositories::SettlementItemRepository + Send + Sync>,
     ) -> Self {
-        Self::new(allocation_repo, credit_order_repo, audit_repo, outbox_repo, settlement_item_repo)
+        Self::new(pool, allocation_repo, credit_order_repo, audit_repo, outbox_repo, settlement_item_repo)
     }
 
     /// Generate a unique settlement reference
@@ -537,13 +542,17 @@ impl SettlementServiceTrait for SettlementService {
 
             // R5-08: Sum the appropriate party's share with recipient validation
             // Validate that recipient is an actual payee, not just license_id
+            // F4: Recipients MUST be resolved to actual payable entities - no fallbacks
             let (party_amount, recipient_id) = match input.party_type.as_str() {
                 "ulo" => {
-                    // R5-08: ULO recipient should resolve to actual user/participant
-                    // For now, use ulo_recipient_id if available, fall back to license_id
+                    // F4: ULO recipient MUST be a valid user - reject if missing
+                    // Fallback to license_id was incorrect - license_id is not payable
                     let recipient = alloc.ulo_recipient_id
                         .map(|id| id.to_string())
-                        .unwrap_or_else(|| alloc.license_id.clone());
+                        .ok_or_else(|| SettlementError::ReconciliationFailed(
+                            format!("Allocation {} has ulo_micros {} but no ulo_recipient_id",
+                                id, alloc.ulo_micros)
+                        ))?;
                     (alloc.ulo_micros, recipient)
                 },
                 "uno" => {
@@ -729,68 +738,138 @@ impl SettlementServiceTrait for SettlementService {
             .await
             .map_err(|e| SettlementError::Database(e.to_string()))?;
 
-        // Check if any items are already confirmed with a provider ref
-        for item in &existing {
-            if item.item_state == "confirmed" {
-                tracing::warn!(
-                    settlement_id = %settlement.id,
-                    item_id = %item.id,
-                    "Settlement items already confirmed - idempotent return"
-                );
-                // Idempotent: already executed, return current state
-                return self.credit_order_repo
-                    .get_settlement(settlement.id)
-                    .await
-                    .map_err(|e| SettlementError::Database(e.to_string()))?
-                    .ok_or_else(|| SettlementError::SettlementNotFound(input.settlement_ref));
-            }
+        // F4: Check if ALL items are confirmed - only then return early
+        // Previous code returned early if ANY item was confirmed, which was incorrect
+        let all_confirmed = !existing.is_empty() && existing.iter().all(|i| i.item_state == "confirmed");
+        if all_confirmed {
+            tracing::info!(
+                settlement_id = %settlement.id,
+                "All settlement items already confirmed - idempotent return"
+            );
+            return self.credit_order_repo
+                .get_settlement(settlement.id)
+                .await
+                .map_err(|e| SettlementError::Database(e.to_string()))?
+                .ok_or_else(|| SettlementError::SettlementNotFound(input.settlement_ref));
         }
 
-        // Execute settlement record
-        let success = self.credit_order_repo
-            .execute_settlement(settlement.id, &input.executor_id, &input.provider, &input.provider_ref)
+        // F4: Execute all writes in a single transaction for crash recovery safety
+        // This ensures settlement either fully succeeds or fully rolls back
+        let mut tx = self.pool.begin()
             .await
-            .map_err(|e| SettlementError::Database(e.to_string()))?;
+            .map_err(|e| SettlementError::Database(format!("Failed to start transaction: {}", e)))?;
 
-        if !success {
+        // Step 1: Execute settlement record (mark as executed)
+        let execute_result = sqlx::query(r#"
+            UPDATE settlements
+            SET status = 'executed',
+                executed_at = NOW(),
+                executor_id = $2,
+                provider = $3,
+                provider_ref = $4
+            WHERE id = $1 AND status = 'approved'
+        "#)
+        .bind(settlement.id)
+        .bind(&input.executor_id)
+        .bind(&input.provider)
+        .bind(&input.provider_ref)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+        if execute_result.rows_affected() == 0 {
+            tx.rollback().await.ok();
             return Err(SettlementError::InvalidStateTransition(
                 "Settlement must be in approved state to execute".to_string()
             ));
         }
 
-        // R5-08: Mark settlement items as confirmed and update per-party states
-        // DO NOT mark whole allocation as paid - only update party-specific state
-        // Get all settlement items
-        let items = self.settlement_item_repo
-            .list_by_settlement(settlement.id)
+        // Step 2: Get settlement items for this settlement
+        let items: Vec<(Uuid, Uuid)> = sqlx::query_as(r#"
+            SELECT id, allocation_id FROM settlement_items WHERE settlement_id = $1
+        "#)
+        .bind(settlement.id)
+        .fetch_all(&mut *tx)
+        .await
+        .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+        let item_ids: Vec<Uuid> = items.iter().map(|(id, _)| *id).collect();
+        let allocation_ids: Vec<Uuid> = items.iter().map(|(_, alloc_id)| *alloc_id).collect();
+
+        // Step 3: Mark items as confirmed
+        if !item_ids.is_empty() {
+            sqlx::query(r#"
+                UPDATE settlement_items
+                SET item_state = 'confirmed', confirmed_at = NOW()
+                WHERE id = ANY($1)
+            "#)
+            .bind(&item_ids)
+            .execute(&mut *tx)
             .await
             .map_err(|e| SettlementError::Database(e.to_string()))?;
+        }
 
-        // Mark items as confirmed
-        let item_ids: Vec<Uuid> = items.iter().map(|i| i.id).collect();
-        self.settlement_item_repo
-            .mark_confirmed(&item_ids)
-            .await
-            .map_err(|e| SettlementError::Database(e.to_string()))?;
+        // Step 4: Update per-party settlement state for each allocation
+        // Use a single batch update where possible
+        let party_type = &settlement.party_type;
+        for alloc_id in &allocation_ids {
+            // Update the party-specific settlement column
+            let column = match party_type.as_str() {
+                "ulo" => "ulo_settlement_state",
+                "uno" => "uno_settlement_state",
+                "referral" => "referral_settlement_state",
+                "reserve" => "reserve_settlement_state",
+                _ => continue,
+            };
 
-        // Update per-party settlement state to "confirmed" for each allocation
-        for item in &items {
-            self.settlement_item_repo
-                .update_allocation_settlement_state(item.allocation_id, &settlement.party_type, "confirmed")
+            let query = format!(
+                "UPDATE allocation_ledger SET {} = 'confirmed' WHERE id = $1",
+                column
+            );
+            sqlx::query(&query)
+                .bind(alloc_id)
+                .execute(&mut *tx)
                 .await
                 .map_err(|e| SettlementError::Database(e.to_string()))?;
 
-            // R5-08: Check if all parties are now settled for this allocation
-            // Only mark whole allocation as "paid" when ALL parties are confirmed
-            if self.is_allocation_fully_settled(item.allocation_id).await? {
-                self.allocation_repo
-                    .mark_paid(&[item.allocation_id], &input.executor_id, &input.settlement_ref)
-                    .await
-                    .map_err(|e| SettlementError::Database(e.to_string()))?;
+            // Check if allocation is fully settled (all parties confirmed)
+            let fully_settled: (bool,) = sqlx::query_as(r#"
+                SELECT (
+                    COALESCE(ulo_settlement_state, 'none') = 'confirmed' AND
+                    COALESCE(uno_settlement_state, 'none') = 'confirmed' AND
+                    (COALESCE(referral_settlement_state, 'none') = 'confirmed' OR referral_micros = 0) AND
+                    (COALESCE(reserve_settlement_state, 'none') = 'confirmed' OR reserve_micros = 0)
+                ) as fully_settled
+                FROM allocation_ledger WHERE id = $1
+            "#)
+            .bind(alloc_id)
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(|e| SettlementError::Database(e.to_string()))?;
+
+            // Step 5: Mark allocation as paid if fully settled
+            if fully_settled.0 {
+                sqlx::query(r#"
+                    UPDATE allocation_ledger
+                    SET status = 'paid', paid_at = NOW(), paid_by = $2, paid_via_settlement = $3
+                    WHERE id = $1 AND status != 'paid'
+                "#)
+                .bind(alloc_id)
+                .bind(&input.executor_id)
+                .bind(&input.settlement_ref)
+                .execute(&mut *tx)
+                .await
+                .map_err(|e| SettlementError::Database(e.to_string()))?;
             }
         }
 
-        // Log audit
+        // Commit the transaction - all or nothing
+        tx.commit()
+            .await
+            .map_err(|e| SettlementError::Database(format!("Failed to commit settlement: {}", e)))?;
+
+        // F4: Post-commit operations (audit, events) - these are best-effort
+        // If these fail, the settlement is still valid
         self.log_audit_event(
             AuditEventType::Update,
             AuditCategory::Finance,
@@ -807,7 +886,6 @@ impl SettlementServiceTrait for SettlementService {
             }),
         ).await;
 
-        // Publish event
         self.publish_event("settlement.executed", serde_json::json!({
             "settlement_ref": input.settlement_ref,
             "total_micros": settlement.total_micros,
