@@ -602,4 +602,13 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
 
     // F1-A: Support ticket creation
     "support.ticket_created" => "টিকিট সফলভাবে তৈরি হয়েছে!",
+
+    // B7 FIX: Missing agent keys
+    "agent.total_lifetime" => "মোট আজীবন",
+    "agent.commission_note" => "কমিশন সাপ্তাহিক গণনা করা হয় এবং মাসিক প্রদান করা হয়",
+    "agent.need_attention" => "মনোযোগ প্রয়োজন",
+    "agent.resolve" => "সমাধান করুন",
+    "agent.assigned_users" => "নির্ধারিত ব্যবহারকারী",
+    "agent.commission_summary" => "কমিশন সারাংশ",
+    "agent.paid_out" => "প্রদান করা হয়েছে",
 };

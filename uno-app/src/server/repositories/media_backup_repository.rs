@@ -140,6 +140,9 @@ pub struct MediaBackupEntry {
     pub verified_at: Option<DateTime<Utc>>,
     pub verification_status: Option<String>,
     pub backed_up_at: DateTime<Utc>,
+    // B4 FIX: Fields for manifest hash verification
+    pub original_filename: Option<String>,
+    pub original_storage_url: Option<String>,
 }
 
 /// Media restore entity
@@ -208,6 +211,9 @@ pub struct CreateBackupEntryInput {
     pub mime_type: Option<String>,
     pub compressed_size: Option<i64>,
     pub encrypted: bool,
+    // B4 FIX: Fields for manifest hash verification
+    pub original_filename: Option<String>,
+    pub original_storage_url: Option<String>,
 }
 
 /// Input for creating a restore job
@@ -439,15 +445,17 @@ impl MediaBackupRepository for MediaBackupRepositoryImpl {
     }
 
     async fn create_entry(&self, input: CreateBackupEntryInput) -> Result<MediaBackupEntry, AppError> {
+        // B4 FIX: Include original_filename and original_storage_url for manifest verification
         let entry = sqlx::query_as::<_, MediaBackupEntry>(
             r#"
             INSERT INTO media_backup_entries (
                 backup_id, asset_id, relative_path, file_size, sha256_hash,
-                mime_type, compressed_size, encrypted
+                mime_type, compressed_size, encrypted, original_filename, original_storage_url
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING id, backup_id, asset_id, relative_path, file_size, sha256_hash,
-                      mime_type, compressed_size, encrypted, verified_at, verification_status, backed_up_at
+                      mime_type, compressed_size, encrypted, verified_at, verification_status, backed_up_at,
+                      original_filename, original_storage_url
             "#,
         )
         .bind(input.backup_id)
@@ -458,6 +466,8 @@ impl MediaBackupRepository for MediaBackupRepositoryImpl {
         .bind(&input.mime_type)
         .bind(input.compressed_size)
         .bind(input.encrypted)
+        .bind(&input.original_filename)
+        .bind(&input.original_storage_url)
         .fetch_one(&self.pool)
         .await
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
@@ -466,10 +476,12 @@ impl MediaBackupRepository for MediaBackupRepositoryImpl {
     }
 
     async fn get_entries(&self, backup_id: Uuid) -> Result<Vec<MediaBackupEntry>, AppError> {
+        // B4 FIX: Include original_filename and original_storage_url for manifest verification
         let results = sqlx::query_as::<_, MediaBackupEntry>(
             r#"
             SELECT id, backup_id, asset_id, relative_path, file_size, sha256_hash,
-                   mime_type, compressed_size, encrypted, verified_at, verification_status, backed_up_at
+                   mime_type, compressed_size, encrypted, verified_at, verification_status, backed_up_at,
+                   original_filename, original_storage_url
             FROM media_backup_entries WHERE backup_id = $1
             ORDER BY relative_path
             "#,

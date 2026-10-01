@@ -107,14 +107,15 @@ jobs:
       # R5-15: Run phase4-9 integration tests that require database
       # These tests are marked #[ignore = "requires database connection"]
       # but CI has PostgreSQL available, so run them with --include-ignored
+      # B8 FIX: Add test-issuance feature to enable licence issuance in tests
       - name: Phase 4 concurrent claims integration tests
-        run: cargo test --locked -p uno-app --features ssr --test phase4_concurrent_claims -- --include-ignored
+        run: cargo test --locked -p uno-app --features ssr,test-issuance --test phase4_concurrent_claims -- --include-ignored
       - name: Phase 5 finance reconciliation tests
-        run: cargo test --locked -p uno-app --features ssr --test phase5_finance_reconciliation -- --include-ignored
+        run: cargo test --locked -p uno-app --features ssr,test-issuance --test phase5_finance_reconciliation -- --include-ignored
       - name: Phase 9 acceptance tests
-        run: cargo test --locked -p uno-app --features ssr --test phase9_acceptance -- --include-ignored
+        run: cargo test --locked -p uno-app --features ssr,test-issuance --test phase9_acceptance -- --include-ignored
       - name: Phase 9 concurrent claim tests
-        run: cargo test --locked -p uno-app --features ssr --test phase9_concurrent -- --include-ignored
+        run: cargo test --locked -p uno-app --features ssr,test-issuance --test phase9_concurrent -- --include-ignored
       - name: Admin unit tests
         run: cargo test --locked -p uno-admin --features ssr --lib
 

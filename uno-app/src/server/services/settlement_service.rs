@@ -760,14 +760,15 @@ impl SettlementServiceTrait for SettlementService {
             .map_err(|e| SettlementError::Database(format!("Failed to start transaction: {}", e)))?;
 
         // Step 1: Execute settlement record (mark as executed)
+        // B2 FIX: Use correct column names from schema (state, executed_by)
         let execute_result = sqlx::query(r#"
             UPDATE settlements
-            SET status = 'executed',
+            SET state = 'executed',
                 executed_at = NOW(),
-                executor_id = $2,
+                executed_by = $2,
                 provider = $3,
                 provider_ref = $4
-            WHERE id = $1 AND status = 'approved'
+            WHERE id = $1 AND state = 'approved'
         "#)
         .bind(settlement.id)
         .bind(&input.executor_id)
@@ -848,11 +849,12 @@ impl SettlementServiceTrait for SettlementService {
             .map_err(|e| SettlementError::Database(e.to_string()))?;
 
             // Step 5: Mark allocation as paid if fully settled
+            // B2 FIX: Use correct column name (state, not status)
             if fully_settled.0 {
                 sqlx::query(r#"
                     UPDATE allocation_ledger
-                    SET status = 'paid', paid_at = NOW(), paid_by = $2, paid_via_settlement = $3
-                    WHERE id = $1 AND status != 'paid'
+                    SET state = 'paid', paid_at = NOW(), paid_by = $2, paid_via_settlement = $3
+                    WHERE id = $1 AND state != 'paid'
                 "#)
                 .bind(alloc_id)
                 .bind(&input.executor_id)

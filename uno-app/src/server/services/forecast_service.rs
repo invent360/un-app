@@ -238,9 +238,13 @@ mod canonical_conversion {
                     start: start_week,
                     end: end_week,
                     // F7 FIX: Use max_capacity for supply cap (0.0 means unlimited)
+                    // Note: cap represents device capacity limit, not revenue cap
                     cap: t.max_capacity.map(|c| c as f64).unwrap_or(0.0),
                     // F7 FIX: Include incremental per-device costs from support cost
-                    // Convert from monthly to weekly (divide by 4.33)
+                    // B6 DOC: Monthly-to-weekly conversion uses 4.33 (= 52 weeks / 12 months)
+                    // This is the average number of weeks per month across a full year.
+                    // Input: monthly cost per user in micros (e.g., $2/month = 2_000_000)
+                    // Output: weekly cost per user in USD (e.g., $2 / 4.33 = $0.462/week)
                     extra: (t.support_cost_per_user_monthly_micros as f64) / 1_000_000.0 / 4.33,
                     illustrative: false,
                 }
@@ -254,12 +258,19 @@ mod canonical_conversion {
     ///
     /// R5-12: Maps the 31-field canonical row to the database result format
     ///
-    /// F7: Cost field mapping (preserves itemization where possible):
-    /// - `acquisition_cost_micros` <- row.acquisition (customer acquisition)
-    /// - `support_cost_micros` <- row.support (support costs)
-    /// - `hosting_cost_micros` <- row.overhead + row.coordination (infrastructure + coordination)
-    /// - `messaging_cost_micros` <- row.fees (platform fees, historically messaging)
-    /// - `other_cost_micros` <- row.task_costs + row.capital_charge + row.tax (task + financial)
+    /// B6 DOC: Cost field mapping (semantic clarification)
+    /// The database field names are historical; the actual content is:
+    ///
+    /// | DB Field                | Canonical Source              | Actual Meaning                |
+    /// |-------------------------|-------------------------------|-------------------------------|
+    /// | `acquisition_cost_micros` | row.acquisition             | Customer acquisition costs    |
+    /// | `support_cost_micros`     | row.support                 | Per-user support costs        |
+    /// | `hosting_cost_micros`     | row.overhead + row.coordination | Platform overhead + task coordination |
+    /// | `messaging_cost_micros`   | row.fees                    | Platform/transaction fees (not messaging) |
+    /// | `other_cost_micros`       | row.task_costs + row.capital_charge + row.tax | Task-specific + financial costs |
+    ///
+    /// Note: `messaging_cost_micros` is a legacy name; it actually stores platform fees.
+    /// Future refactoring should rename to `platform_fees_micros` for clarity.
     pub fn from_canonical_row(
         scenario_id: Uuid,
         row: &CanonicalRow,

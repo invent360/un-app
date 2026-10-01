@@ -18,6 +18,7 @@ use serde_json::json;
 use std::collections::HashSet;
 use std::sync::Arc;
 use tokio::sync::Barrier;
+use uuid::Uuid;
 
 /// Number of concurrent clients for stress tests
 const CONCURRENT_CLIENTS: usize = 100;
@@ -52,7 +53,8 @@ async fn concurrent_claims_exactly_n_winners_for_n_licenses() {
         let base_url = harness.url().to_string();
 
         // F9: Generate unique authenticated identity for each concurrent client
-        let user_id = format!("test-user-concurrent-{}", client_id);
+        // B8 FIX: Use UUID format for user IDs to match production expectations
+        let user_id = Uuid::new_v4().to_string();
         let token = TestFixtures::generate_test_token(&user_id, "participant");
 
         let handle = tokio::spawn(async move {
@@ -205,7 +207,8 @@ async fn concurrent_same_license_single_winner() {
         let base_url = harness.url().to_string();
 
         // F9: Generate unique authenticated identity for each concurrent client
-        let user_id = format!("test-user-single-{}", client_id);
+        // B8 FIX: Use UUID format for user IDs
+        let user_id = Uuid::new_v4().to_string();
         let token = TestFixtures::generate_test_token(&user_id, "participant");
 
         let handle = tokio::spawn(async move {
@@ -453,7 +456,9 @@ async fn concurrent_reservations_limited_by_quota() {
         let base_url = harness.url().to_string();
 
         // F9: Generate authenticated admin identity for reservation
-        let admin_id = format!("test-admin-reserve-{}", i);
+        // B8 FIX: Use UUID format for user IDs
+        let admin_id = Uuid::new_v4().to_string();
+        let reserve_user_id = Uuid::new_v4().to_string();
         let token = TestFixtures::generate_test_token(&admin_id, "operator");
 
         let handle = tokio::spawn(async move {
@@ -465,7 +470,7 @@ async fn concurrent_reservations_limited_by_quota() {
                 .header("Authorization", format!("Bearer {}", token))
                 .header("X-API-Key", "test-api-key-phase9")
                 .json(&json!({
-                    "user_id": format!("test-user-reserve-{}", i),
+                    "user_id": reserve_user_id,
                     "country_code": "US"
                 }))
                 .send()

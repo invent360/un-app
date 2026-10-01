@@ -595,4 +595,13 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
 
     // F1-A: Support ticket creation
     "support.ticket_created" => "Matagumpay na nagawa ang ticket!",
+
+    // B7 FIX: Missing agent keys
+    "agent.total_lifetime" => "Kabuuang Panghabambuhay",
+    "agent.commission_note" => "Ang mga komisyon ay kinakalkula lingguhan at binabayaran buwan-buwan",
+    "agent.need_attention" => "Nangangailangan ng Atensyon",
+    "agent.resolve" => "Resolbahin",
+    "agent.assigned_users" => "Mga Nakatalaga na User",
+    "agent.commission_summary" => "Buod ng Komisyon",
+    "agent.paid_out" => "Nabayaran",
 };

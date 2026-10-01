@@ -658,6 +658,33 @@ impl ClaimRepository for ClaimRepositoryImpl {
         // F2: NOW safe to check idempotency - token was verified above
         // If already claimed, return success (idempotent)
         if license.claimed {
+            // B3 FIX: Still update reservation as claimed (idempotent but ensures consistency)
+            // This ensures retries update the reservation even if claim already succeeded
+            sqlx::query(r#"
+                UPDATE license_reservations
+                SET status = 'claimed', claimed_at = COALESCE(claimed_at, $2)
+                WHERE license_id = $1 AND session_token = $3 AND status = 'active'
+            "#)
+            .bind(license_id)
+            .bind(now)
+            .bind(session_token)
+            .execute(&mut *tx)
+            .await
+            .ok();  // Ignore errors - reservation may already be claimed
+
+            // B3 FIX: Also mark credential revealed on retry
+            sqlx::query(r#"
+                UPDATE license_reservations
+                SET credential_revealed = true, credential_revealed_at = COALESCE(credential_revealed_at, $2)
+                WHERE license_id = $1 AND session_token = $3
+            "#)
+            .bind(license_id)
+            .bind(now)
+            .bind(session_token)
+            .execute(&mut *tx)
+            .await
+            .ok();  // Ignore errors - just audit tracking
+
             // Fetch the claimed license data - credentials can be revealed since token was valid
             let result: ClaimResultRow = sqlx::query_as::<_, ClaimResultRow>(r#"
                 SELECT id, lease_code, claimed_at, referral_id, referral_attributed_at,

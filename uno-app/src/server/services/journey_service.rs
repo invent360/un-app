@@ -371,14 +371,15 @@ impl JourneyService for JourneyServiceImpl {
     ) -> Result<OnboardingProgress, AppError> {
         // F3: Actually verify the country code against supported countries
         // Check if the country has any active pilot cohorts (meaning it's supported)
+        // B5 FIX: Use correct column names from schema (market_code, is_active)
         let country_verified: bool = if country_code.is_empty() {
             false
         } else {
             let result: (bool,) = sqlx::query_as(r#"
                 SELECT EXISTS(
                     SELECT 1 FROM pilot_cohorts
-                    WHERE country_code = $1
-                      AND status = 'active'
+                    WHERE market_code = $1
+                      AND is_active = true
                       AND NOW() BETWEEN start_date AND COALESCE(end_date, '2099-12-31')
                 )
             "#)

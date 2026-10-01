@@ -619,6 +619,14 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "agent.day" => "Day",
     "agent.blocked" => "Blocked:",
     "agent.contact_user" => "Contact",
+    // B7 FIX: Missing agent keys
+    "agent.total_lifetime" => "Total Lifetime",
+    "agent.commission_note" => "Commissions are calculated weekly and paid monthly",
+    "agent.need_attention" => "Needs Attention",
+    "agent.resolve" => "Resolve",
+    "agent.assigned_users" => "Assigned Users",
+    "agent.commission_summary" => "Commission Summary",
+    "agent.paid_out" => "Paid Out",
 
     // F8: Operator Cockpit
     "operator.loading" => "Loading operator cockpit...",

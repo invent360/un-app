@@ -613,6 +613,15 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "suitability.earnings_vary_region_task" => "Las ganancias varian segun region y disponibilidad de tareas",
     "suitability.complete_steps_for_estimate" => "Completa los pasos anteriores para ver tu estimacion personalizada.",
 
+    // B7 FIX: Missing agent keys
+    "agent.total_lifetime" => "Total de Por Vida",
+    "agent.commission_note" => "Las comisiones se calculan semanalmente y se pagan mensualmente",
+    "agent.need_attention" => "Necesita Atención",
+    "agent.resolve" => "Resolver",
+    "agent.assigned_users" => "Usuarios Asignados",
+    "agent.commission_summary" => "Resumen de Comisiones",
+    "agent.paid_out" => "Pagado",
+
     // F1-A: Support ticket creation
     "support.ticket_created" => "Ticket creado exitosamente!",
 };

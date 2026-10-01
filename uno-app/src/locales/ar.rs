@@ -604,4 +604,13 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
 
     // F1-A: Support ticket creation
     "support.ticket_created" => "تم إنشاء التذكرة بنجاح!",
+
+    // B7 FIX: Missing agent keys
+    "agent.total_lifetime" => "إجمالي مدى الحياة",
+    "agent.commission_note" => "يتم حساب العمولات أسبوعياً ودفعها شهرياً",
+    "agent.need_attention" => "يحتاج انتباه",
+    "agent.resolve" => "حل",
+    "agent.assigned_users" => "المستخدمون المعينون",
+    "agent.commission_summary" => "ملخص العمولات",
+    "agent.paid_out" => "تم الدفع",
 };

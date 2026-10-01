@@ -595,4 +595,13 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
 
     // F1-A: Support ticket creation
     "support.ticket_created" => "Ticket criado com sucesso!",
+
+    // B7 FIX: Missing agent keys
+    "agent.total_lifetime" => "Total Vitalício",
+    "agent.commission_note" => "As comissões são calculadas semanalmente e pagas mensalmente",
+    "agent.need_attention" => "Precisa de Atenção",
+    "agent.resolve" => "Resolver",
+    "agent.assigned_users" => "Usuários Atribuídos",
+    "agent.commission_summary" => "Resumo de Comissões",
+    "agent.paid_out" => "Pago",
 };

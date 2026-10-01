@@ -209,6 +209,7 @@ impl MediaBackupService for MediaBackupServiceImpl {
                     }
 
                     // Create backup entry with backup location reference
+                    // B4 FIX: Include original filename and storage URL for manifest verification
                     let entry = self.backup_repo.create_entry(CreateBackupEntryInput {
                         backup_id: backup.id,
                         asset_id: asset.id,
@@ -218,6 +219,8 @@ impl MediaBackupService for MediaBackupServiceImpl {
                         mime_type: Some(asset.mime_type.clone()),
                         compressed_size: None, // Not compressing in this implementation
                         encrypted: request.encrypt,
+                        original_filename: Some(asset.filename.clone()),
+                        original_storage_url: Some(asset.storage_url.clone()),
                     }).await?;
 
                     // F5: Enhanced manifest includes original filename for restoration
@@ -480,11 +483,14 @@ impl MediaBackupService for MediaBackupServiceImpl {
                     let actual_hash = Self::compute_hash(&data);
                     if actual_hash == entry.sha256_hash {
                         entries_verified += 1;
-                        // F5: Note - manifest format changed, but we only verify hashes here
-                        // The stored manifest hash was computed at backup time
+                        // B4 FIX: Use same 5-field format as creation for manifest hash verification
                         manifest_data.extend_from_slice(format!(
-                            "{}:{}:{}\n",
-                            entry.relative_path, entry.file_size, entry.sha256_hash
+                            "{}:{}:{}:{}:{}\n",
+                            entry.relative_path,
+                            entry.original_filename.as_deref().unwrap_or(""),
+                            entry.original_storage_url.as_deref().unwrap_or(""),
+                            entry.file_size,
+                            entry.sha256_hash
                         ).as_bytes());
                     } else {
                         entries_corrupted += 1;

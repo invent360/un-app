@@ -595,4 +595,13 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
 
     // F1-A: Support ticket creation
     "support.ticket_created" => "Tiketi imeundwa kwa mafanikio!",
+
+    // B7 FIX: Missing agent keys
+    "agent.total_lifetime" => "Jumla ya Maisha Yote",
+    "agent.commission_note" => "Kamisheni huhesabiwa kila wiki na kulipwa kila mwezi",
+    "agent.need_attention" => "Inahitaji Umakini",
+    "agent.resolve" => "Tatua",
+    "agent.assigned_users" => "Watumiaji Waliopewa",
+    "agent.commission_summary" => "Muhtasari wa Kamisheni",
+    "agent.paid_out" => "Imelipwa",
 };

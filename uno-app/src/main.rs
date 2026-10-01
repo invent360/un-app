@@ -159,7 +159,9 @@ async fn main() -> std::io::Result<()> {
                 .app_data(web::Data::new(factory.communication_service.clone()))
                 .app_data(web::Data::new(factory.media_asset_service.clone()))
                 // R5-11: Media backup service
-                .app_data(web::Data::new(factory.media_backup_service.clone()));
+                .app_data(web::Data::new(factory.media_backup_service.clone()))
+                // B1 FIX: Register ConnectionPool for handlers that need direct DB access
+                .app_data(web::Data::new(factory.pool.clone()));
         }
 
         // Increase JSON payload limit to 50MB for content with embedded images
