@@ -189,7 +189,8 @@ impl LazyTranslationContext {
 
     /// Load from static PHF maps
     fn load_static(&self, locale: &str) -> bool {
-        use super::{en, es, tl, hi, sw, pt, fr, ar, id};
+        // R5-14: Include all 10 locales including Bangla (bn)
+        use super::{ar, bn, en, es, fr, hi, id, pt, sw, tl};
 
         let bundle = match locale {
             "en" => Some(TranslationBundle::from_static("en", &en::TRANSLATIONS)),
@@ -201,6 +202,7 @@ impl LazyTranslationContext {
             "fr" => Some(TranslationBundle::from_static("fr", &fr::TRANSLATIONS)),
             "ar" => Some(TranslationBundle::from_static("ar", &ar::TRANSLATIONS)),
             "id" => Some(TranslationBundle::from_static("id", &id::TRANSLATIONS)),
+            "bn" => Some(TranslationBundle::from_static("bn", &bn::TRANSLATIONS)),
             _ => None,
         };
 

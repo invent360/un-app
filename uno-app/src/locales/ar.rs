@@ -12,16 +12,8 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "nav.faq" => "الأسئلة الشائعة",
     "nav.common_errors" => "الأخطاء الشائعة",
     "nav.contact" => "اتصل بنا",
-
-    // Guides page
-    "guides.title" => "الأدلة",
-    "guides.subtitle" => "تعلم كيفية زيادة أرباحك من خلال أدلة خطوة بخطوة.",
-    "guides.coming_soon" => "الأدلة قادمة قريباً. عد لاحقاً للحصول على محتوى مفيد.",
-
-    // Common Errors page
-    "errors.title" => "الأخطاء الشائعة",
-    "errors.subtitle" => "دليل استكشاف الأخطاء وإصلاحها للمشاكل الشائعة.",
-    "errors.coming_soon" => "توثيق الأخطاء قادم قريباً.",
+    "nav.referrals" => "الإحالات",
+    "nav.start_earning" => "ابدأ الكسب",
 
     // Hero section
     "hero.title" => "اكسب دخلاً سلبياً مع UNO",
@@ -117,6 +109,25 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "tasks.device_phone_mobile" => "هاتف (موبايل)",
     "tasks.device_phone_mobile_desc" => "دعم كامل للمهام",
 
+    // Guides page
+    "guides.title" => "الأدلة",
+    "guides.subtitle" => "تعلم كيفية زيادة أرباحك من خلال أدلة خطوة بخطوة.",
+    "guides.coming_soon" => "الأدلة قادمة قريباً. عد لاحقاً للحصول على محتوى مفيد.",
+    "guides.search" => "ابحث في الأدلة...",
+    "guides.no_results" => "لم يتم العثور على أدلة تطابق بحثك.",
+    "guides.tip_label" => "نصيحة:",
+    "guides.tip_text" => "انقر على زر \"المزيد\" للتوسيع ورؤية التفاصيل الكاملة. انقر على \"أقل\" للعودة إلى العرض الملخص.",
+    "guides.before_you_begin" => "قبل أن تبدأ...",
+    "guides.complete_these_first" => "تأكد من إكمال هذه الأدلة أولاً:",
+    "guides.continue_to_guide" => "متابعة إلى الدليل",
+
+    // Common Errors page
+    "errors.title" => "الأخطاء الشائعة",
+    "errors.subtitle" => "دليل استكشاف الأخطاء وإصلاحها للمشاكل الشائعة.",
+    "errors.coming_soon" => "توثيق الأخطاء قادم قريباً.",
+    "errors.search" => "ابحث في الأخطاء...",
+    "errors.no_results" => "لم يتم العثور على أخطاء تطابق بحثك.",
+
     // FAQ page
     "faq.title" => "الأسئلة الشائعة",
     "faq.subtitle" => "اعثر على إجابات للأسئلة الشائعة حول UNO.",
@@ -186,9 +197,12 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "common.submit" => "إرسال",
     "common.cancel" => "إلغاء",
     "common.close" => "إغلاق",
+    "common.claim" => "احصل",
     "common.yes" => "نعم",
     "common.no" => "لا",
     "common.per_month" => "/شهر",
+    "common.more" => "المزيد",
+    "common.less" => "أقل",
 
     // Claim page
     "claim.title" => "تم الحصول على الترخيص!",
@@ -242,6 +256,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "errors.server_title" => "خطأ في الخادم",
     "errors.server_message" => "حدث خطأ من جانبنا. يرجى المحاولة مرة أخرى لاحقاً.",
     "errors.error_code_prefix" => "رمز الخطأ:",
+    "errors.page_not_found" => "الصفحة التي تبحث عنها غير موجودة.",
 
     // Locale popup
     "locale.popup_title" => "اختر لغتك",
@@ -251,10 +266,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "locale.remember_choice" => "تذكر اختياري",
 
     // Footer
-    "footer.copyright" => "شبكة UNO. جميع الحقوق محفوظة.",
+    "footer.tagline" => "دخل سلبي من هاتفك",
+    "footer.quick_links" => "روابط سريعة",
+    "footer.how_it_works" => "كيف يعمل",
+    "footer.earnings" => "الأرباح",
+    "footer.faq" => "الأسئلة الشائعة",
+    "footer.community" => "المجتمع",
+    "footer.support" => "الدعم",
+    "footer.contact" => "اتصل بنا",
     "footer.privacy" => "سياسة الخصوصية",
     "footer.terms" => "شروط الخدمة",
-    "footer.contact" => "اتصل بنا",
+    "footer.copyright" => "© 2024 DJED Nodes.",
 
     // Help accordion
     "help.title" => "تحتاج مساعدة؟",
@@ -280,6 +302,11 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
 
     // Error display
     "errors.try_again" => "حاول مرة أخرى",
+
+    // Wizard - Common
+    "wizard.common.back" => "رجوع",
+    "wizard.common.next" => "التالي",
+    "wizard.common.close" => "إغلاق",
 
     // Wizard - Welcome Stage
     "wizard.welcome.title" => "احصل على ترخيصك المجاني",
@@ -314,7 +341,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.compare.note" => "تعتمد الأرباح الفعلية على وقت تشغيل الجهاز وتوفر المهام.",
 
     // Wizard - Review Stage
-    "wizard.review.title" => "مراجعة",
+    "wizard.review.title" => "تفاصيل الترخيص",
     "wizard.review.selected_variant" => "التقسيم المحدد",
     "wizard.review.split_breakdown" => "تفاصيل التقسيم",
     "wizard.review.you_receive" => "تحصل على",
@@ -323,11 +350,27 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.review.terms_checkbox" => "أوافق على",
     "wizard.review.terms_link" => "شروط الخدمة",
     "wizard.review.claim_btn" => "احصل على الترخيص",
+    "wizard.review.claim_now" => "احصل الآن",
     "wizard.review.claiming" => "جاري الحصول...",
     "wizard.review.back_btn" => "رجوع",
     "wizard.review.no_variant" => "يرجى اختيار نوع الترخيص.",
+    "wizard.review.above_average" => "أعلى من المتوسط",
+    "wizard.review.lease_validity" => "صلاحية الإيجار",
+    "wizard.review.rewards_range" => "المكافآت المتوقعة",
+    "wizard.review.uptime_conditions_title" => "شروط مكافآت وقت التشغيل",
+    "wizard.review.condition_1" => "ابق متصلاً بالإنترنت لضمان أقصى المكافآت",
+    "wizard.review.condition_2" => "أبقِ التطبيق قيد التشغيل في الخلفية للحصول على أفضل النتائج",
+    "wizard.review.what_you_get_title" => "ما ستحصل عليه",
+    "wizard.review.benefit_free_license" => "ترخيص مجاني للبدء في الكسب فوراً",
+    "wizard.review.benefit_support" => "دعم على مدار 24 ساعة في التطبيق وعبر البريد الإلكتروني وواتساب",
+    "wizard.review.benefit_zero_fees" => "بدون رسوم تشغيل أو مصاريف",
+    "wizard.review.referral_checkbox" => "لدي رمز إحالة (اختياري)",
+    "wizard.review.referral_placeholder" => "أدخل رمز الإحالة",
+    "wizard.review.referral_valid" => "رمز الإحالة صالح",
+    "wizard.review.referral_invalid" => "رمز إحالة غير صالح أو غير نشط",
+    "wizard.review.referral_checking" => "جاري التحقق...",
 
-    // Wizard - Success Stage
+    // Wizard - Success Stage (common)
     "wizard.success.title" => "تم الحصول على الترخيص!",
     "wizard.success.subtitle" => "ترخيصك جاهز. احفظ مفتاحك وحمّل التطبيق لبدء الكسب.",
     "wizard.success.license_key" => "مفتاح ترخيصك",
@@ -341,12 +384,82 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.success.claim_another_btn" => "احصل على ترخيص آخر",
     "wizard.success.done_btn" => "تم",
 
+    // Wizard - Claim Stage
+    "wizard.claim.title" => "تم الحصول على الترخيص!",
+    "wizard.claim.subtitle" => "ترخيصك جاهز. احفظ مفتاحك الآن - لا يمكنك استعادته لاحقاً.",
+    "wizard.claim.copy_title" => "انسخ مفتاح ترخيصك",
+    "wizard.claim.copy_subtitle" => "انقر على زر النسخ لحفظ مفتاحك. ستحتاجه لتفعيل ترخيصك.",
+    "wizard.claim.success_title" => "تم الحصول على الترخيص بنجاح!",
+    "wizard.claim.success_subtitle" => "تم تفعيل ترخيصك. احفظ مفتاحك بأمان - لا يمكنك استعادته لاحقاً.",
+    "wizard.claim.processing" => "جاري المعالجة...",
+    "wizard.claim.please_wait" => "يرجى الانتظار بينما نعالج طلبك.",
+    "wizard.claim.key_copied" => "تم نسخ المفتاح إلى الحافظة!",
+    "wizard.claim.continue" => "متابعة",
+
+    // Wizard - Download Stage
+    "wizard.download.title" => "التحميل والتثبيت",
+    "wizard.download.subtitle" => "احصل على تطبيق UNO على جهازك لبدء الكسب.",
+
+    // Wizard - Sign Up Stage
+    "wizard.signup.title" => "أنشئ حسابك",
+    "wizard.signup.subtitle" => "سجل في التطبيق لتفعيل ترخيصك.",
+    "wizard.signup.step1_title" => "1. افتح التطبيق",
+    "wizard.signup.step1" => "افتح تطبيق UNO الذي قمت بتثبيته للتو",
+    "wizard.signup.step2_title" => "2. أنشئ حساباً",
+    "wizard.signup.step2" => "اضغط على 'إنشاء حساب' وأدخل بياناتك",
+    "wizard.signup.step3_title" => "3. أدخل الترخيص",
+    "wizard.signup.step3" => "أدخل مفتاح ترخيصك عند الطلب",
+
+    // Wizard - Activate Stage
+    "wizard.activate.title" => "ابدأ الكسب",
+    "wizard.activate.subtitle" => "فعّل المهام للبدء في كسب دخل سلبي.",
+    "wizard.activate.step1_title" => "1. الأذونات",
+    "wizard.activate.step1" => "امنح الأذونات المطلوبة في التطبيق",
+    "wizard.activate.step2_title" => "2. الخلفية",
+    "wizard.activate.step2" => "فعّل التشغيل في الخلفية لأقصى أرباح",
+    "wizard.activate.step3_title" => "3. اكسب",
+    "wizard.activate.step3" => "أبقِ التطبيق قيد التشغيل وشاهد أرباحك تنمو!",
+
+    // Wizard - What Next Stage
+    "wizard.what_next.title" => "ما التالي؟",
+    "wizard.what_next.subtitle" => "ابدأ مع هذه الموارد لزيادة أرباحك.",
+    "wizard.what_next.warning_title" => "مهم: الربط خلال 24 ساعة",
+    "wizard.what_next.warning_text" => "يجب ربط ترخيصك بهاتف خلال 24 ساعة وإلا قد يتم إلغاؤه.",
+    "wizard.what_next.download_title" => "تحميل التطبيق",
+    "wizard.what_next.guides_title" => "أدلة إرشادية",
+    "wizard.what_next.guide_setup" => "دليل إعداد التطبيق",
+    "wizard.what_next.guide_setup_desc" => "التثبيت والإعداد خطوة بخطوة",
+    "wizard.what_next.guide_activation" => "تفعيل الترخيص",
+    "wizard.what_next.guide_activation_desc" => "كيفية تفعيل ترخيصك",
+    "wizard.what_next.guide_withdraw" => "سحب الأرباح",
+    "wizard.what_next.guide_withdraw_desc" => "كيفية صرف مكافآتك",
+    "wizard.what_next.tasks_title" => "المهام المتاحة",
+    "wizard.what_next.task_telemetry" => "القياسات عن بعد",
+    "wizard.what_next.task_caller_id" => "هوية المتصل",
+    "wizard.what_next.task_sms" => "اختبار SMS",
+    "wizard.what_next.task_connectivity" => "الاتصال",
+    "wizard.what_next.task_entropy" => "العشوائية",
+    "wizard.what_next.view_all_tasks" => "عرض جميع المهام",
+    "wizard.what_next.done" => "تم",
+
     // Wizard - Progress Bar
     "wizard.progress.welcome" => "مرحباً",
     "wizard.progress.select" => "اختيار",
     "wizard.progress.review" => "مراجعة",
+    "wizard.progress.claim" => "احصل",
+    "wizard.progress.what_next" => "ما التالي",
     "wizard.progress.success" => "تم",
     "wizard.progress.step" => "خطوة",
+
+    // Wizard Availability States
+    "wizard.availability.sold_out_title" => "تم الحصول على جميع التراخيص!",
+    "wizard.availability.sold_out_message" => "لا تقلق - يتم إصدار تراخيص جديدة بانتظام. تحقق مرة أخرى قريباً!",
+    "wizard.availability.notify_available" => "أعلمني عند التوفر",
+    "wizard.availability.coming_soon_title" => "قريباً",
+    "wizard.availability.coming_soon_message" => "سيكون الحصول على التراخيص متاحاً قريباً. تحقق مرة أخرى قريباً!",
+    "wizard.availability.notify_live" => "أعلمني عند الإطلاق",
+    "wizard.availability.learn_more" => "اعرف المزيد عن التراخيص",
+    "wizard.availability.licenses_claimed" => "تراخيص تم الحصول عليها حتى الآن",
 
     // Task Families (for wizard accordion)
     "tasks.families.title" => "عائلات المهام",
@@ -385,4 +498,85 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "install.tips.tip1" => "حافظ على اتصال WiFi عند الإمكان",
     "install.tips.tip2" => "عطّل تحسين البطارية للتطبيق",
     "install.tips.tip3" => "شغّل التطبيق على مدار الساعة لأقصى أرباح",
+
+    // Referrals page
+    "referrals.page_title" => "كن وكيل إحالة",
+    "referrals.page_subtitle" => "انضم إلى برنامج الإحالة واكسب عمولات على كل ترخيص يتم الحصول عليه برمزك.",
+    "referrals.benefits_title" => "لماذا تصبح وكيل إحالة؟",
+    "referrals.benefit_1" => "اكسب عمولات متكررة من المستخدمين المُحالين",
+    "referrals.benefit_2" => "احصل على رمز إحالة فريد خاص بك",
+    "referrals.benefit_3" => "تتبع أرباحك في لوحة تحكم الوكيل",
+    "referrals.form_title" => "قدم طلبك الآن",
+    "referrals.label_username" => "اسمك",
+    "referrals.placeholder_username" => "أدخل اسمك الكامل",
+    "referrals.label_email" => "البريد الإلكتروني",
+    "referrals.placeholder_email" => "أدخل بريدك الإلكتروني",
+    "referrals.label_country" => "البلد",
+    "referrals.placeholder_country" => "اختر بلدك",
+    "referrals.label_referral_code" => "اختر رمز الإحالة الخاص بك",
+    "referrals.placeholder_referral_code" => "مثال: AHMED2024",
+    "referrals.hint_referral_code" => "3-20 حرفاً، أحرف وأرقام فقط. سيكون هذا رمزك الفريد.",
+    "referrals.submit" => "إرسال الطلب",
+    "referrals.submitting" => "جاري الإرسال...",
+
+    // Economics - Revenue Split Transparency
+    "economics.split_title" => "كيف يتم توزيع الأرباح",
+    "economics.split_description" => "شفافية كاملة حول كيفية توزيع الإيرادات. بدون رسوم مخفية.",
+    "economics.you" => "أنت",
+    "economics.platform" => "المنصة",
+    "economics.referrer" => "المُحيل",
+    "economics.transparency_note" => "إذا لم يكن لديك مُحيل، فإن حصته البالغة 10% تذهب إلى صندوق عمليات المنصة.",
+
+    // Economics - Earnings Dashboard
+    "economics.earnings_title" => "أرباحك",
+    "economics.earnings_subtitle" => "شفافية كاملة حول كيفية حساب وتوزيع أرباحك.",
+    "economics.your_earnings" => "أرباحك",
+    "economics.fifty_percent_share" => "حصتك 50% من مجمع الأرباح",
+    "economics.how_split" => "كيف يتم التقسيم",
+    "economics.pending" => "معلق",
+    "economics.paid" => "مدفوع",
+    "economics.transparency_notice" => "يتم حساب جميع الأرباح باستخدام نفس الصيغة الشفافة. بدون خصومات مخفية.",
+
+    // Economics - Referral Attribution
+    "economics.referral_attribution" => "إسناد الإحالة",
+    "economics.code" => "الرمز",
+    "economics.no_referrer_message" => "لا يوجد مُحيل مرتبط. تذهب حصة الإحالة (10%) إلى صندوق عمليات المنصة.",
+    "economics.referrer_share" => "حصة المُحيل",
+    "economics.earned_for_referrer" => "مكتسب للمُحيل",
+    "economics.attribution_immutable" => "الإسناد دائم ولا يمكن تغييره بعد التأكيد.",
+
+    // Economics - Wizard Review
+    "economics.review_title" => "مراجعة الاقتصاديات",
+    "economics.review_subtitle" => "افهم كيف تعمل الأرباح قبل الحصول على ترخيصك.",
+    "economics.important_disclosures" => "إفصاحات مهمة",
+    "economics.disclosure_1" => "تعتمد الأرباح على طلب الشبكة ووقت تشغيل جهازك",
+    "economics.disclosure_2" => "تقسيم 50/40/10 ثابت وينطبق على جميع الأرباح",
+    "economics.disclosure_3" => "إسناد الإحالة دائم بمجرد التأكيد",
+    "economics.who_should_not_join" => "من لا يجب أن ينضم",
+    "economics.not_for_1" => "أولئك الذين يتوقعون دخلاً ثابتاً مضموناً",
+    "economics.not_for_2" => "أولئك غير القادرين على الحفاظ على وقت تشغيل ثابت للجهاز",
+    "economics.not_for_3" => "أولئك غير المرتاحين لمشاركة البيانات للقياسات عن بعد",
+    "economics.i_understand" => "أفهم وأريد المتابعة",
+
+    // Wizard - Economics Review Stage
+    "wizard.economics.title" => "افهم الاقتصاديات",
+    "wizard.economics.subtitle" => "قبل الحصول على ترخيص، افهم كيف يتم توزيع الأرباح.",
+    "wizard.economics.split_title" => "تقسيم 50/40/10",
+    "wizard.economics.you_title" => "أنت",
+    "wizard.economics.you_desc" => "حصتك من جميع الأرباح من المهام المكتملة على جهازك.",
+    "wizard.economics.platform_title" => "المنصة",
+    "wizard.economics.platform_desc" => "تغطي تكاليف البنية التحتية والتطوير والدعم.",
+    "wizard.economics.referrer_title" => "المُحيل",
+    "wizard.economics.referrer_desc" => "تذهب لمن أحالك، أو للمنصة إذا لم يكن هناك مُحيل.",
+    "wizard.economics.important_title" => "إفصاحات مهمة",
+    "wizard.economics.disclosure_small_rewards" => "مكافآت المهام الفردية صغيرة ($0.001 - $0.05). تتراكم الأرباح بمرور الوقت.",
+    "wizard.economics.disclosure_credit_cost" => "تعمل UNO بالقرب من نقطة التعادل. نمول رصيدك من حصتنا.",
+    "wizard.economics.disclosure_device_requirement" => "تحتاج إلى جهاز متصل بالإنترنت مع تشغيل التطبيق.",
+    "wizard.economics.disclosure_uptime" => "وقت تشغيل أعلى يعني فرص مهام أكثر وأرباح أعلى.",
+    "wizard.economics.who_should_not_title" => "من لا يجب أن ينضم",
+    "wizard.economics.not_for_quick_money" => "أولئك الذين يبحثون عن أموال سريعة أو مضمونة",
+    "wizard.economics.not_for_unstable_internet" => "أولئك الذين لديهم اتصالات إنترنت غير مستقرة أو محدودة",
+    "wizard.economics.not_for_shared_devices" => "أولئك الذين يستخدمون أجهزة مشتركة أو عامة",
+    "wizard.economics.understand_proceed" => "أفهم - لنستمر",
+    "wizard.economics.example_pool" => "مثال على المجمع الشهري",
 };

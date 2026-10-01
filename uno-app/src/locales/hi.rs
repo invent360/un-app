@@ -12,21 +12,13 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "nav.faq" => "FAQ",
     "nav.common_errors" => "सामान्य त्रुटियाँ",
     "nav.contact" => "संपर्क",
-
-    // Guides page
-    "guides.title" => "गाइड",
-    "guides.subtitle" => "चरण-दर-चरण गाइड के साथ अपनी कमाई को अधिकतम करना सीखें।",
-    "guides.coming_soon" => "गाइड जल्द आ रही हैं।",
-
-    // Common Errors page
-    "errors.title" => "सामान्य त्रुटियाँ",
-    "errors.subtitle" => "सामान्य समस्याओं के लिए समस्या निवारण गाइड।",
-    "errors.coming_soon" => "त्रुटि दस्तावेज़ीकरण जल्द आ रहा है।",
+    "nav.referrals" => "रेफरल",
+    "nav.start_earning" => "कमाई शुरू करें",
 
     // Hero section
     "hero.title" => "UNO के साथ पैसिव इनकम कमाएं",
     "hero.subtitle" => "अपना अप्रयुक्त इंटरनेट बैंडविड्थ साझा करें और पुरस्कार अर्जित करें। आज ही कमाई शुरू करने के लिए मुफ्त लाइसेंस प्राप्त करें।",
-    "hero.cta" => "अपना मुफ्त लाइसेंस प्राप्त करें",
+    "hero.cta" => "अपना लाइसेंस प्राप्त करें",
 
     // Features section
     "features.easy_setup" => "आसान सेटअप",
@@ -117,6 +109,25 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "tasks.device_phone_mobile" => "फोन (मोबाइल)",
     "tasks.device_phone_mobile_desc" => "पूर्ण कार्य समर्थन",
 
+    // Guides page
+    "guides.title" => "गाइड",
+    "guides.subtitle" => "चरण-दर-चरण गाइड के साथ अपनी कमाई को अधिकतम करना सीखें।",
+    "guides.coming_soon" => "गाइड जल्द आ रही हैं। बाद में उपयोगी सामग्री के लिए वापस आएं।",
+    "guides.search" => "गाइड खोजें...",
+    "guides.no_results" => "आपकी खोज से मेल खाने वाले कोई गाइड नहीं मिले।",
+    "guides.tip_label" => "टिप:",
+    "guides.tip_text" => "पूरा विवरण देखने के लिए \"अधिक\" बटन पर क्लिक करें। संक्षिप्त दृश्य में वापस आने के लिए \"कम\" पर क्लिक करें।",
+    "guides.before_you_begin" => "शुरू करने से पहले...",
+    "guides.complete_these_first" => "पहले इन गाइडों को पूरा करें:",
+    "guides.continue_to_guide" => "गाइड पर जारी रखें",
+
+    // Common Errors page
+    "errors.title" => "सामान्य त्रुटियाँ",
+    "errors.subtitle" => "सामान्य समस्याओं के लिए समस्या निवारण गाइड।",
+    "errors.coming_soon" => "त्रुटि दस्तावेज़ीकरण जल्द आ रहा है। बाद में वापस आएं।",
+    "errors.search" => "त्रुटियाँ खोजें...",
+    "errors.no_results" => "आपकी खोज से मेल खाने वाली कोई त्रुटियाँ नहीं मिलीं।",
+
     // FAQ page
     "faq.title" => "अक्सर पूछे जाने वाले प्रश्न",
     "faq.subtitle" => "UNO के बारे में सामान्य प्रश्नों के उत्तर खोजें।",
@@ -130,7 +141,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "faq.page_title" => "अक्सर पूछे जाने वाले प्रश्न",
     "faq.page_subtitle" => "UNO के बारे में सामान्य प्रश्नों के उत्तर खोजें।",
     "faq.search_placeholder" => "प्रश्न खोजें...",
-    "faq.empty_state" => "कोई FAQ नहीं मिला। कोई अन्य खोज आज़माएं।",
+    "faq.empty_state" => "कोई FAQ नहीं मिला। कोई अन्य खोज या श्रेणी आज़माएं।",
     "faq.all_categories" => "सभी श्रेणियां",
     "faq.clear_search" => "खोज साफ़ करें",
     "faq.category_general" => "सामान्य",
@@ -152,7 +163,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "contact.faq_desc" => "कई सामान्य प्रश्नों के उत्तर हमारी FAQ अनुभाग में हैं।",
     "contact.faq_link" => "FAQ पर जाएं",
     "contact.response_times_title" => "प्रतिक्रिया समय",
-    "contact.response_times_desc" => "हम 24-48 घंटों में सभी पूछताछ का जवाब देते हैं।",
+    "contact.response_times_desc" => "हम 24-48 घंटों में सभी पूछताछ का जवाब देने का लक्ष्य रखते हैं।",
 
     // Chat/Support
     "chat.title" => "UNO सहायता",
@@ -186,9 +197,12 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "common.submit" => "जमा करें",
     "common.cancel" => "रद्द करें",
     "common.close" => "बंद करें",
+    "common.claim" => "प्राप्त करें",
     "common.yes" => "हाँ",
     "common.no" => "नहीं",
     "common.per_month" => "/महीना",
+    "common.more" => "अधिक",
+    "common.less" => "कम",
 
     // Claim page
     "claim.title" => "लाइसेंस प्राप्त हुआ!",
@@ -242,6 +256,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "errors.server_title" => "सर्वर त्रुटि",
     "errors.server_message" => "हमारी तरफ से कुछ गलत हो गया। कृपया बाद में पुनः प्रयास करें।",
     "errors.error_code_prefix" => "त्रुटि कोड:",
+    "errors.page_not_found" => "आप जो पृष्ठ खोज रहे हैं वह मौजूद नहीं है।",
 
     // Locale popup
     "locale.popup_title" => "अपनी भाषा चुनें",
@@ -251,10 +266,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "locale.remember_choice" => "मेरी पसंद याद रखें",
 
     // Footer
-    "footer.copyright" => "UNO Network। सर्वाधिकार सुरक्षित।",
+    "footer.tagline" => "आपके फोन से पैसिव इनकम",
+    "footer.quick_links" => "त्वरित लिंक",
+    "footer.how_it_works" => "यह कैसे काम करता है",
+    "footer.earnings" => "कमाई",
+    "footer.faq" => "FAQ",
+    "footer.community" => "समुदाय",
+    "footer.support" => "सहायता",
+    "footer.contact" => "संपर्क करें",
     "footer.privacy" => "गोपनीयता नीति",
     "footer.terms" => "सेवा की शर्तें",
-    "footer.contact" => "हमसे संपर्क करें",
+    "footer.copyright" => "© 2024 DJED Nodes।",
 
     // Help accordion
     "help.title" => "मदद चाहिए?",
@@ -281,8 +303,13 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Error display
     "errors.try_again" => "पुनः प्रयास करें",
 
+    // Wizard - Common
+    "wizard.common.back" => "वापस",
+    "wizard.common.next" => "अगला",
+    "wizard.common.close" => "बंद करें",
+
     // Wizard - Welcome Stage
-    "wizard.welcome.title" => "अपना मुफ्त लाइसेंस प्राप्त करें",
+    "wizard.welcome.title" => "अपना लाइसेंस प्राप्त करें",
     "wizard.welcome.subtitle" => "अपने अप्रयुक्त इंटरनेट बैंडविड्थ को साझा करके पैसिव इनकम कमाना शुरू करें।",
     "wizard.welcome.quick_claim_btn" => "त्वरित क्लेम",
     "wizard.welcome.learn_first_btn" => "और जानें",
@@ -314,7 +341,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.compare.note" => "वास्तविक कमाई डिवाइस अपटाइम और कार्य उपलब्धता पर निर्भर करती है।",
 
     // Wizard - Review Stage
-    "wizard.review.title" => "समीक्षा",
+    "wizard.review.title" => "लाइसेंस विवरण",
     "wizard.review.selected_variant" => "चयनित विभाजन",
     "wizard.review.split_breakdown" => "विभाजन विवरण",
     "wizard.review.you_receive" => "आप प्राप्त करेंगे",
@@ -323,32 +350,109 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.review.terms_checkbox" => "मैं सहमत हूं",
     "wizard.review.terms_link" => "सेवा की शर्तें",
     "wizard.review.claim_btn" => "लाइसेंस प्राप्त करें",
+    "wizard.review.claim_now" => "अभी प्राप्त करें",
     "wizard.review.claiming" => "प्राप्त हो रहा है...",
     "wizard.review.back_btn" => "वापस",
     "wizard.review.no_variant" => "कृपया एक लाइसेंस प्रकार चुनें।",
+    "wizard.review.above_average" => "औसत से ऊपर",
+    "wizard.review.lease_validity" => "लीज़ वैधता",
+    "wizard.review.rewards_range" => "अनु. पुरस्कार",
+    "wizard.review.uptime_conditions_title" => "अपटाइम पुरस्कार शर्तें",
+    "wizard.review.condition_1" => "अधिकतम पुरस्कार की गारंटी के लिए इंटरनेट से जुड़े रहें",
+    "wizard.review.condition_2" => "सर्वोत्तम परिणामों के लिए ऐप को बैकग्राउंड में चलाते रहें",
+    "wizard.review.what_you_get_title" => "आपको क्या मिलता है",
+    "wizard.review.benefit_free_license" => "तुरंत कमाई शुरू करने के लिए मुफ्त लाइसेंस",
+    "wizard.review.benefit_support" => "ऐप, ईमेल और व्हाट्सएप के माध्यम से 24 घंटे सहायता",
+    "wizard.review.benefit_zero_fees" => "शून्य संचालन शुल्क या चार्ज",
+    "wizard.review.referral_checkbox" => "मेरे पास एक रेफरल कोड है (वैकल्पिक)",
+    "wizard.review.referral_placeholder" => "रेफरल कोड दर्ज करें",
+    "wizard.review.referral_valid" => "रेफरल कोड मान्य है",
+    "wizard.review.referral_invalid" => "अमान्य या निष्क्रिय रेफरल कोड",
+    "wizard.review.referral_checking" => "जांच रहा है...",
 
-    // Wizard - Success Stage
-    "wizard.success.title" => "लाइसेंस प्राप्त हुआ!",
-    "wizard.success.subtitle" => "आपका लाइसेंस तैयार है। अपनी कुंजी सहेजें और कमाई शुरू करने के लिए ऐप डाउनलोड करें।",
+    // Wizard - Success Stage (common)
     "wizard.success.license_key" => "आपकी लाइसेंस कुंजी",
     "wizard.success.key_warning" => "इस कुंजी को सहेजें! आप इसे बाद में पुनर्प्राप्त नहीं कर सकते।",
-    "wizard.success.next_steps.title" => "अगले कदम",
-    "wizard.success.next_steps.step1" => "अपने डिवाइस पर UNO ऐप डाउनलोड करें",
-    "wizard.success.next_steps.step2" => "सक्रिय करने के लिए अपनी लाइसेंस कुंजी दर्ज करें",
-    "wizard.success.next_steps.step3" => "कमाई के लिए ऐप चालू रखें",
     "wizard.success.install_guide_btn" => "इंस्टॉलेशन गाइड",
     "wizard.success.hide_install_btn" => "गाइड छुपाएं",
     "wizard.success.claim_another_btn" => "एक और प्राप्त करें",
     "wizard.success.done_btn" => "हो गया",
 
+    // Wizard - Claim Stage
+    "wizard.claim.title" => "लाइसेंस प्राप्त हुआ!",
+    "wizard.claim.subtitle" => "आपका लाइसेंस तैयार है। अपनी कुंजी अभी सहेजें - आप इसे बाद में पुनर्प्राप्त नहीं कर सकते।",
+    "wizard.claim.copy_title" => "अपनी लाइसेंस कुंजी कॉपी करें",
+    "wizard.claim.copy_subtitle" => "अपनी कुंजी सहेजने के लिए कॉपी बटन पर क्लिक करें। आपको अपना लाइसेंस सक्रिय करने के लिए इसकी आवश्यकता होगी।",
+    "wizard.claim.success_title" => "लाइसेंस सफलतापूर्वक प्राप्त!",
+    "wizard.claim.success_subtitle" => "आपका लाइसेंस सक्रिय हो गया है। अपनी कुंजी सुरक्षित रूप से सहेजें - आप इसे बाद में पुनर्प्राप्त नहीं कर सकते।",
+    "wizard.claim.processing" => "प्रोसेस हो रहा है...",
+    "wizard.claim.please_wait" => "कृपया प्रतीक्षा करें जब हम आपका क्लेम प्रोसेस कर रहे हैं।",
+    "wizard.claim.key_copied" => "कुंजी क्लिपबोर्ड पर कॉपी हो गई!",
+    "wizard.claim.continue" => "जारी रखें",
+
+    // Wizard - Download Stage
+    "wizard.download.title" => "डाउनलोड और इंस्टॉल करें",
+    "wizard.download.subtitle" => "कमाई शुरू करने के लिए अपने डिवाइस पर UNO ऐप प्राप्त करें।",
+
+    // Wizard - Sign Up Stage
+    "wizard.signup.title" => "अपना खाता बनाएं",
+    "wizard.signup.subtitle" => "अपना लाइसेंस सक्रिय करने के लिए ऐप में साइन अप करें।",
+    "wizard.signup.step1_title" => "1. ऐप खोलें",
+    "wizard.signup.step1" => "आपने जो UNO ऐप इंस्टॉल किया है उसे खोलें",
+    "wizard.signup.step2_title" => "2. खाता बनाएं",
+    "wizard.signup.step2" => "'खाता बनाएं' पर टैप करें और अपनी जानकारी दर्ज करें",
+    "wizard.signup.step3_title" => "3. लाइसेंस दर्ज करें",
+    "wizard.signup.step3" => "पूछे जाने पर अपनी लाइसेंस कुंजी दर्ज करें",
+
+    // Wizard - Activate Stage
+    "wizard.activate.title" => "कमाई शुरू करें",
+    "wizard.activate.subtitle" => "पैसिव इनकम कमाना शुरू करने के लिए कार्य सक्रिय करें।",
+    "wizard.activate.step1_title" => "1. अनुमतियां",
+    "wizard.activate.step1" => "ऐप में आवश्यक अनुमतियां दें",
+    "wizard.activate.step2_title" => "2. बैकग्राउंड",
+    "wizard.activate.step2" => "अधिकतम कमाई के लिए बैकग्राउंड रनिंग सक्षम करें",
+    "wizard.activate.step3_title" => "3. कमाएं",
+    "wizard.activate.step3" => "ऐप चालू रखें और अपनी कमाई बढ़ते देखें!",
+
+    // Wizard - What Next Stage
+    "wizard.what_next.title" => "आगे क्या?",
+    "wizard.what_next.subtitle" => "अपनी कमाई अधिकतम करने के लिए इन संसाधनों के साथ शुरू करें।",
+    "wizard.what_next.warning_title" => "महत्वपूर्ण: 24 घंटे के भीतर बाइंड करें",
+    "wizard.what_next.warning_text" => "आपका लाइसेंस 24 घंटे के भीतर फोन से बाइंड होना चाहिए अन्यथा इसे रद्द किया जा सकता है।",
+    "wizard.what_next.download_title" => "ऐप डाउनलोड करें",
+    "wizard.what_next.guides_title" => "कैसे करें गाइड",
+    "wizard.what_next.guide_setup" => "ऐप सेटअप गाइड",
+    "wizard.what_next.guide_setup_desc" => "चरण-दर-चरण इंस्टॉलेशन और सेटअप",
+    "wizard.what_next.guide_activation" => "लाइसेंस सक्रियण",
+    "wizard.what_next.guide_activation_desc" => "अपना लाइसेंस कैसे सक्रिय करें",
+    "wizard.what_next.guide_withdraw" => "कमाई निकालें",
+    "wizard.what_next.guide_withdraw_desc" => "अपने पुरस्कार कैसे निकालें",
+    "wizard.what_next.tasks_title" => "उपलब्ध कार्य",
+    "wizard.what_next.task_telemetry" => "टेलीमेट्री",
+    "wizard.what_next.task_caller_id" => "कॉलर आईडी",
+    "wizard.what_next.task_sms" => "SMS परीक्षण",
+    "wizard.what_next.task_connectivity" => "कनेक्टिविटी",
+    "wizard.what_next.task_entropy" => "एन्ट्रॉपी",
+    "wizard.what_next.view_all_tasks" => "सभी कार्य देखें",
+    "wizard.what_next.done" => "हो गया",
+
     // Wizard - Progress Bar
-    "wizard.progress.welcome" => "स्वागत",
-    "wizard.progress.select" => "चुनें",
     "wizard.progress.review" => "समीक्षा",
-    "wizard.progress.success" => "सफल",
+    "wizard.progress.claim" => "क्लेम",
+    "wizard.progress.what_next" => "आगे क्या",
     "wizard.progress.step" => "चरण",
 
-    // Task Families
+    // Wizard Availability States
+    "wizard.availability.sold_out_title" => "सभी लाइसेंस क्लेम हो गए!",
+    "wizard.availability.sold_out_message" => "चिंता न करें - नए लाइसेंस नियमित रूप से जारी किए जाते हैं। जल्द ही वापस आएं!",
+    "wizard.availability.notify_available" => "उपलब्ध होने पर मुझे सूचित करें",
+    "wizard.availability.coming_soon_title" => "जल्द आ रहा है",
+    "wizard.availability.coming_soon_message" => "लाइसेंस क्लेमिंग जल्द ही उपलब्ध होगी। जल्द ही वापस आएं!",
+    "wizard.availability.notify_live" => "लाइव होने पर मुझे सूचित करें",
+    "wizard.availability.learn_more" => "लाइसेंस के बारे में जानें",
+    "wizard.availability.licenses_claimed" => "अब तक क्लेम किए गए लाइसेंस",
+
+    // Task Families (for wizard accordion)
     "tasks.families.title" => "कार्य परिवार",
     "tasks.families.subtitle" => "कमाई के विभिन्न तरीकों के बारे में जानें।",
     "tasks.connection.name" => "कनेक्शन",
@@ -361,7 +465,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "tasks.cli.desc" => "कॉलर आईडी सटीकता सत्यापित करने के लिए टेस्ट कॉल प्राप्त करें।",
     "tasks.sms.name" => "SMS परीक्षण",
     "tasks.sms.desc" => "SMS डिलीवरी सत्यापित करने के लिए टेस्ट संदेश प्राप्त करें।",
-    "tasks.status.live" => "सक्रिय",
+    "tasks.status.live" => "लाइव",
     "tasks.status.coming_soon" => "जल्द आ रहा है",
     "tasks.maximize.title" => "अपनी कमाई अधिकतम करें",
     "tasks.maximize.tip1" => "अपने डिवाइस को जितना संभव हो ऑनलाइन रखें",
@@ -385,4 +489,85 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "install.tips.tip1" => "जब संभव हो WiFi कनेक्टेड रखें",
     "install.tips.tip2" => "ऐप के लिए बैटरी ऑप्टिमाइज़ेशन अक्षम करें",
     "install.tips.tip3" => "अधिकतम कमाई के लिए ऐप 24/7 चलाएं",
+
+    // Referrals page
+    "referrals.page_title" => "रेफरल एजेंट बनें",
+    "referrals.page_subtitle" => "हमारे रेफरल प्रोग्राम में शामिल हों और अपने कोड से प्राप्त हर लाइसेंस पर कमीशन कमाएं।",
+    "referrals.benefits_title" => "रेफरल क्यों बनें?",
+    "referrals.benefit_1" => "रेफर किए गए उपयोगकर्ताओं से आवर्ती कमीशन कमाएं",
+    "referrals.benefit_2" => "अपना अद्वितीय रेफरल कोड प्राप्त करें",
+    "referrals.benefit_3" => "एजेंट डैशबोर्ड में अपनी कमाई ट्रैक करें",
+    "referrals.form_title" => "अभी आवेदन करें",
+    "referrals.label_username" => "आपका नाम",
+    "referrals.placeholder_username" => "अपना पूरा नाम दर्ज करें",
+    "referrals.label_email" => "ईमेल पता",
+    "referrals.placeholder_email" => "अपना ईमेल दर्ज करें",
+    "referrals.label_country" => "देश",
+    "referrals.placeholder_country" => "अपना देश चुनें",
+    "referrals.label_referral_code" => "अपना रेफरल कोड चुनें",
+    "referrals.placeholder_referral_code" => "उदा., RAHUL2024",
+    "referrals.hint_referral_code" => "3-20 अक्षर, केवल अक्षर और संख्याएं। यह आपका अद्वितीय कोड होगा।",
+    "referrals.submit" => "आवेदन जमा करें",
+    "referrals.submitting" => "जमा हो रहा है...",
+
+    // Economics - Revenue Split Transparency
+    "economics.split_title" => "कमाई कैसे विभाजित होती है",
+    "economics.split_description" => "राजस्व कैसे वितरित होता है इसकी पूरी पारदर्शिता। कोई छिपी फीस नहीं।",
+    "economics.you" => "आप",
+    "economics.platform" => "प्लेटफॉर्म",
+    "economics.referrer" => "रेफरर",
+    "economics.transparency_note" => "यदि आपके पास कोई रेफरर नहीं है, तो उनका 10% हिस्सा प्लेटफॉर्म संचालन फंड में जाता है।",
+
+    // Economics - Earnings Dashboard
+    "economics.earnings_title" => "आपकी कमाई",
+    "economics.earnings_subtitle" => "आपकी कमाई की गणना और वितरण कैसे होता है इसकी पूरी पारदर्शिता।",
+    "economics.your_earnings" => "आपकी कमाई",
+    "economics.fifty_percent_share" => "कमाई पूल से आपका 50% हिस्सा",
+    "economics.how_split" => "यह कैसे विभाजित होता है",
+    "economics.pending" => "लंबित",
+    "economics.paid" => "भुगतान किया गया",
+    "economics.transparency_notice" => "सभी कमाई समान पारदर्शी सूत्र का उपयोग करके गणना की जाती है। कोई छिपी कटौती नहीं।",
+
+    // Economics - Referral Attribution
+    "economics.referral_attribution" => "रेफरल एट्रिब्यूशन",
+    "economics.code" => "कोड",
+    "economics.no_referrer_message" => "कोई रेफरर लिंक नहीं है। रेफरल शेयर (10%) प्लेटफॉर्म संचालन फंड में जाता है।",
+    "economics.referrer_share" => "रेफरर शेयर",
+    "economics.earned_for_referrer" => "रेफरर के लिए अर्जित",
+    "economics.attribution_immutable" => "एट्रिब्यूशन स्थायी है और पुष्टि के बाद बदला नहीं जा सकता।",
+
+    // Economics - Wizard Review
+    "economics.review_title" => "अर्थशास्त्र की समीक्षा करें",
+    "economics.review_subtitle" => "अपना लाइसेंस क्लेम करने से पहले कमाई कैसे काम करती है यह समझें।",
+    "economics.important_disclosures" => "महत्वपूर्ण खुलासे",
+    "economics.disclosure_1" => "कमाई नेटवर्क मांग और आपके डिवाइस अपटाइम पर निर्भर करती है",
+    "economics.disclosure_2" => "50/40/10 विभाजन निश्चित है और सभी कमाई पर लागू होता है",
+    "economics.disclosure_3" => "रेफरल एट्रिब्यूशन पुष्टि के बाद स्थायी है",
+    "economics.who_should_not_join" => "किसे शामिल नहीं होना चाहिए",
+    "economics.not_for_1" => "जो गारंटीकृत निश्चित आय की उम्मीद करते हैं",
+    "economics.not_for_2" => "जो लगातार डिवाइस अपटाइम बनाए रखने में असमर्थ हैं",
+    "economics.not_for_3" => "जो टेलीमेट्री के लिए डेटा साझाकरण से असहज हैं",
+    "economics.i_understand" => "मैं समझता हूं और आगे बढ़ना चाहता हूं",
+
+    // Wizard - Economics Review Stage
+    "wizard.economics.title" => "अर्थशास्त्र को समझें",
+    "wizard.economics.subtitle" => "लाइसेंस क्लेम करने से पहले, समझें कि कमाई कैसे विभाजित होती है।",
+    "wizard.economics.split_title" => "50/40/10 विभाजन",
+    "wizard.economics.you_title" => "आप",
+    "wizard.economics.you_desc" => "आपके डिवाइस पर पूर्ण किए गए कार्यों से सभी कमाई का आपका हिस्सा।",
+    "wizard.economics.platform_title" => "प्लेटफॉर्म",
+    "wizard.economics.platform_desc" => "बुनियादी ढांचे, विकास और सहायता लागत को कवर करता है।",
+    "wizard.economics.referrer_title" => "रेफरर",
+    "wizard.economics.referrer_desc" => "जिसने आपको रेफर किया उसे जाता है, या कोई रेफरर नहीं होने पर प्लेटफॉर्म को।",
+    "wizard.economics.important_title" => "महत्वपूर्ण खुलासे",
+    "wizard.economics.disclosure_small_rewards" => "व्यक्तिगत कार्य पुरस्कार छोटे हैं ($0.001 - $0.05)। कमाई समय के साथ जमा होती है।",
+    "wizard.economics.disclosure_credit_cost" => "UNO लगभग ब्रेक-ईवन पर संचालित होता है। हम आपके क्रेडिट अपने हिस्से से फंड करते हैं।",
+    "wizard.economics.disclosure_device_requirement" => "आपको इंटरनेट से जुड़े डिवाइस की आवश्यकता है जिस पर ऐप चल रहा हो।",
+    "wizard.economics.disclosure_uptime" => "अधिक अपटाइम का मतलब अधिक कार्य अवसर और अधिक कमाई।",
+    "wizard.economics.who_should_not_title" => "किसे शामिल नहीं होना चाहिए",
+    "wizard.economics.not_for_quick_money" => "जो त्वरित या गारंटीकृत पैसे की तलाश में हैं",
+    "wizard.economics.not_for_unstable_internet" => "जिनके पास अस्थिर या सीमित इंटरनेट कनेक्शन है",
+    "wizard.economics.not_for_shared_devices" => "जो साझा या सार्वजनिक डिवाइस का उपयोग कर रहे हैं",
+    "wizard.economics.understand_proceed" => "मैं समझता हूं - चलो जारी रखें",
+    "wizard.economics.example_pool" => "उदाहरण मासिक पूल",
 };

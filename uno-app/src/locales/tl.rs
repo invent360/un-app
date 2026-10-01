@@ -12,21 +12,13 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "nav.faq" => "FAQ",
     "nav.common_errors" => "Karaniwang Mga Error",
     "nav.contact" => "Kontak",
-
-    // Guides page
-    "guides.title" => "Mga Gabay",
-    "guides.subtitle" => "Alamin kung paano i-maximize ang iyong kita gamit ang step-by-step na mga gabay.",
-    "guides.coming_soon" => "Ang mga gabay ay malapit nang dumating.",
-
-    // Common Errors page
-    "errors.title" => "Karaniwang Mga Error",
-    "errors.subtitle" => "Gabay sa pag-troubleshoot para sa mga karaniwang problema.",
-    "errors.coming_soon" => "Ang dokumentasyon ng error ay malapit nang dumating.",
+    "nav.referrals" => "Mga Referral",
+    "nav.start_earning" => "Magsimulang Kumita",
 
     // Hero section
     "hero.title" => "Kumita ng Passive Income sa UNO",
     "hero.subtitle" => "Ibahagi ang hindi nagamit na bandwidth at kumita ng rewards. Kumuha ng libreng lisensya para magsimulang kumita ngayon.",
-    "hero.cta" => "Kunin Ang Iyong Libreng Lisensya",
+    "hero.cta" => "Kunin Ang Iyong Lisensya",
 
     // Features section
     "features.easy_setup" => "Madaling Setup",
@@ -117,6 +109,25 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "tasks.device_phone_mobile" => "Phone (Mobile)",
     "tasks.device_phone_mobile_desc" => "Buong suporta sa mga gawain",
 
+    // Guides page
+    "guides.title" => "Mga Gabay",
+    "guides.subtitle" => "Alamin kung paano i-maximize ang iyong kita gamit ang step-by-step na mga gabay.",
+    "guides.coming_soon" => "Ang mga gabay ay malapit nang dumating.",
+    "guides.search" => "Maghanap ng mga gabay...",
+    "guides.no_results" => "Walang nahanap na gabay na tumutugma sa iyong paghahanap.",
+    "guides.tip_label" => "Tip:",
+    "guides.tip_text" => "I-click ang \"More\" button para palawakin at makita ang buong detalye. I-click ang \"Less\" para bumalik sa summary view.",
+    "guides.before_you_begin" => "Bago ka magsimula...",
+    "guides.complete_these_first" => "Siguraduhing nakumpleto mo muna ang mga gabay na ito:",
+    "guides.continue_to_guide" => "Magpatuloy sa Gabay",
+
+    // Common Errors page
+    "errors.title" => "Karaniwang Mga Error",
+    "errors.subtitle" => "Gabay sa pag-troubleshoot para sa mga karaniwang problema.",
+    "errors.coming_soon" => "Ang dokumentasyon ng error ay malapit nang dumating.",
+    "errors.search" => "Maghanap ng mga error...",
+    "errors.no_results" => "Walang nahanap na error na tumutugma sa iyong paghahanap.",
+
     // FAQ page
     "faq.title" => "Mga Madalas Itanong",
     "faq.subtitle" => "Hanapin ang mga sagot sa karaniwang tanong tungkol sa UNO.",
@@ -186,9 +197,12 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "common.submit" => "Ipasa",
     "common.cancel" => "Kanselahin",
     "common.close" => "Isara",
+    "common.claim" => "Kunin",
     "common.yes" => "Oo",
     "common.no" => "Hindi",
     "common.per_month" => "/buwan",
+    "common.more" => "Higit Pa",
+    "common.less" => "Mas Kaunti",
 
     // Claim page
     "claim.title" => "Nakuha na ang Lisensya!",
@@ -242,6 +256,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "errors.server_title" => "Server Error",
     "errors.server_message" => "May nangyaring mali sa aming panig. Subukan muli mamaya.",
     "errors.error_code_prefix" => "Error Code:",
+    "errors.page_not_found" => "Ang pahina na hinahanap mo ay hindi umiiral.",
 
     // Locale popup
     "locale.popup_title" => "Piliin ang Iyong Wika",
@@ -251,10 +266,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "locale.remember_choice" => "Tandaan ang aking pinili",
 
     // Footer
-    "footer.copyright" => "UNO Network. Lahat ng karapatan ay nakalaan.",
+    "footer.tagline" => "Passive income mula sa iyong phone",
+    "footer.quick_links" => "Mabilis na Links",
+    "footer.how_it_works" => "Paano Ito Gumagana",
+    "footer.earnings" => "Kita",
+    "footer.faq" => "FAQ",
+    "footer.community" => "Komunidad",
+    "footer.support" => "Suporta",
+    "footer.contact" => "Kontak",
     "footer.privacy" => "Privacy Policy",
     "footer.terms" => "Terms of Service",
-    "footer.contact" => "Makipag-ugnayan sa Amin",
+    "footer.copyright" => "© 2024 DJED Nodes.",
 
     // Help accordion
     "help.title" => "Kailangan ng Tulong?",
@@ -281,9 +303,14 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Error display
     "errors.try_again" => "Subukan Muli",
 
+    // Wizard - Common
+    "wizard.common.back" => "Bumalik",
+    "wizard.common.next" => "Susunod",
+    "wizard.common.close" => "Isara",
+
     // Wizard - Welcome Stage
-    "wizard.welcome.title" => "Kunin ang Iyong Libreng Lisensya",
-    "wizard.welcome.subtitle" => "Magsimulang kumita ng passive income sa pamamagitan ng pagbabahagi ng iyong hindi ginagamit na bandwidth.",
+    "wizard.welcome.title" => "Kunin ang Iyong Lisensya",
+    "wizard.welcome.subtitle" => "Magsimulang kumita ng passive income sa pamamagitan ng pagbabahagi ng iyong hindi ginagamit na internet bandwidth.",
     "wizard.welcome.quick_claim_btn" => "Mabilis na Kumuha",
     "wizard.welcome.learn_first_btn" => "Alamin Pa",
     "wizard.welcome.hide_info_btn" => "Itago Info",
@@ -314,7 +341,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.compare.note" => "Ang aktwal na kita ay depende sa uptime ng device at availability ng gawain.",
 
     // Wizard - Review Stage
-    "wizard.review.title" => "Suriin",
+    "wizard.review.title" => "Mga Detalye ng Lisensya",
     "wizard.review.selected_variant" => "Napiling Hatian",
     "wizard.review.split_breakdown" => "Detalye ng Hatian",
     "wizard.review.you_receive" => "Matatanggap mo",
@@ -323,32 +350,109 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.review.terms_checkbox" => "Sumasang-ayon ako sa",
     "wizard.review.terms_link" => "Mga Tuntunin ng Serbisyo",
     "wizard.review.claim_btn" => "Kunin ang Lisensya",
+    "wizard.review.claim_now" => "Kunin Ngayon",
     "wizard.review.claiming" => "Kinukuha...",
     "wizard.review.back_btn" => "Bumalik",
     "wizard.review.no_variant" => "Mangyaring pumili ng variant ng lisensya.",
+    "wizard.review.above_average" => "higit sa average",
+    "wizard.review.lease_validity" => "Bisa ng Kontrata",
+    "wizard.review.rewards_range" => "Tantyang Rewards",
+    "wizard.review.uptime_conditions_title" => "Mga Kondisyon para sa Uptime Reward",
+    "wizard.review.condition_1" => "Manatiling konektado sa internet para garantiyahan ang maximum rewards",
+    "wizard.review.condition_2" => "Panatilihing tumatakbo ang app sa background para sa pinakamahusay na resulta",
+    "wizard.review.what_you_get_title" => "Ano ang makukuha mo",
+    "wizard.review.benefit_free_license" => "Libreng lisensya para magsimulang kumita agad",
+    "wizard.review.benefit_support" => "24 oras na suporta sa app, via email at whatsapp",
+    "wizard.review.benefit_zero_fees" => "Walang operation fees o charges",
+    "wizard.review.referral_checkbox" => "Mayroon akong referral code (opsyonal)",
+    "wizard.review.referral_placeholder" => "Ilagay ang referral code",
+    "wizard.review.referral_valid" => "Valid ang referral code",
+    "wizard.review.referral_invalid" => "Invalid o inactive na referral code",
+    "wizard.review.referral_checking" => "Sinusuri...",
 
-    // Wizard - Success Stage
-    "wizard.success.title" => "Nakuha na ang Lisensya!",
-    "wizard.success.subtitle" => "Handa na ang iyong lisensya. I-save ang iyong key at i-download ang app para magsimulang kumita.",
+    // Wizard - Success Stage (common)
     "wizard.success.license_key" => "Ang Iyong License Key",
     "wizard.success.key_warning" => "I-save ang key na ito! Hindi mo na ito mababawi mamaya.",
-    "wizard.success.next_steps.title" => "Mga Susunod na Hakbang",
-    "wizard.success.next_steps.step1" => "I-download ang UNO app sa iyong device",
-    "wizard.success.next_steps.step2" => "Ilagay ang iyong license key para i-activate",
-    "wizard.success.next_steps.step3" => "Panatilihing tumatakbo ang app para kumita",
     "wizard.success.install_guide_btn" => "Gabay sa Pag-install",
     "wizard.success.hide_install_btn" => "Itago ang Gabay",
     "wizard.success.claim_another_btn" => "Kumuha ng Isa Pa",
     "wizard.success.done_btn" => "Tapos Na",
 
+    // Wizard - Claim Stage
+    "wizard.claim.title" => "Nakuha na ang Lisensya!",
+    "wizard.claim.subtitle" => "Handa na ang iyong lisensya. I-save ang iyong key ngayon - hindi mo na ito mababawi mamaya.",
+    "wizard.claim.copy_title" => "Kopyahin ang Iyong License Key",
+    "wizard.claim.copy_subtitle" => "I-click ang copy button para i-save ang iyong key. Kakailanganin mo ito para ma-activate ang iyong lisensya.",
+    "wizard.claim.success_title" => "Matagumpay na Nakuha ang Lisensya!",
+    "wizard.claim.success_subtitle" => "Na-activate na ang iyong lisensya. I-save ang iyong key nang ligtas - hindi mo na ito mababawi mamaya.",
+    "wizard.claim.processing" => "Pinoproseso...",
+    "wizard.claim.please_wait" => "Pakihintay habang pinoproseso ang iyong claim.",
+    "wizard.claim.key_copied" => "Nakopya na ang key sa clipboard!",
+    "wizard.claim.continue" => "Magpatuloy",
+
+    // Wizard - Download Stage
+    "wizard.download.title" => "Download at Install",
+    "wizard.download.subtitle" => "Kunin ang UNO app sa iyong device para magsimulang kumita.",
+
+    // Wizard - Sign Up Stage
+    "wizard.signup.title" => "Gumawa ng Iyong Account",
+    "wizard.signup.subtitle" => "Mag-sign up sa app para i-activate ang iyong lisensya.",
+    "wizard.signup.step1_title" => "1. Buksan ang App",
+    "wizard.signup.step1" => "Buksan ang UNO app na na-install mo lang",
+    "wizard.signup.step2_title" => "2. Gumawa ng Account",
+    "wizard.signup.step2" => "I-tap ang 'Create Account' at ilagay ang iyong detalye",
+    "wizard.signup.step3_title" => "3. Ilagay ang Lisensya",
+    "wizard.signup.step3" => "Ilagay ang iyong license key kapag hiniling",
+
+    // Wizard - Activate Stage
+    "wizard.activate.title" => "Magsimulang Kumita",
+    "wizard.activate.subtitle" => "I-activate ang mga gawain para magsimulang kumita ng passive income.",
+    "wizard.activate.step1_title" => "1. Permissions",
+    "wizard.activate.step1" => "Ibigay ang mga kinakailangang permissions sa app",
+    "wizard.activate.step2_title" => "2. Background",
+    "wizard.activate.step2" => "I-enable ang background running para sa maximum na kita",
+    "wizard.activate.step3_title" => "3. Kumita",
+    "wizard.activate.step3" => "Panatilihing tumatakbo ang app at panoorin ang paglaki ng iyong kita!",
+
+    // Wizard - What Next Stage
+    "wizard.what_next.title" => "Ano ang Susunod?",
+    "wizard.what_next.subtitle" => "Magsimula gamit ang mga resources na ito para i-maximize ang iyong kita.",
+    "wizard.what_next.warning_title" => "Mahalaga: I-bind sa loob ng 24 oras",
+    "wizard.what_next.warning_text" => "Ang iyong lisensya ay kailangang i-bind sa phone sa loob ng 24 oras o maaaring ma-revoke ito.",
+    "wizard.what_next.download_title" => "I-download ang App",
+    "wizard.what_next.guides_title" => "Mga How-to Guide",
+    "wizard.what_next.guide_setup" => "App Setup Guide",
+    "wizard.what_next.guide_setup_desc" => "Step-by-step na installation at setup",
+    "wizard.what_next.guide_activation" => "Pag-activate ng Lisensya",
+    "wizard.what_next.guide_activation_desc" => "Paano i-activate ang iyong lisensya",
+    "wizard.what_next.guide_withdraw" => "Mag-withdraw ng Kita",
+    "wizard.what_next.guide_withdraw_desc" => "Paano i-cash out ang iyong rewards",
+    "wizard.what_next.tasks_title" => "Mga Available na Gawain",
+    "wizard.what_next.task_telemetry" => "Telemetry",
+    "wizard.what_next.task_caller_id" => "Caller ID",
+    "wizard.what_next.task_sms" => "SMS Testing",
+    "wizard.what_next.task_connectivity" => "Connectivity",
+    "wizard.what_next.task_entropy" => "Entropy",
+    "wizard.what_next.view_all_tasks" => "Tingnan Lahat ng Gawain",
+    "wizard.what_next.done" => "Tapos Na",
+
     // Wizard - Progress Bar
-    "wizard.progress.welcome" => "Maligayang Pagdating",
-    "wizard.progress.select" => "Pumili",
     "wizard.progress.review" => "Suriin",
-    "wizard.progress.success" => "Tapos",
+    "wizard.progress.claim" => "Kunin",
+    "wizard.progress.what_next" => "Ano ang Susunod",
     "wizard.progress.step" => "Hakbang",
 
-    // Task Families
+    // Wizard Availability States
+    "wizard.availability.sold_out_title" => "Nakuha na Lahat ng Lisensya!",
+    "wizard.availability.sold_out_message" => "Huwag mag-alala - regular na naglalabas ng mga bagong lisensya. Bumalik muli!",
+    "wizard.availability.notify_available" => "Ipaalam sa Akin Kapag Available",
+    "wizard.availability.coming_soon_title" => "Malapit Na",
+    "wizard.availability.coming_soon_message" => "Ang pagkuha ng lisensya ay magiging available na. Bumalik muli!",
+    "wizard.availability.notify_live" => "Ipaalam sa Akin Kapag Live Na",
+    "wizard.availability.learn_more" => "Alamin ang Tungkol sa Mga Lisensya",
+    "wizard.availability.licenses_claimed" => "na lisensya ang nakuha na",
+
+    // Task Families (for wizard accordion)
     "tasks.families.title" => "Mga Pamilya ng Gawain",
     "tasks.families.subtitle" => "Alamin ang iba't ibang paraan ng pagkita.",
     "tasks.connection.name" => "Connection",
@@ -385,4 +489,85 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "install.tips.tip1" => "Panatilihing nakakonekta ang WiFi kung maaari",
     "install.tips.tip2" => "I-disable ang battery optimization para sa app",
     "install.tips.tip3" => "Patakbuhin ang app 24/7 para sa maximum na kita",
+
+    // Referrals page
+    "referrals.page_title" => "Maging Referral Agent",
+    "referrals.page_subtitle" => "Sumali sa aming referral program at kumita ng commissions sa bawat lisensyang nakuha gamit ang iyong code.",
+    "referrals.benefits_title" => "Bakit Maging Referral?",
+    "referrals.benefit_1" => "Kumita ng recurring commissions mula sa mga na-refer na users",
+    "referrals.benefit_2" => "Kunin ang iyong sariling unique referral code",
+    "referrals.benefit_3" => "I-track ang iyong kita sa agent dashboard",
+    "referrals.form_title" => "Mag-apply Ngayon",
+    "referrals.label_username" => "Iyong Pangalan",
+    "referrals.placeholder_username" => "Ilagay ang iyong buong pangalan",
+    "referrals.label_email" => "Email Address",
+    "referrals.placeholder_email" => "Ilagay ang iyong email",
+    "referrals.label_country" => "Bansa",
+    "referrals.placeholder_country" => "Piliin ang iyong bansa",
+    "referrals.label_referral_code" => "Piliin ang Iyong Referral Code",
+    "referrals.placeholder_referral_code" => "halimbawa, JUAN2024",
+    "referrals.hint_referral_code" => "3-20 characters, letters at numbers lang. Ito ang magiging unique code mo.",
+    "referrals.submit" => "Ipasa ang Application",
+    "referrals.submitting" => "Ipinapasa...",
+
+    // Economics - Revenue Split Transparency
+    "economics.split_title" => "Paano Hinahati ang Kita",
+    "economics.split_description" => "Buong transparency kung paano hinahati ang revenue. Walang hidden fees.",
+    "economics.you" => "Ikaw",
+    "economics.platform" => "Platform",
+    "economics.referrer" => "Referrer",
+    "economics.transparency_note" => "Kung wala kang referrer, ang kanilang 10% share ay mapupunta sa platform operations fund.",
+
+    // Economics - Earnings Dashboard
+    "economics.earnings_title" => "Iyong Kita",
+    "economics.earnings_subtitle" => "Buong transparency kung paano kinakalkula at hinahati ang iyong kita.",
+    "economics.your_earnings" => "Iyong Kita",
+    "economics.fifty_percent_share" => "Ang iyong 50% share mula sa earnings pool",
+    "economics.how_split" => "Paano ito hinahati",
+    "economics.pending" => "Pending",
+    "economics.paid" => "Nabayaran Na",
+    "economics.transparency_notice" => "Lahat ng kita ay kinakalkula gamit ang parehong transparent formula. Walang hidden deductions.",
+
+    // Economics - Referral Attribution
+    "economics.referral_attribution" => "Referral Attribution",
+    "economics.code" => "Code",
+    "economics.no_referrer_message" => "Walang naka-link na referrer. Ang referral share (10%) ay mapupunta sa platform operations fund.",
+    "economics.referrer_share" => "Referrer Share",
+    "economics.earned_for_referrer" => "Nakita para sa Referrer",
+    "economics.attribution_immutable" => "Ang attribution ay permanente at hindi na mababago pagkatapos ng confirmation.",
+
+    // Economics - Wizard Review
+    "economics.review_title" => "Suriin ang Economics",
+    "economics.review_subtitle" => "Unawain kung paano gumagana ang kita bago kunin ang iyong lisensya.",
+    "economics.important_disclosures" => "Mahahalagang Disclosures",
+    "economics.disclosure_1" => "Ang kita ay depende sa network demand at uptime ng iyong device",
+    "economics.disclosure_2" => "Ang 50/40/10 split ay fixed at naaapply sa lahat ng kita",
+    "economics.disclosure_3" => "Ang referral attribution ay permanente kapag na-confirm na",
+    "economics.who_should_not_join" => "Sino ang HINDI Dapat Sumali",
+    "economics.not_for_1" => "Mga umaasa ng guaranteed fixed income",
+    "economics.not_for_2" => "Mga hindi kayang magpanatili ng consistent device uptime",
+    "economics.not_for_3" => "Mga hindi komportable sa data sharing para sa telemetry",
+    "economics.i_understand" => "Naiintindihan ko at gusto kong magpatuloy",
+
+    // Wizard - Economics Review Stage
+    "wizard.economics.title" => "Unawain ang Economics",
+    "wizard.economics.subtitle" => "Bago ka kumuha ng lisensya, unawain kung paano hinahati ang kita.",
+    "wizard.economics.split_title" => "Ang 50/40/10 Split",
+    "wizard.economics.you_title" => "Ikaw",
+    "wizard.economics.you_desc" => "Iyong share ng lahat ng kita mula sa mga gawain na nakumpleto sa iyong device.",
+    "wizard.economics.platform_title" => "Platform",
+    "wizard.economics.platform_desc" => "Sumasaklaw sa infrastructure, development, at support costs.",
+    "wizard.economics.referrer_title" => "Referrer",
+    "wizard.economics.referrer_desc" => "Napupunta sa nag-refer sa iyo, o sa platform kung walang referrer.",
+    "wizard.economics.important_title" => "Mahahalagang Disclosures",
+    "wizard.economics.disclosure_small_rewards" => "Ang mga individual task rewards ay maliit ($0.001 - $0.05). Ang kita ay nag-aaccumulate sa paglipas ng panahon.",
+    "wizard.economics.disclosure_credit_cost" => "Ang UNO ay nag-ooperate sa near break-even. Pina-fund namin ang iyong credits mula sa aming share.",
+    "wizard.economics.disclosure_device_requirement" => "Kailangan mo ng device na konektado sa internet na may tumatakbong app.",
+    "wizard.economics.disclosure_uptime" => "Mas mataas na uptime ay nangangahulugang mas maraming task opportunities at mas mataas na kita.",
+    "wizard.economics.who_should_not_title" => "Sino ang HINDI Dapat Sumali",
+    "wizard.economics.not_for_quick_money" => "Mga naghahanap ng mabilis o guaranteed na pera",
+    "wizard.economics.not_for_unstable_internet" => "Mga may unstable o limitadong internet connections",
+    "wizard.economics.not_for_shared_devices" => "Mga gumagamit ng shared o public devices",
+    "wizard.economics.understand_proceed" => "Naiintindihan Ko - Magpatuloy Tayo",
+    "wizard.economics.example_pool" => "Halimbawa ng Monthly Pool",
 };

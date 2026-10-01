@@ -12,21 +12,13 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "nav.faq" => "FAQ",
     "nav.common_errors" => "Kesalahan Umum",
     "nav.contact" => "Kontak",
-
-    // Guides page
-    "guides.title" => "Panduan",
-    "guides.subtitle" => "Pelajari cara memaksimalkan penghasilan Anda dengan panduan langkah demi langkah.",
-    "guides.coming_soon" => "Panduan akan segera hadir.",
-
-    // Common Errors page
-    "errors.title" => "Kesalahan Umum",
-    "errors.subtitle" => "Panduan pemecahan masalah untuk masalah umum.",
-    "errors.coming_soon" => "Dokumentasi kesalahan akan segera hadir.",
+    "nav.referrals" => "Referral",
+    "nav.start_earning" => "Mulai Menghasilkan",
 
     // Hero section
     "hero.title" => "Dapatkan Pendapatan Pasif dengan UNO",
     "hero.subtitle" => "Bagikan bandwidth yang tidak terpakai dan dapatkan hadiah. Dapatkan lisensi gratis untuk mulai menghasilkan hari ini.",
-    "hero.cta" => "Klaim Lisensi Gratis Anda",
+    "hero.cta" => "Klaim Lisensi Anda",
 
     // Features section
     "features.easy_setup" => "Pengaturan Mudah",
@@ -117,6 +109,25 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "tasks.device_phone_mobile" => "Ponsel (Seluler)",
     "tasks.device_phone_mobile_desc" => "Dukungan tugas penuh",
 
+    // Guides page
+    "guides.title" => "Panduan",
+    "guides.subtitle" => "Pelajari cara memaksimalkan penghasilan Anda dengan panduan langkah demi langkah.",
+    "guides.coming_soon" => "Panduan akan segera hadir.",
+    "guides.search" => "Cari panduan...",
+    "guides.no_results" => "Tidak ada panduan yang ditemukan sesuai pencarian Anda.",
+    "guides.tip_label" => "Tips:",
+    "guides.tip_text" => "Klik tombol \"Lebih\" untuk memperluas dan melihat detail lengkap. Klik \"Kurang\" untuk menciutkan kembali ke tampilan ringkasan.",
+    "guides.before_you_begin" => "Sebelum Anda mulai...",
+    "guides.complete_these_first" => "Pastikan Anda telah menyelesaikan panduan-panduan ini terlebih dahulu:",
+    "guides.continue_to_guide" => "Lanjutkan ke Panduan",
+
+    // Common Errors page
+    "errors.title" => "Kesalahan Umum",
+    "errors.subtitle" => "Panduan pemecahan masalah untuk masalah umum.",
+    "errors.coming_soon" => "Dokumentasi kesalahan akan segera hadir.",
+    "errors.search" => "Cari kesalahan...",
+    "errors.no_results" => "Tidak ada kesalahan yang ditemukan sesuai pencarian Anda.",
+
     // FAQ page
     "faq.title" => "Pertanyaan yang Sering Diajukan",
     "faq.subtitle" => "Temukan jawaban untuk pertanyaan umum tentang UNO.",
@@ -186,9 +197,12 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "common.submit" => "Kirim",
     "common.cancel" => "Batal",
     "common.close" => "Tutup",
+    "common.claim" => "Klaim",
     "common.yes" => "Ya",
     "common.no" => "Tidak",
     "common.per_month" => "/bulan",
+    "common.more" => "Lebih",
+    "common.less" => "Kurang",
 
     // Claim page
     "claim.title" => "Lisensi Diklaim!",
@@ -242,6 +256,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "errors.server_title" => "Kesalahan Server",
     "errors.server_message" => "Terjadi kesalahan di pihak kami. Silakan coba lagi nanti.",
     "errors.error_code_prefix" => "Kode Kesalahan:",
+    "errors.page_not_found" => "Halaman yang Anda cari tidak ditemukan.",
 
     // Locale popup
     "locale.popup_title" => "Pilih Bahasa Anda",
@@ -251,10 +266,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "locale.remember_choice" => "Ingat pilihan saya",
 
     // Footer
-    "footer.copyright" => "UNO Network. Hak cipta dilindungi.",
+    "footer.tagline" => "Pendapatan pasif dari ponsel Anda",
+    "footer.quick_links" => "Tautan Cepat",
+    "footer.how_it_works" => "Cara Kerja",
+    "footer.earnings" => "Penghasilan",
+    "footer.faq" => "FAQ",
+    "footer.community" => "Komunitas",
+    "footer.support" => "Dukungan",
+    "footer.contact" => "Hubungi Kami",
     "footer.privacy" => "Kebijakan Privasi",
     "footer.terms" => "Ketentuan Layanan",
-    "footer.contact" => "Hubungi Kami",
+    "footer.copyright" => "UNO Network. Hak cipta dilindungi.",
 
     // Help accordion
     "help.title" => "Butuh Bantuan?",
@@ -280,6 +302,11 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
 
     // Error display
     "errors.try_again" => "Coba Lagi",
+
+    // Wizard - Common
+    "wizard.common.back" => "Kembali",
+    "wizard.common.next" => "Berikutnya",
+    "wizard.common.close" => "Tutup",
 
     // Wizard - Welcome Stage
     "wizard.welcome.title" => "Klaim Lisensi Gratis Anda",
@@ -314,7 +341,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.compare.note" => "Penghasilan aktual tergantung pada waktu aktif perangkat dan ketersediaan tugas.",
 
     // Wizard - Review Stage
-    "wizard.review.title" => "Tinjau",
+    "wizard.review.title" => "Detail Lisensi",
     "wizard.review.selected_variant" => "Pembagian Terpilih",
     "wizard.review.split_breakdown" => "Rincian Pembagian",
     "wizard.review.you_receive" => "Anda menerima",
@@ -323,30 +350,107 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.review.terms_checkbox" => "Saya setuju dengan",
     "wizard.review.terms_link" => "Ketentuan Layanan",
     "wizard.review.claim_btn" => "Klaim Lisensi",
+    "wizard.review.claim_now" => "Klaim Sekarang",
     "wizard.review.claiming" => "Mengklaim...",
     "wizard.review.back_btn" => "Kembali",
     "wizard.review.no_variant" => "Silakan pilih varian lisensi.",
+    "wizard.review.above_average" => "di atas rata-rata",
+    "wizard.review.lease_validity" => "Masa Berlaku Sewa",
+    "wizard.review.rewards_range" => "Est. Hadiah",
+    "wizard.review.uptime_conditions_title" => "Syarat Hadiah Waktu Aktif",
+    "wizard.review.condition_1" => "Tetap terhubung ke internet untuk menjamin hadiah maksimal",
+    "wizard.review.condition_2" => "Jaga aplikasi tetap berjalan di latar belakang untuk hasil terbaik",
+    "wizard.review.what_you_get_title" => "Yang Anda dapatkan",
+    "wizard.review.benefit_free_license" => "Lisensi gratis untuk mulai menghasilkan segera",
+    "wizard.review.benefit_support" => "Dukungan 24 jam dalam aplikasi, via email dan whatsapp",
+    "wizard.review.benefit_zero_fees" => "Tanpa biaya operasional atau biaya tambahan",
+    "wizard.review.referral_checkbox" => "Saya punya kode referral (opsional)",
+    "wizard.review.referral_placeholder" => "Masukkan kode referral",
+    "wizard.review.referral_valid" => "Kode referral valid",
+    "wizard.review.referral_invalid" => "Kode referral tidak valid atau tidak aktif",
+    "wizard.review.referral_checking" => "Memeriksa...",
 
-    // Wizard - Success Stage
-    "wizard.success.title" => "Lisensi Diklaim!",
-    "wizard.success.subtitle" => "Lisensi Anda siap. Simpan kunci Anda dan unduh aplikasi untuk mulai menghasilkan.",
+    // Wizard - Success Stage (common)
     "wizard.success.license_key" => "Kunci Lisensi Anda",
     "wizard.success.key_warning" => "Simpan kunci ini! Anda tidak dapat memulihkannya nanti.",
-    "wizard.success.next_steps.title" => "Langkah Selanjutnya",
-    "wizard.success.next_steps.step1" => "Unduh aplikasi UNO di perangkat Anda",
-    "wizard.success.next_steps.step2" => "Masukkan kunci lisensi Anda untuk mengaktifkan",
-    "wizard.success.next_steps.step3" => "Jaga aplikasi tetap berjalan untuk menghasilkan",
     "wizard.success.install_guide_btn" => "Panduan Instalasi",
     "wizard.success.hide_install_btn" => "Sembunyikan Panduan",
     "wizard.success.claim_another_btn" => "Klaim Lainnya",
     "wizard.success.done_btn" => "Selesai",
 
+    // Wizard - Claim Stage
+    "wizard.claim.title" => "Lisensi Diklaim!",
+    "wizard.claim.subtitle" => "Lisensi Anda siap. Simpan kunci Anda sekarang - Anda tidak dapat memulihkannya nanti.",
+    "wizard.claim.copy_title" => "Salin Kunci Lisensi Anda",
+    "wizard.claim.copy_subtitle" => "Klik tombol salin untuk menyimpan kunci Anda. Anda akan membutuhkannya untuk mengaktifkan lisensi.",
+    "wizard.claim.success_title" => "Lisensi Berhasil Diklaim!",
+    "wizard.claim.success_subtitle" => "Lisensi Anda telah diaktifkan. Simpan kunci Anda dengan aman - Anda tidak dapat memulihkannya nanti.",
+    "wizard.claim.processing" => "Memproses...",
+    "wizard.claim.please_wait" => "Mohon tunggu sementara kami memproses klaim Anda.",
+    "wizard.claim.key_copied" => "Kunci disalin ke clipboard!",
+    "wizard.claim.continue" => "Lanjutkan",
+
+    // Wizard - Download Stage
+    "wizard.download.title" => "Unduh & Instal",
+    "wizard.download.subtitle" => "Dapatkan aplikasi UNO di perangkat Anda untuk mulai menghasilkan.",
+
+    // Wizard - Sign Up Stage
+    "wizard.signup.title" => "Buat Akun Anda",
+    "wizard.signup.subtitle" => "Daftar di aplikasi untuk mengaktifkan lisensi Anda.",
+    "wizard.signup.step1_title" => "1. Buka Aplikasi",
+    "wizard.signup.step1" => "Buka aplikasi UNO yang baru saja Anda instal",
+    "wizard.signup.step2_title" => "2. Buat Akun",
+    "wizard.signup.step2" => "Ketuk 'Buat Akun' dan masukkan detail Anda",
+    "wizard.signup.step3_title" => "3. Masukkan Lisensi",
+    "wizard.signup.step3" => "Masukkan kunci lisensi Anda saat diminta",
+
+    // Wizard - Activate Stage
+    "wizard.activate.title" => "Mulai Menghasilkan",
+    "wizard.activate.subtitle" => "Aktifkan tugas untuk mulai mendapatkan pendapatan pasif.",
+    "wizard.activate.step1_title" => "1. Izin",
+    "wizard.activate.step1" => "Berikan izin yang diperlukan di aplikasi",
+    "wizard.activate.step2_title" => "2. Latar Belakang",
+    "wizard.activate.step2" => "Aktifkan berjalan di latar belakang untuk penghasilan maksimal",
+    "wizard.activate.step3_title" => "3. Hasilkan",
+    "wizard.activate.step3" => "Jaga aplikasi tetap berjalan dan lihat penghasilan Anda bertambah!",
+
+    // Wizard - What Next Stage
+    "wizard.what_next.title" => "Apa Selanjutnya?",
+    "wizard.what_next.subtitle" => "Mulai dengan sumber daya ini untuk memaksimalkan penghasilan Anda.",
+    "wizard.what_next.warning_title" => "Penting: Aktifkan dalam 24 jam",
+    "wizard.what_next.warning_text" => "Lisensi Anda harus diikat ke ponsel dalam 24 jam atau mungkin dicabut.",
+    "wizard.what_next.download_title" => "Unduh Aplikasi",
+    "wizard.what_next.guides_title" => "Panduan Cara",
+    "wizard.what_next.guide_setup" => "Panduan Pengaturan Aplikasi",
+    "wizard.what_next.guide_setup_desc" => "Instalasi dan pengaturan langkah demi langkah",
+    "wizard.what_next.guide_activation" => "Aktivasi Lisensi",
+    "wizard.what_next.guide_activation_desc" => "Cara mengaktifkan lisensi Anda",
+    "wizard.what_next.guide_withdraw" => "Tarik Penghasilan",
+    "wizard.what_next.guide_withdraw_desc" => "Cara mencairkan hadiah Anda",
+    "wizard.what_next.tasks_title" => "Tugas yang Tersedia",
+    "wizard.what_next.task_telemetry" => "Telemetri",
+    "wizard.what_next.task_caller_id" => "Caller ID",
+    "wizard.what_next.task_sms" => "Pengujian SMS",
+    "wizard.what_next.task_connectivity" => "Konektivitas",
+    "wizard.what_next.task_entropy" => "Entropi",
+    "wizard.what_next.view_all_tasks" => "Lihat Semua Tugas",
+    "wizard.what_next.done" => "Selesai",
+
     // Wizard - Progress Bar
-    "wizard.progress.welcome" => "Selamat Datang",
-    "wizard.progress.select" => "Pilih",
     "wizard.progress.review" => "Tinjau",
-    "wizard.progress.success" => "Selesai",
+    "wizard.progress.claim" => "Klaim",
+    "wizard.progress.what_next" => "Selanjutnya",
     "wizard.progress.step" => "Langkah",
+
+    // Wizard Availability States
+    "wizard.availability.sold_out_title" => "Semua Lisensi Telah Diklaim!",
+    "wizard.availability.sold_out_message" => "Jangan khawatir - lisensi baru dirilis secara berkala. Kembali lagi nanti!",
+    "wizard.availability.notify_available" => "Beritahu Saya Saat Tersedia",
+    "wizard.availability.coming_soon_title" => "Segera Hadir",
+    "wizard.availability.coming_soon_message" => "Klaim lisensi akan segera tersedia. Kembali lagi nanti!",
+    "wizard.availability.notify_live" => "Beritahu Saya Saat Aktif",
+    "wizard.availability.learn_more" => "Pelajari Tentang Lisensi",
+    "wizard.availability.licenses_claimed" => "lisensi telah diklaim sejauh ini",
 
     // Task Families (for wizard accordion)
     "tasks.families.title" => "Keluarga Tugas",
@@ -385,4 +489,85 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "install.tips.tip1" => "Jaga WiFi tetap terhubung jika memungkinkan",
     "install.tips.tip2" => "Nonaktifkan optimasi baterai untuk aplikasi",
     "install.tips.tip3" => "Jalankan aplikasi 24/7 untuk penghasilan maksimal",
+
+    // Referrals page
+    "referrals.page_title" => "Menjadi Agen Referral",
+    "referrals.page_subtitle" => "Bergabunglah dengan program referral kami dan dapatkan komisi dari setiap lisensi yang diklaim dengan kode Anda.",
+    "referrals.benefits_title" => "Mengapa Menjadi Referral?",
+    "referrals.benefit_1" => "Dapatkan komisi berulang dari pengguna yang direferensikan",
+    "referrals.benefit_2" => "Dapatkan kode referral unik Anda sendiri",
+    "referrals.benefit_3" => "Lacak penghasilan Anda di dashboard agen",
+    "referrals.form_title" => "Daftar Sekarang",
+    "referrals.label_username" => "Nama Anda",
+    "referrals.placeholder_username" => "Masukkan nama lengkap Anda",
+    "referrals.label_email" => "Alamat Email",
+    "referrals.placeholder_email" => "Masukkan email Anda",
+    "referrals.label_country" => "Negara",
+    "referrals.placeholder_country" => "Pilih negara Anda",
+    "referrals.label_referral_code" => "Pilih Kode Referral Anda",
+    "referrals.placeholder_referral_code" => "contoh: JOHN2024",
+    "referrals.hint_referral_code" => "3-20 karakter, hanya huruf dan angka. Ini akan menjadi kode unik Anda.",
+    "referrals.submit" => "Kirim Pendaftaran",
+    "referrals.submitting" => "Mengirim...",
+
+    // Economics - Revenue Split Transparency
+    "economics.split_title" => "Cara Pembagian Penghasilan",
+    "economics.split_description" => "Transparansi penuh tentang cara pendapatan didistribusikan. Tanpa biaya tersembunyi.",
+    "economics.you" => "Anda",
+    "economics.platform" => "Platform",
+    "economics.referrer" => "Perujuk",
+    "economics.transparency_note" => "Jika Anda tidak memiliki perujuk, bagian 10% mereka masuk ke dana operasional platform.",
+
+    // Economics - Earnings Dashboard
+    "economics.earnings_title" => "Penghasilan Anda",
+    "economics.earnings_subtitle" => "Transparansi lengkap tentang cara penghasilan Anda dihitung dan didistribusikan.",
+    "economics.your_earnings" => "Penghasilan Anda",
+    "economics.fifty_percent_share" => "Bagian 50% Anda dari kumpulan penghasilan",
+    "economics.how_split" => "Cara pembagiannya",
+    "economics.pending" => "Tertunda",
+    "economics.paid" => "Dibayar",
+    "economics.transparency_notice" => "Semua penghasilan dihitung menggunakan formula transparan yang sama. Tanpa potongan tersembunyi.",
+
+    // Economics - Referral Attribution
+    "economics.referral_attribution" => "Atribusi Referral",
+    "economics.code" => "Kode",
+    "economics.no_referrer_message" => "Tidak ada perujuk yang terkait. Bagian referral (10%) masuk ke dana operasional platform.",
+    "economics.referrer_share" => "Bagian Perujuk",
+    "economics.earned_for_referrer" => "Diperoleh untuk Perujuk",
+    "economics.attribution_immutable" => "Atribusi bersifat permanen dan tidak dapat diubah setelah konfirmasi.",
+
+    // Economics - Wizard Review
+    "economics.review_title" => "Tinjau Ekonominya",
+    "economics.review_subtitle" => "Pahami cara kerja penghasilan sebelum mengklaim lisensi Anda.",
+    "economics.important_disclosures" => "Pengungkapan Penting",
+    "economics.disclosure_1" => "Penghasilan tergantung pada permintaan jaringan dan waktu aktif perangkat Anda",
+    "economics.disclosure_2" => "Pembagian 50/40/10 bersifat tetap dan berlaku untuk semua penghasilan",
+    "economics.disclosure_3" => "Atribusi referral bersifat permanen setelah dikonfirmasi",
+    "economics.who_should_not_join" => "Siapa yang TIDAK Seharusnya Bergabung",
+    "economics.not_for_1" => "Mereka yang mengharapkan pendapatan tetap yang dijamin",
+    "economics.not_for_2" => "Mereka yang tidak dapat mempertahankan waktu aktif perangkat yang konsisten",
+    "economics.not_for_3" => "Mereka yang tidak nyaman dengan berbagi data untuk telemetri",
+    "economics.i_understand" => "Saya mengerti dan ingin melanjutkan",
+
+    // Wizard - Economics Review Stage
+    "wizard.economics.title" => "Pahami Ekonominya",
+    "wizard.economics.subtitle" => "Sebelum Anda mengklaim lisensi, pahami cara pembagian penghasilan.",
+    "wizard.economics.split_title" => "Pembagian 50/40/10",
+    "wizard.economics.you_title" => "Anda",
+    "wizard.economics.you_desc" => "Bagian Anda dari semua penghasilan dari tugas yang diselesaikan di perangkat Anda.",
+    "wizard.economics.platform_title" => "Platform",
+    "wizard.economics.platform_desc" => "Menutup biaya infrastruktur, pengembangan, dan dukungan.",
+    "wizard.economics.referrer_title" => "Perujuk",
+    "wizard.economics.referrer_desc" => "Diberikan kepada yang mereferensikan Anda, atau ke platform jika tidak ada perujuk.",
+    "wizard.economics.important_title" => "Pengungkapan Penting",
+    "wizard.economics.disclosure_small_rewards" => "Hadiah tugas individual kecil ($0.001 - $0.05). Penghasilan terakumulasi seiring waktu.",
+    "wizard.economics.disclosure_credit_cost" => "UNO beroperasi mendekati impas. Kami mendanai kredit Anda dari bagian kami.",
+    "wizard.economics.disclosure_device_requirement" => "Anda membutuhkan perangkat yang terhubung ke internet dengan aplikasi yang berjalan.",
+    "wizard.economics.disclosure_uptime" => "Waktu aktif yang lebih tinggi berarti lebih banyak peluang tugas dan penghasilan yang lebih tinggi.",
+    "wizard.economics.who_should_not_title" => "Siapa yang TIDAK Seharusnya Bergabung",
+    "wizard.economics.not_for_quick_money" => "Mereka yang mencari uang cepat atau dijamin",
+    "wizard.economics.not_for_unstable_internet" => "Mereka dengan koneksi internet yang tidak stabil atau terbatas",
+    "wizard.economics.not_for_shared_devices" => "Mereka yang menggunakan perangkat bersama atau publik",
+    "wizard.economics.understand_proceed" => "Saya Mengerti - Mari Lanjutkan",
+    "wizard.economics.example_pool" => "Contoh Kumpulan Bulanan",
 };

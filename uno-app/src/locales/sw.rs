@@ -12,16 +12,8 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "nav.faq" => "Maswali",
     "nav.common_errors" => "Makosa ya Kawaida",
     "nav.contact" => "Wasiliana",
-
-    // Guides page
-    "guides.title" => "Miongozo",
-    "guides.subtitle" => "Jifunze jinsi ya kuongeza mapato yako na miongozo ya hatua kwa hatua.",
-    "guides.coming_soon" => "Miongozo inakuja hivi karibuni.",
-
-    // Common Errors page
-    "errors.title" => "Makosa ya Kawaida",
-    "errors.subtitle" => "Mwongozo wa kutatua matatizo ya kawaida.",
-    "errors.coming_soon" => "Nyaraka za makosa zinakuja hivi karibuni.",
+    "nav.referrals" => "Rufaa",
+    "nav.start_earning" => "Anza Kupata",
 
     // Hero section
     "hero.title" => "Pata Mapato ya Passive na UNO",
@@ -117,6 +109,25 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "tasks.device_phone_mobile" => "Simu (Mobile)",
     "tasks.device_phone_mobile_desc" => "Msaada kamili wa kazi",
 
+    // Guides page
+    "guides.title" => "Miongozo",
+    "guides.subtitle" => "Jifunze jinsi ya kuongeza mapato yako na miongozo ya hatua kwa hatua.",
+    "guides.coming_soon" => "Miongozo inakuja hivi karibuni.",
+    "guides.search" => "Tafuta miongozo...",
+    "guides.no_results" => "Hakuna miongozo iliyopatikana inayolingana na utafutaji wako.",
+    "guides.tip_label" => "Kidokezo:",
+    "guides.tip_text" => "Bofya kitufe cha \"Zaidi\" kupanua na kuona maelezo kamili. Bofya \"Punguza\" kurudi muhtasari.",
+    "guides.before_you_begin" => "Kabla ya kuanza...",
+    "guides.complete_these_first" => "Hakikisha umekamilisha miongozo hii kwanza:",
+    "guides.continue_to_guide" => "Endelea na Mwongozo",
+
+    // Common Errors page
+    "errors.title" => "Makosa ya Kawaida",
+    "errors.subtitle" => "Mwongozo wa kutatua matatizo ya kawaida.",
+    "errors.coming_soon" => "Nyaraka za makosa zinakuja hivi karibuni.",
+    "errors.search" => "Tafuta makosa...",
+    "errors.no_results" => "Hakuna makosa yaliyopatikana yanayolingana na utafutaji wako.",
+
     // FAQ page
     "faq.title" => "Maswali Yanayoulizwa Mara Kwa Mara",
     "faq.subtitle" => "Pata majibu ya maswali ya kawaida kuhusu UNO.",
@@ -186,9 +197,12 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "common.submit" => "Wasilisha",
     "common.cancel" => "Ghairi",
     "common.close" => "Funga",
+    "common.claim" => "Dai",
     "common.yes" => "Ndiyo",
     "common.no" => "Hapana",
     "common.per_month" => "/mwezi",
+    "common.more" => "Zaidi",
+    "common.less" => "Punguza",
 
     // Claim page
     "claim.title" => "Leseni Imedaiwa!",
@@ -242,6 +256,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "errors.server_title" => "Hitilafu ya Seva",
     "errors.server_message" => "Kitu kimekwenda vibaya upande wetu. Tafadhali jaribu tena baadaye.",
     "errors.error_code_prefix" => "Msimbo wa Hitilafu:",
+    "errors.page_not_found" => "Ukurasa unaoutafuta haupo.",
 
     // Locale popup
     "locale.popup_title" => "Chagua Lugha Yako",
@@ -251,10 +266,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "locale.remember_choice" => "Kumbuka chaguo langu",
 
     // Footer
-    "footer.copyright" => "UNO Network. Haki zote zimehifadhiwa.",
+    "footer.tagline" => "Mapato ya passive kutoka simu yako",
+    "footer.quick_links" => "Viungo vya Haraka",
+    "footer.how_it_works" => "Inavyofanya Kazi",
+    "footer.earnings" => "Mapato",
+    "footer.faq" => "Maswali",
+    "footer.community" => "Jumuiya",
+    "footer.support" => "Msaada",
+    "footer.contact" => "Wasiliana Nasi",
     "footer.privacy" => "Sera ya Faragha",
     "footer.terms" => "Masharti ya Huduma",
-    "footer.contact" => "Wasiliana Nasi",
+    "footer.copyright" => "UNO Network. Haki zote zimehifadhiwa.",
 
     // Help accordion
     "help.title" => "Unahitaji Msaada?",
@@ -280,6 +302,11 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
 
     // Error display
     "errors.try_again" => "Jaribu Tena",
+
+    // Wizard - Common
+    "wizard.common.back" => "Nyuma",
+    "wizard.common.next" => "Ifuatayo",
+    "wizard.common.close" => "Funga",
 
     // Wizard - Welcome Stage
     "wizard.welcome.title" => "Dai Leseni Yako ya Bure",
@@ -314,7 +341,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.compare.note" => "Mapato halisi yanategemea muda wa kifaa kuwa mtandaoni na upatikanaji wa kazi.",
 
     // Wizard - Review Stage
-    "wizard.review.title" => "Kagua",
+    "wizard.review.title" => "Maelezo ya Leseni",
     "wizard.review.selected_variant" => "Mgawanyo Uliochaguliwa",
     "wizard.review.split_breakdown" => "Maelezo ya Mgawanyo",
     "wizard.review.you_receive" => "Utapokea",
@@ -323,32 +350,109 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.review.terms_checkbox" => "Ninakubali",
     "wizard.review.terms_link" => "Masharti ya Huduma",
     "wizard.review.claim_btn" => "Dai Leseni",
+    "wizard.review.claim_now" => "Dai Sasa",
     "wizard.review.claiming" => "Inadai...",
     "wizard.review.back_btn" => "Nyuma",
     "wizard.review.no_variant" => "Tafadhali chagua aina ya leseni.",
+    "wizard.review.above_average" => "juu ya wastani",
+    "wizard.review.lease_validity" => "Uhalali wa Kukodisha",
+    "wizard.review.rewards_range" => "Makadirio ya Zawadi",
+    "wizard.review.uptime_conditions_title" => "Masharti ya Zawadi za Kuwa Mtandaoni",
+    "wizard.review.condition_1" => "Kaa umeunganishwa na intaneti kuhakikisha zawadi za juu",
+    "wizard.review.condition_2" => "Weka programu ikiendesha nyuma kwa matokeo bora",
+    "wizard.review.what_you_get_title" => "Unachopata",
+    "wizard.review.benefit_free_license" => "Leseni ya bure kuanza kupata mara moja",
+    "wizard.review.benefit_support" => "Msaada wa masaa 24 ndani ya programu, kupitia email na whatsapp",
+    "wizard.review.benefit_zero_fees" => "Hakuna ada za uendeshaji au malipo",
+    "wizard.review.referral_checkbox" => "Nina msimbo wa rufaa (si lazima)",
+    "wizard.review.referral_placeholder" => "Ingiza msimbo wa rufaa",
+    "wizard.review.referral_valid" => "Msimbo wa rufaa ni halali",
+    "wizard.review.referral_invalid" => "Msimbo wa rufaa si halali au haujakuwa hai",
+    "wizard.review.referral_checking" => "Inaangalia...",
 
-    // Wizard - Success Stage
-    "wizard.success.title" => "Leseni Imedaiwa!",
-    "wizard.success.subtitle" => "Leseni yako iko tayari. Hifadhi ufunguo wako na pakua programu kuanza kupata.",
+    // Wizard - Success Stage (common)
     "wizard.success.license_key" => "Ufunguo Wako wa Leseni",
     "wizard.success.key_warning" => "Hifadhi ufunguo huu! Huwezi kuupata tena baadaye.",
-    "wizard.success.next_steps.title" => "Hatua Zifuatazo",
-    "wizard.success.next_steps.step1" => "Pakua programu ya UNO kwenye kifaa chako",
-    "wizard.success.next_steps.step2" => "Ingiza ufunguo wako wa leseni kuamilisha",
-    "wizard.success.next_steps.step3" => "Weka programu ikiendesha kupata",
     "wizard.success.install_guide_btn" => "Mwongozo wa Usakinishaji",
     "wizard.success.hide_install_btn" => "Ficha Mwongozo",
     "wizard.success.claim_another_btn" => "Dai Nyingine",
     "wizard.success.done_btn" => "Imekamilika",
 
+    // Wizard - Claim Stage
+    "wizard.claim.title" => "Leseni Imedaiwa!",
+    "wizard.claim.subtitle" => "Leseni yako iko tayari. Hifadhi ufunguo wako sasa - huwezi kuupata tena baadaye.",
+    "wizard.claim.copy_title" => "Nakili Ufunguo Wako wa Leseni",
+    "wizard.claim.copy_subtitle" => "Bofya kitufe cha kunakili ili uhifadhi ufunguo wako. Utauhitaji kuamilisha leseni yako.",
+    "wizard.claim.success_title" => "Leseni Imedaiwa kwa Mafanikio!",
+    "wizard.claim.success_subtitle" => "Leseni yako imeamilishwa. Hifadhi ufunguo wako kwa usalama - huwezi kuupata tena baadaye.",
+    "wizard.claim.processing" => "Inachakata...",
+    "wizard.claim.please_wait" => "Tafadhali subiri tunapochakata dai lako.",
+    "wizard.claim.key_copied" => "Ufunguo umenakiliwa kwenye clipboard!",
+    "wizard.claim.continue" => "Endelea",
+
+    // Wizard - Download Stage
+    "wizard.download.title" => "Pakua na Sakinisha",
+    "wizard.download.subtitle" => "Pata programu ya UNO kwenye kifaa chako kuanza kupata.",
+
+    // Wizard - Sign Up Stage
+    "wizard.signup.title" => "Unda Akaunti Yako",
+    "wizard.signup.subtitle" => "Jisajili kwenye programu kuamilisha leseni yako.",
+    "wizard.signup.step1_title" => "1. Fungua Programu",
+    "wizard.signup.step1" => "Fungua programu ya UNO uliyosakinisha",
+    "wizard.signup.step2_title" => "2. Unda Akaunti",
+    "wizard.signup.step2" => "Gusa 'Unda Akaunti' na uweke maelezo yako",
+    "wizard.signup.step3_title" => "3. Ingiza Leseni",
+    "wizard.signup.step3" => "Ingiza ufunguo wako wa leseni unapoombwa",
+
+    // Wizard - Activate Stage
+    "wizard.activate.title" => "Anza Kupata",
+    "wizard.activate.subtitle" => "Amilisha kazi kuanza kupata mapato ya passive.",
+    "wizard.activate.step1_title" => "1. Ruhusa",
+    "wizard.activate.step1" => "Toa ruhusa zinazohitajika kwenye programu",
+    "wizard.activate.step2_title" => "2. Nyuma",
+    "wizard.activate.step2" => "Wezesha kuendesha nyuma kwa mapato ya juu",
+    "wizard.activate.step3_title" => "3. Pata",
+    "wizard.activate.step3" => "Weka programu ikiendesha na utazame mapato yako yakikua!",
+
+    // Wizard - What Next Stage
+    "wizard.what_next.title" => "Nini Kinafuata?",
+    "wizard.what_next.subtitle" => "Anza na rasilimali hizi kuongeza mapato yako.",
+    "wizard.what_next.warning_title" => "Muhimu: Unganisha ndani ya masaa 24",
+    "wizard.what_next.warning_text" => "Leseni yako lazima iunganishwe na simu ndani ya masaa 24 au inaweza kubatilishwa.",
+    "wizard.what_next.download_title" => "Pakua Programu",
+    "wizard.what_next.guides_title" => "Miongozo ya Jinsi ya",
+    "wizard.what_next.guide_setup" => "Mwongozo wa Usanidi wa Programu",
+    "wizard.what_next.guide_setup_desc" => "Usakinishaji na usanidi hatua kwa hatua",
+    "wizard.what_next.guide_activation" => "Uamilishaji wa Leseni",
+    "wizard.what_next.guide_activation_desc" => "Jinsi ya kuamilisha leseni yako",
+    "wizard.what_next.guide_withdraw" => "Toa Mapato",
+    "wizard.what_next.guide_withdraw_desc" => "Jinsi ya kutoa zawadi zako",
+    "wizard.what_next.tasks_title" => "Kazi Zinazopatikana",
+    "wizard.what_next.task_telemetry" => "Telemetry",
+    "wizard.what_next.task_caller_id" => "Caller ID",
+    "wizard.what_next.task_sms" => "Upimaji wa SMS",
+    "wizard.what_next.task_connectivity" => "Muunganisho",
+    "wizard.what_next.task_entropy" => "Entropy",
+    "wizard.what_next.view_all_tasks" => "Tazama Kazi Zote",
+    "wizard.what_next.done" => "Imekamilika",
+
     // Wizard - Progress Bar
-    "wizard.progress.welcome" => "Karibu",
-    "wizard.progress.select" => "Chagua",
     "wizard.progress.review" => "Kagua",
-    "wizard.progress.success" => "Imekamilika",
+    "wizard.progress.claim" => "Dai",
+    "wizard.progress.what_next" => "Nini Kinafuata",
     "wizard.progress.step" => "Hatua",
 
-    // Task Families
+    // Wizard Availability States
+    "wizard.availability.sold_out_title" => "Leseni Zote Zimedaiwa!",
+    "wizard.availability.sold_out_message" => "Usijali - leseni mpya zinatolewa mara kwa mara. Rudi hivi karibuni!",
+    "wizard.availability.notify_available" => "Nijulishe Zinapopatikana",
+    "wizard.availability.coming_soon_title" => "Inakuja Hivi Karibuni",
+    "wizard.availability.coming_soon_message" => "Kudai leseni kutapatikana hivi karibuni. Rudi hivi karibuni!",
+    "wizard.availability.notify_live" => "Nijulishe Inapoanza",
+    "wizard.availability.learn_more" => "Jifunze Kuhusu Leseni",
+    "wizard.availability.licenses_claimed" => "leseni zimedaiwa hadi sasa",
+
+    // Task Families (for wizard accordion)
     "tasks.families.title" => "Familia za Kazi",
     "tasks.families.subtitle" => "Jifunze kuhusu njia mbalimbali za kupata.",
     "tasks.connection.name" => "Muunganisho",
@@ -385,4 +489,85 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "install.tips.tip1" => "Weka WiFi imeunganishwa ikiwezekana",
     "install.tips.tip2" => "Zima optimization ya betri kwa programu",
     "install.tips.tip3" => "Endesha programu 24/7 kwa mapato ya juu",
+
+    // Referrals page
+    "referrals.page_title" => "Kuwa Wakala wa Rufaa",
+    "referrals.page_subtitle" => "Jiunge na programu yetu ya rufaa na upate kamisheni kwa kila leseni inayodaiwa na msimbo wako.",
+    "referrals.benefits_title" => "Kwa Nini Uwe Wakala wa Rufaa?",
+    "referrals.benefit_1" => "Pata kamisheni zinazoendelea kutoka kwa watumiaji uliowaelekeza",
+    "referrals.benefit_2" => "Pata msimbo wako wa kipekee wa rufaa",
+    "referrals.benefit_3" => "Fuatilia mapato yako kwenye dashibodi ya wakala",
+    "referrals.form_title" => "Omba Sasa",
+    "referrals.label_username" => "Jina Lako",
+    "referrals.placeholder_username" => "Ingiza jina lako kamili",
+    "referrals.label_email" => "Anwani ya Email",
+    "referrals.placeholder_email" => "Ingiza email yako",
+    "referrals.label_country" => "Nchi",
+    "referrals.placeholder_country" => "Chagua nchi yako",
+    "referrals.label_referral_code" => "Chagua Msimbo Wako wa Rufaa",
+    "referrals.placeholder_referral_code" => "mfano, JOHN2024",
+    "referrals.hint_referral_code" => "Herufi 3-20, herufi na nambari pekee. Huu utakuwa msimbo wako wa kipekee.",
+    "referrals.submit" => "Wasilisha Maombi",
+    "referrals.submitting" => "Inawasilisha...",
+
+    // Economics - Revenue Split Transparency
+    "economics.split_title" => "Jinsi Mapato Yanavyogawanywa",
+    "economics.split_description" => "Uwazi kamili kuhusu jinsi mapato yanavyosambazwa. Hakuna ada zilizofichwa.",
+    "economics.you" => "Wewe",
+    "economics.platform" => "Jukwaa",
+    "economics.referrer" => "Mrejeaji",
+    "economics.transparency_note" => "Ikiwa huna mrejeaji, sehemu yao ya 10% inakwenda kwenye mfuko wa uendeshaji wa jukwaa.",
+
+    // Economics - Earnings Dashboard
+    "economics.earnings_title" => "Mapato Yako",
+    "economics.earnings_subtitle" => "Uwazi kamili kuhusu jinsi mapato yako yanavyohesabiwa na kusambazwa.",
+    "economics.your_earnings" => "Mapato Yako",
+    "economics.fifty_percent_share" => "Sehemu yako ya 50% kutoka kwenye mkusanyiko wa mapato",
+    "economics.how_split" => "Jinsi inavyogawanywa",
+    "economics.pending" => "Inasubiri",
+    "economics.paid" => "Imelipwa",
+    "economics.transparency_notice" => "Mapato yote yanahesabiwa kwa kutumia fomula sawa ya uwazi. Hakuna makato yaliyofichwa.",
+
+    // Economics - Referral Attribution
+    "economics.referral_attribution" => "Uhusishaji wa Rufaa",
+    "economics.code" => "Msimbo",
+    "economics.no_referrer_message" => "Hakuna mrejeaji aliyeunganishwa. Sehemu ya rufaa (10%) inakwenda kwenye mfuko wa uendeshaji wa jukwaa.",
+    "economics.referrer_share" => "Sehemu ya Mrejeaji",
+    "economics.earned_for_referrer" => "Iliyopatikana kwa Mrejeaji",
+    "economics.attribution_immutable" => "Uhusishaji ni wa kudumu na hauwezi kubadilishwa baada ya uthibitisho.",
+
+    // Economics - Wizard Review
+    "economics.review_title" => "Kagua Uchumi",
+    "economics.review_subtitle" => "Elewa jinsi mapato yanavyofanya kazi kabla ya kudai leseni yako.",
+    "economics.important_disclosures" => "Ufichuzi Muhimu",
+    "economics.disclosure_1" => "Mapato yanategemea mahitaji ya mtandao na muda wa kifaa chako kuwa mtandaoni",
+    "economics.disclosure_2" => "Mgawanyo wa 50/40/10 ni wa kudumu na unatumika kwa mapato yote",
+    "economics.disclosure_3" => "Uhusishaji wa rufaa ni wa kudumu baada ya kuthibitishwa",
+    "economics.who_should_not_join" => "Ambao Hawapaswi Kujiunga",
+    "economics.not_for_1" => "Wale wanaotarajia mapato ya uhakika ya kudumu",
+    "economics.not_for_2" => "Wale wasioweza kudumisha muda wa kifaa kuwa mtandaoni kwa utulivu",
+    "economics.not_for_3" => "Wale wasiostarehe na kushiriki data kwa telemetry",
+    "economics.i_understand" => "Ninaelewa na nataka kuendelea",
+
+    // Wizard - Economics Review Stage
+    "wizard.economics.title" => "Elewa Uchumi",
+    "wizard.economics.subtitle" => "Kabla ya kudai leseni, elewa jinsi mapato yanavyogawanywa.",
+    "wizard.economics.split_title" => "Mgawanyo wa 50/40/10",
+    "wizard.economics.you_title" => "Wewe",
+    "wizard.economics.you_desc" => "Sehemu yako ya mapato yote kutoka kwa kazi zilizokamilishwa kwenye kifaa chako.",
+    "wizard.economics.platform_title" => "Jukwaa",
+    "wizard.economics.platform_desc" => "Inashughulikia gharama za miundombinu, maendeleo, na msaada.",
+    "wizard.economics.referrer_title" => "Mrejeaji",
+    "wizard.economics.referrer_desc" => "Inakwenda kwa aliyekuelekeza, au kwa jukwaa ikiwa hakuna mrejeaji.",
+    "wizard.economics.important_title" => "Ufichuzi Muhimu",
+    "wizard.economics.disclosure_small_rewards" => "Zawadi za kazi moja ni ndogo ($0.001 - $0.05). Mapato yanajikusanya kwa muda.",
+    "wizard.economics.disclosure_credit_cost" => "UNO inaendeshwa karibu bila faida. Tunafadhili mikopo yako kutoka sehemu yetu.",
+    "wizard.economics.disclosure_device_requirement" => "Unahitaji kifaa kilichounganishwa na intaneti na programu ikiendesha.",
+    "wizard.economics.disclosure_uptime" => "Muda zaidi wa kuwa mtandaoni inamaanisha fursa zaidi za kazi na mapato ya juu.",
+    "wizard.economics.who_should_not_title" => "Ambao Hawapaswi Kujiunga",
+    "wizard.economics.not_for_quick_money" => "Wale wanaotafuta pesa za haraka au zilizo na uhakika",
+    "wizard.economics.not_for_unstable_internet" => "Wale wenye muunganisho wa intaneti usio thabiti au mdogo",
+    "wizard.economics.not_for_shared_devices" => "Wale wanaotumia vifaa vya pamoja au vya umma",
+    "wizard.economics.understand_proceed" => "Ninaelewa - Tuendelee",
+    "wizard.economics.example_pool" => "Mfano wa Mkusanyiko wa Mwezi",
 };

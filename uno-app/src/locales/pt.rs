@@ -13,16 +13,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "nav.common_errors" => "Erros Comuns",
     "nav.contact" => "Contato",
     "nav.referrals" => "Indicacoes",
-
-    // Guides page
-    "guides.title" => "Guias",
-    "guides.subtitle" => "Aprenda como maximizar seus ganhos com guias passo a passo.",
-    "guides.coming_soon" => "Os guias estarao disponiveis em breve.",
-
-    // Common Errors page
-    "errors.title" => "Erros Comuns",
-    "errors.subtitle" => "Guia de solucao de problemas comuns.",
-    "errors.coming_soon" => "A documentacao de erros estara disponivel em breve.",
+    "nav.start_earning" => "Comecar a Ganhar",
 
     // Hero section
     "hero.title" => "Ganhe Renda Passiva com UNO",
@@ -118,6 +109,25 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "tasks.device_phone_mobile" => "Telefone (Movel)",
     "tasks.device_phone_mobile_desc" => "Suporte completo de tarefas",
 
+    // Guides page
+    "guides.title" => "Guias",
+    "guides.subtitle" => "Aprenda como maximizar seus ganhos com guias passo a passo.",
+    "guides.coming_soon" => "Os guias estarao disponiveis em breve.",
+    "guides.search" => "Buscar guias...",
+    "guides.no_results" => "Nenhum guia encontrado para sua busca.",
+    "guides.tip_label" => "Dica:",
+    "guides.tip_text" => "Clique no botao \"Mais\" para expandir e ver os detalhes completos. Clique em \"Menos\" para voltar a visualizacao resumida.",
+    "guides.before_you_begin" => "Antes de comecar...",
+    "guides.complete_these_first" => "Certifique-se de ter concluido estes guias primeiro:",
+    "guides.continue_to_guide" => "Continuar para o Guia",
+
+    // Common Errors page
+    "errors.title" => "Erros Comuns",
+    "errors.subtitle" => "Guia de solucao de problemas comuns.",
+    "errors.coming_soon" => "A documentacao de erros estara disponivel em breve.",
+    "errors.search" => "Buscar erros...",
+    "errors.no_results" => "Nenhum erro encontrado para sua busca.",
+
     // FAQ page
     "faq.title" => "Perguntas Frequentes",
     "faq.subtitle" => "Encontre respostas para perguntas comuns sobre UNO.",
@@ -187,9 +197,12 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "common.submit" => "Enviar",
     "common.cancel" => "Cancelar",
     "common.close" => "Fechar",
+    "common.claim" => "Reivindicar",
     "common.yes" => "Sim",
     "common.no" => "Nao",
     "common.per_month" => "/mes",
+    "common.more" => "Mais",
+    "common.less" => "Menos",
 
     // Claim page
     "claim.title" => "Licenca Reivindicada!",
@@ -243,6 +256,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "errors.server_title" => "Erro do Servidor",
     "errors.server_message" => "Algo deu errado do nosso lado. Tente novamente mais tarde.",
     "errors.error_code_prefix" => "Codigo de Erro:",
+    "errors.page_not_found" => "A pagina que voce procura nao existe.",
 
     // Locale popup
     "locale.popup_title" => "Escolha Seu Idioma",
@@ -252,10 +266,17 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "locale.remember_choice" => "Lembrar minha escolha",
 
     // Footer
-    "footer.copyright" => "UNO Network. Todos os direitos reservados.",
+    "footer.tagline" => "Renda passiva do seu celular",
+    "footer.quick_links" => "Links Rapidos",
+    "footer.how_it_works" => "Como Funciona",
+    "footer.earnings" => "Ganhos",
+    "footer.faq" => "FAQ",
+    "footer.community" => "Comunidade",
+    "footer.support" => "Suporte",
+    "footer.contact" => "Fale Conosco",
     "footer.privacy" => "Politica de Privacidade",
     "footer.terms" => "Termos de Servico",
-    "footer.contact" => "Fale Conosco",
+    "footer.copyright" => "UNO Network. Todos os direitos reservados.",
 
     // Help accordion
     "help.title" => "Precisa de Ajuda?",
@@ -281,6 +302,11 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
 
     // Error display
     "errors.try_again" => "Tentar Novamente",
+
+    // Wizard - Common
+    "wizard.common.back" => "Voltar",
+    "wizard.common.next" => "Proximo",
+    "wizard.common.close" => "Fechar",
 
     // Wizard - Welcome Stage
     "wizard.welcome.title" => "Reivindique Sua Licenca Gratis",
@@ -315,7 +341,7 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.compare.note" => "Os ganhos reais dependem do tempo online do dispositivo e da disponibilidade de tarefas.",
 
     // Wizard - Review Stage
-    "wizard.review.title" => "Revisar",
+    "wizard.review.title" => "Detalhes da Licenca",
     "wizard.review.selected_variant" => "Divisao Selecionada",
     "wizard.review.split_breakdown" => "Detalhes da Divisao",
     "wizard.review.you_receive" => "Voce recebe",
@@ -324,37 +350,109 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "wizard.review.terms_checkbox" => "Eu concordo com os",
     "wizard.review.terms_link" => "Termos de Servico",
     "wizard.review.claim_btn" => "Reivindicar Licenca",
+    "wizard.review.claim_now" => "Reivindicar Agora",
     "wizard.review.claiming" => "Reivindicando...",
     "wizard.review.back_btn" => "Voltar",
     "wizard.review.no_variant" => "Por favor selecione uma variante de licenca.",
+    "wizard.review.above_average" => "acima da media",
+    "wizard.review.lease_validity" => "Validade do Contrato",
+    "wizard.review.rewards_range" => "Recompensas Est.",
+    "wizard.review.uptime_conditions_title" => "Condicoes de Recompensa por Tempo Online",
+    "wizard.review.condition_1" => "Mantenha-se conectado a internet para garantir recompensas maximas",
+    "wizard.review.condition_2" => "Mantenha o app rodando em segundo plano para melhores resultados",
+    "wizard.review.what_you_get_title" => "O que voce recebe",
+    "wizard.review.benefit_free_license" => "Licenca gratuita para comecar a ganhar imediatamente",
+    "wizard.review.benefit_support" => "Suporte 24 horas no app, via email e whatsapp",
+    "wizard.review.benefit_zero_fees" => "Zero taxas de operacao ou cobrancas",
     "wizard.review.referral_checkbox" => "Tenho um codigo de referencia (opcional)",
     "wizard.review.referral_placeholder" => "Digite o codigo de referencia",
     "wizard.review.referral_valid" => "Codigo de referencia valido",
     "wizard.review.referral_invalid" => "Codigo de referencia invalido ou inativo",
     "wizard.review.referral_checking" => "Verificando...",
 
-    // Wizard - Success Stage
-    "wizard.success.title" => "Licenca Reivindicada!",
-    "wizard.success.subtitle" => "Sua licenca esta pronta. Salve sua chave e baixe o app para comecar a ganhar.",
+    // Wizard - Success Stage (common)
     "wizard.success.license_key" => "Sua Chave de Licenca",
     "wizard.success.key_warning" => "Salve esta chave! Voce nao pode recupera-la depois.",
-    "wizard.success.next_steps.title" => "Proximos Passos",
-    "wizard.success.next_steps.step1" => "Baixe o app UNO no seu dispositivo",
-    "wizard.success.next_steps.step2" => "Insira sua chave de licenca para ativar",
-    "wizard.success.next_steps.step3" => "Mantenha o app rodando para ganhar",
     "wizard.success.install_guide_btn" => "Guia de Instalacao",
     "wizard.success.hide_install_btn" => "Ocultar Guia",
     "wizard.success.claim_another_btn" => "Reivindicar Outra",
     "wizard.success.done_btn" => "Concluido",
 
+    // Wizard - Claim Stage
+    "wizard.claim.title" => "Licenca Reivindicada!",
+    "wizard.claim.subtitle" => "Sua licenca esta pronta. Salve sua chave agora - voce nao pode recupera-la depois.",
+    "wizard.claim.copy_title" => "Copie Sua Chave de Licenca",
+    "wizard.claim.copy_subtitle" => "Clique no botao copiar para salvar sua chave. Voce precisara dela para ativar sua licenca.",
+    "wizard.claim.success_title" => "Licenca Reivindicada com Sucesso!",
+    "wizard.claim.success_subtitle" => "Sua licenca foi ativada. Salve sua chave com seguranca - voce nao pode recupera-la depois.",
+    "wizard.claim.processing" => "Processando...",
+    "wizard.claim.please_wait" => "Por favor aguarde enquanto processamos sua reivindicacao.",
+    "wizard.claim.key_copied" => "Chave copiada para a area de transferencia!",
+    "wizard.claim.continue" => "Continuar",
+
+    // Wizard - Download Stage
+    "wizard.download.title" => "Baixar e Instalar",
+    "wizard.download.subtitle" => "Obtenha o app UNO no seu dispositivo para comecar a ganhar.",
+
+    // Wizard - Sign Up Stage
+    "wizard.signup.title" => "Crie Sua Conta",
+    "wizard.signup.subtitle" => "Cadastre-se no app para ativar sua licenca.",
+    "wizard.signup.step1_title" => "1. Abrir App",
+    "wizard.signup.step1" => "Abra o app UNO que voce acabou de instalar",
+    "wizard.signup.step2_title" => "2. Criar Conta",
+    "wizard.signup.step2" => "Toque em 'Criar Conta' e insira seus dados",
+    "wizard.signup.step3_title" => "3. Inserir Licenca",
+    "wizard.signup.step3" => "Insira sua chave de licenca quando solicitado",
+
+    // Wizard - Activate Stage
+    "wizard.activate.title" => "Comecar a Ganhar",
+    "wizard.activate.subtitle" => "Ative as tarefas para comecar a ganhar renda passiva.",
+    "wizard.activate.step1_title" => "1. Permissoes",
+    "wizard.activate.step1" => "Conceda as permissoes necessarias no app",
+    "wizard.activate.step2_title" => "2. Segundo Plano",
+    "wizard.activate.step2" => "Habilite a execucao em segundo plano para ganhos maximos",
+    "wizard.activate.step3_title" => "3. Ganhar",
+    "wizard.activate.step3" => "Mantenha o app rodando e veja seus ganhos crescerem!",
+
+    // Wizard - What Next Stage
+    "wizard.what_next.title" => "E Agora?",
+    "wizard.what_next.subtitle" => "Comece com estes recursos para maximizar seus ganhos.",
+    "wizard.what_next.warning_title" => "Importante: Vincule em 24 horas",
+    "wizard.what_next.warning_text" => "Sua licenca deve ser vinculada a um telefone em 24 horas ou pode ser revogada.",
+    "wizard.what_next.download_title" => "Baixar o App",
+    "wizard.what_next.guides_title" => "Guias de Como Fazer",
+    "wizard.what_next.guide_setup" => "Guia de Configuracao do App",
+    "wizard.what_next.guide_setup_desc" => "Instalacao e configuracao passo a passo",
+    "wizard.what_next.guide_activation" => "Ativacao de Licenca",
+    "wizard.what_next.guide_activation_desc" => "Como ativar sua licenca",
+    "wizard.what_next.guide_withdraw" => "Sacar Ganhos",
+    "wizard.what_next.guide_withdraw_desc" => "Como retirar suas recompensas",
+    "wizard.what_next.tasks_title" => "Tarefas Disponiveis",
+    "wizard.what_next.task_telemetry" => "Telemetria",
+    "wizard.what_next.task_caller_id" => "ID de Chamada",
+    "wizard.what_next.task_sms" => "Teste SMS",
+    "wizard.what_next.task_connectivity" => "Conectividade",
+    "wizard.what_next.task_entropy" => "Entropia",
+    "wizard.what_next.view_all_tasks" => "Ver Todas as Tarefas",
+    "wizard.what_next.done" => "Concluido",
+
     // Wizard - Progress Bar
-    "wizard.progress.welcome" => "Bem-vindo",
-    "wizard.progress.select" => "Selecionar",
     "wizard.progress.review" => "Revisar",
-    "wizard.progress.success" => "Sucesso",
+    "wizard.progress.claim" => "Reivindicar",
+    "wizard.progress.what_next" => "E Agora",
     "wizard.progress.step" => "Passo",
 
-    // Task Families
+    // Wizard Availability States
+    "wizard.availability.sold_out_title" => "Todas as Licencas Reivindicadas!",
+    "wizard.availability.sold_out_message" => "Nao se preocupe - novas licencas sao liberadas regularmente. Volte em breve!",
+    "wizard.availability.notify_available" => "Avise-me Quando Disponivel",
+    "wizard.availability.coming_soon_title" => "Em Breve",
+    "wizard.availability.coming_soon_message" => "A reivindicacao de licencas estara disponivel em breve. Volte em breve!",
+    "wizard.availability.notify_live" => "Avise-me Quando Ativo",
+    "wizard.availability.learn_more" => "Saiba Mais Sobre Licencas",
+    "wizard.availability.licenses_claimed" => "licencas reivindicadas ate agora",
+
+    // Task Families (for wizard accordion)
     "tasks.families.title" => "Familias de Tarefas",
     "tasks.families.subtitle" => "Aprenda sobre as diferentes formas de ganhar.",
     "tasks.connection.name" => "Conexao",
@@ -411,4 +509,65 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "referrals.hint_referral_code" => "3-20 caracteres, apenas letras e numeros. Este sera seu codigo unico.",
     "referrals.submit" => "Enviar Inscricao",
     "referrals.submitting" => "Enviando...",
+
+    // Economics - Revenue Split Transparency
+    "economics.split_title" => "Como os Ganhos Sao Divididos",
+    "economics.split_description" => "Transparencia total em como a receita e distribuida. Sem taxas ocultas.",
+    "economics.you" => "Voce",
+    "economics.platform" => "Plataforma",
+    "economics.referrer" => "Indicador",
+    "economics.transparency_note" => "Se voce nao tem indicador, os 10% dele vao para o fundo de operacoes da plataforma.",
+
+    // Economics - Earnings Dashboard
+    "economics.earnings_title" => "Seus Ganhos",
+    "economics.earnings_subtitle" => "Transparencia total em como seus ganhos sao calculados e distribuidos.",
+    "economics.your_earnings" => "Seus Ganhos",
+    "economics.fifty_percent_share" => "Sua parte de 50% do pool de ganhos",
+    "economics.how_split" => "Como e dividido",
+    "economics.pending" => "Pendente",
+    "economics.paid" => "Pago",
+    "economics.transparency_notice" => "Todos os ganhos sao calculados usando a mesma formula transparente. Sem deducoes ocultas.",
+
+    // Economics - Referral Attribution
+    "economics.referral_attribution" => "Atribuicao de Indicacao",
+    "economics.code" => "Codigo",
+    "economics.no_referrer_message" => "Nenhum indicador vinculado. A parte do indicador (10%) vai para o fundo de operacoes da plataforma.",
+    "economics.referrer_share" => "Parte do Indicador",
+    "economics.earned_for_referrer" => "Ganho para o Indicador",
+    "economics.attribution_immutable" => "A atribuicao e permanente e nao pode ser alterada apos confirmacao.",
+
+    // Economics - Wizard Review
+    "economics.review_title" => "Revise a Economia",
+    "economics.review_subtitle" => "Entenda como os ganhos funcionam antes de reivindicar sua licenca.",
+    "economics.important_disclosures" => "Divulgacoes Importantes",
+    "economics.disclosure_1" => "Os ganhos dependem da demanda da rede e do tempo online do seu dispositivo",
+    "economics.disclosure_2" => "A divisao 50/40/10 e fixa e se aplica a todos os ganhos",
+    "economics.disclosure_3" => "A atribuicao de indicacao e permanente apos confirmacao",
+    "economics.who_should_not_join" => "Quem NAO Deve Participar",
+    "economics.not_for_1" => "Quem espera renda fixa garantida",
+    "economics.not_for_2" => "Quem nao consegue manter tempo online consistente do dispositivo",
+    "economics.not_for_3" => "Quem nao se sente confortavel com compartilhamento de dados para telemetria",
+    "economics.i_understand" => "Eu entendo e quero prosseguir",
+
+    // Wizard - Economics Review Stage
+    "wizard.economics.title" => "Entenda a Economia",
+    "wizard.economics.subtitle" => "Antes de reivindicar uma licenca, entenda como os ganhos sao divididos.",
+    "wizard.economics.split_title" => "A Divisao 50/40/10",
+    "wizard.economics.you_title" => "Voce",
+    "wizard.economics.you_desc" => "Sua parte de todos os ganhos das tarefas completadas no seu dispositivo.",
+    "wizard.economics.platform_title" => "Plataforma",
+    "wizard.economics.platform_desc" => "Cobre custos de infraestrutura, desenvolvimento e suporte.",
+    "wizard.economics.referrer_title" => "Indicador",
+    "wizard.economics.referrer_desc" => "Vai para quem indicou voce, ou para a plataforma se nao houver indicador.",
+    "wizard.economics.important_title" => "Divulgacoes Importantes",
+    "wizard.economics.disclosure_small_rewards" => "Recompensas individuais por tarefa sao pequenas ($0,001 - $0,05). Os ganhos acumulam ao longo do tempo.",
+    "wizard.economics.disclosure_credit_cost" => "UNO opera quase no ponto de equilibrio. Financiamos seus creditos com nossa parte.",
+    "wizard.economics.disclosure_device_requirement" => "Voce precisa de um dispositivo conectado a internet com o app rodando.",
+    "wizard.economics.disclosure_uptime" => "Maior tempo online significa mais oportunidades de tarefas e maiores ganhos.",
+    "wizard.economics.who_should_not_title" => "Quem NAO Deve Participar",
+    "wizard.economics.not_for_quick_money" => "Quem procura dinheiro rapido ou garantido",
+    "wizard.economics.not_for_unstable_internet" => "Quem tem conexao de internet instavel ou limitada",
+    "wizard.economics.not_for_shared_devices" => "Quem usa dispositivos compartilhados ou publicos",
+    "wizard.economics.understand_proceed" => "Eu Entendo - Vamos Continuar",
+    "wizard.economics.example_pool" => "Exemplo de Pool Mensal",
 };
