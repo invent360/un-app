@@ -102,36 +102,28 @@ pub trait ClaimRepository: Send + Sync {
         limit: i32,
     ) -> Result<Vec<ClaimedLicense>, AppError>;
 
-    /// Atomically reserve a license with session binding
+    /// Atomically reserve a license with session binding and capacity enforcement
+    ///
+    /// B3 FIX: This is now the ONLY reservation method. Anonymous reservations
+    /// are no longer supported - all reservations must have an authenticated user.
     ///
     /// This performs in a single transaction:
-    /// 1. SELECT first available license FOR UPDATE SKIP LOCKED
-    /// 2. INSERT into license_reservations with session token
-    /// 3. UPDATE licenses SET reserved_until, reservation_token
-    /// 4. Optionally validate referral code
+    /// 1. Check capacity ceiling (prevents over-allocation)
+    /// 2. SELECT first available license FOR UPDATE SKIP LOCKED
+    /// 3. INSERT into license_reservations with session token and user_id
+    /// 4. UPDATE licenses SET reserved_until, reservation_token
+    /// 5. Optionally validate referral code
+    ///
+    /// F2: user_id is stored to bind reservation to owner for confirmation.
+    /// R5-05: capacity_ceiling is enforced INSIDE the transaction to prevent TOCTOU.
     ///
     /// Returns reservation with session token for confirmation
     async fn atomic_reserve(
         &self,
-        split_type: Option<&str>,
-        referral_code: Option<&str>,
-    ) -> Result<ReservationResult, AppError>;
-
-    /// Atomically reserve a license with capacity ceiling enforcement
-    ///
-    /// R5-05: Same as atomic_reserve, but checks capacity ceiling INSIDE
-    /// the transaction to prevent TOCTOU race conditions.
-    ///
-    /// F2: Now requires user_id for owner binding. The user who reserves
-    /// must be the same user who confirms.
-    ///
-    /// This is the recommended method for production use.
-    async fn atomic_reserve_with_capacity(
-        &self,
         user_id: &str,
         split_type: Option<&str>,
         referral_code: Option<&str>,
-        capacity_ceiling: Option<i64>,
+        capacity_ceiling: i64,
     ) -> Result<ReservationResult, AppError>;
 
     /// Atomically confirm a reservation and claim the license
@@ -202,7 +194,7 @@ impl ClaimRepositoryImpl {
     }
 
     /// Internal method that performs the actual reservation attempt.
-    /// Called by atomic_reserve_with_capacity with retry logic.
+    /// Called by atomic_reserve with retry logic.
     async fn try_atomic_reserve(
         &self,
         user_id: &str,
@@ -520,16 +512,7 @@ impl ClaimRepository for ClaimRepositoryImpl {
         Ok(results)
     }
 
-    async fn atomic_reserve(
-        &self,
-        split_type: Option<&str>,
-        referral_code: Option<&str>,
-    ) -> Result<ReservationResult, AppError> {
-        // Delegate without user binding - DEPRECATED, use atomic_reserve_with_capacity
-        self.atomic_reserve_with_capacity("anonymous", split_type, referral_code, None).await
-    }
-
-    /// Atomically reserve a license with capacity ceiling check
+    /// B3 FIX: Unified atomic_reserve - no more anonymous path or optional capacity
     ///
     /// R5-05: The capacity check is now inside the transaction with proper locking.
     /// This prevents TOCTOU race conditions where two users could both pass a
@@ -537,17 +520,24 @@ impl ClaimRepository for ClaimRepositoryImpl {
     ///
     /// F2: Uses SERIALIZABLE isolation with retry logic for serialization failures.
     /// Stores user_id to bind reservation to owner for confirmation.
-    async fn atomic_reserve_with_capacity(
+    async fn atomic_reserve(
         &self,
         user_id: &str,
         split_type: Option<&str>,
         referral_code: Option<&str>,
-        capacity_ceiling: Option<i64>,
+        capacity_ceiling: i64,
     ) -> Result<ReservationResult, AppError> {
+        // B3 FIX: Reject anonymous users - all reservations must be authenticated
+        if user_id.is_empty() || user_id == "anonymous" {
+            return Err(AppError::Unauthorized(
+                "Authentication required for license reservation".into()
+            ));
+        }
+
         const MAX_SERIALIZATION_RETRIES: u32 = 3;
 
         for attempt in 0..MAX_SERIALIZATION_RETRIES {
-            match self.try_atomic_reserve(user_id, split_type, referral_code, capacity_ceiling).await {
+            match self.try_atomic_reserve(user_id, split_type, referral_code, Some(capacity_ceiling)).await {
                 Ok(result) => return Ok(result),
                 Err(e) => {
                     // Check if this is a serialization failure (PostgreSQL error code 40001)
@@ -630,9 +620,10 @@ impl ClaimRepository for ClaimRepositoryImpl {
 
         // F2: SECURITY - Verify owner_id matches the user who made the reservation
         // This prevents a different authenticated user from claiming someone else's reservation
+        // B3 FIX: Removed "anonymous" exception - all reservations now require authentication
         if let Some(ref res) = reservation {
             if let Some(ref stored_user_id) = res.user_id {
-                if stored_user_id != owner_id && stored_user_id != "anonymous" {
+                if stored_user_id != owner_id {
                     tracing::warn!(
                         license_id = %license_id,
                         stored_user = %stored_user_id,

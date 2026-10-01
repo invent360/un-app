@@ -265,10 +265,14 @@ pub struct AtomicReservationResponse {
 
 /// Atomically reserve a license with session binding (Phase 1 - New)
 ///
+/// B3 FIX: Now REQUIRES authentication. Anonymous reservations are no longer supported.
+///
 /// This is the secure version that:
+/// - Requires authenticated user (returns error if not authenticated)
 /// - Atomically locks a license within a transaction
 /// - Returns a session token required for confirmation
 /// - Validates referral code (but doesn't attribute yet)
+/// - Enforces capacity ceiling to prevent over-allocation
 /// - Expires after 2 minutes if not confirmed
 ///
 /// Use `atomic_confirm_claim` with the session_token to complete the claim.
@@ -278,13 +282,26 @@ pub async fn atomic_reserve_license(
     referral_code: Option<String>,
 ) -> Result<AtomicReservationResponse, ServerFnError> {
     use actix_web::web::Data;
+    use actix_web::HttpRequest;
     use leptos_actix::extract;
     use crate::server::app::ServiceFactory;
+    use crate::server::extractors::auth::get_authenticated_user;
+    use crate::server::services::MAX_OCCUPIED_LICENSES;
 
     let factory: Data<ServiceFactory> = extract().await?;
+    let req: HttpRequest = extract().await?;
 
-    // Use atomic reserve
-    let response = factory.license_service.atomic_reserve(split_type, referral_code)
+    // B3 FIX: Require authentication - no more anonymous reservations
+    let user = get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
+
+    // Use atomic reserve with authenticated user and capacity ceiling
+    let response = factory.license_service.atomic_reserve(
+        &user.id,
+        split_type,
+        referral_code,
+        MAX_OCCUPIED_LICENSES,
+    )
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -303,9 +320,12 @@ pub async fn atomic_reserve_license(
 
 /// Atomically confirm a reservation and claim the license (Phase 2 - New)
 ///
+/// B3 FIX: Now REQUIRES authentication. Anonymous confirmations are no longer supported.
+///
 /// This is the secure version that:
+/// - Requires authenticated user (returns error if not authenticated)
 /// - Requires the session token from reservation
-/// - F2: Verifies owner_id matches the user who made the reservation
+/// - Verifies owner_id matches the user who made the reservation
 /// - Verifies the reservation hasn't expired
 /// - Atomically sets claimed=true AND referral_id in one transaction
 /// - Referral attribution is immutable (once set, cannot be changed)
@@ -326,13 +346,9 @@ pub async fn atomic_confirm_claim(
     let factory: Data<ServiceFactory> = extract().await?;
     let req: HttpRequest = extract().await?;
 
-    // F2: Try to get authenticated user ID for owner verification
-    // During onboarding, users may not be fully authenticated yet - in that case
-    // we use "anonymous" and rely on session_token as primary authorization
-    let owner_id = match get_authenticated_user(&req) {
-        Ok(auth_user) => auth_user.id,
-        Err(_) => "anonymous".to_string(),
-    };
+    // B3 FIX: Require authentication - no more anonymous confirmations
+    let user = get_authenticated_user(&req)
+        .map_err(|e| ServerFnError::new(format!("Authentication required: {}", e)))?;
 
     // Get referral ID if code provided
     let referral_id = if let Some(code) = referral_code {
@@ -350,8 +366,8 @@ pub async fn atomic_confirm_claim(
     };
 
     // Use atomic confirm - this does everything in one transaction
-    // F2: Now includes owner_id for verification against reservation's user_id
-    factory.license_service.atomic_confirm(&license_id, &session_token, &owner_id, device_id, referral_id)
+    // Verifies owner_id matches the user who made the reservation
+    factory.license_service.atomic_confirm(&license_id, &session_token, &user.id, device_id, referral_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }

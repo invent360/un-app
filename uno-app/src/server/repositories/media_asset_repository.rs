@@ -345,6 +345,8 @@ pub trait MediaAssetRepository: Send + Sync {
     async fn get_asset(&self, id: Uuid) -> Result<Option<MediaAsset>, AppError>;
     async fn get_asset_by_storage_url(&self, storage_url: &str) -> Result<Option<MediaAsset>, AppError>;
     async fn update_state(&self, input: UpdateStateInput) -> Result<(), AppError>;
+    /// B4 FIX: Update storage URL after restoration (storage location may change)
+    async fn update_storage_url(&self, id: Uuid, storage_url: &str) -> Result<(), AppError>;
     async fn soft_delete(&self, id: Uuid, deleted_by: &str) -> Result<(), AppError>;
     async fn list_by_owner(&self, owner_id: &str, owner_type: &str) -> Result<Vec<MediaAsset>, AppError>;
     async fn list_by_resource(&self, resource_id: &str) -> Result<Vec<MediaAsset>, AppError>;
@@ -513,6 +515,30 @@ impl MediaAssetRepository for MediaAssetRepositoryImpl {
             asset_id = %input.asset_id,
             new_state = %input.state.as_str(),
             "Media asset state updated"
+        );
+
+        Ok(())
+    }
+
+    /// B4 FIX: Update storage URL after restoration
+    async fn update_storage_url(&self, id: Uuid, storage_url: &str) -> Result<(), AppError> {
+        sqlx::query(
+            r#"
+            UPDATE media_assets
+            SET storage_url = $2, updated_at = NOW()
+            WHERE id = $1 AND deleted_at IS NULL
+            "#,
+        )
+        .bind(id)
+        .bind(storage_url)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
+        tracing::info!(
+            asset_id = %id,
+            storage_url = %storage_url,
+            "Media asset storage URL updated"
         );
 
         Ok(())

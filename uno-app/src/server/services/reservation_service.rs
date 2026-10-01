@@ -225,7 +225,7 @@ impl ReservationServiceImpl {
         }
     }
 
-    // R5-05: Capacity check moved inside atomic_reserve_with_capacity
+    // R5-05: Capacity check moved inside atomic_reserve
     // The old check_capacity() method created a TOCTOU race condition where
     // two users could both pass the capacity check, then both try to reserve.
     // Now the capacity check is performed atomically inside the transaction.
@@ -304,17 +304,19 @@ impl ReservationService for ReservationServiceImpl {
         &self,
         request: ReservationRequest,
     ) -> Result<ExtendedReservationResult, ReservationError> {
-        // R5-05: Use atomic_reserve_with_capacity to check capacity INSIDE the transaction
+        // B3 FIX: Require authenticated user - no more anonymous reservations
+        let user_id = request.user_id.as_deref()
+            .ok_or_else(|| ReservationError::new("authentication_required", "User ID is required for reservation"))?;
+
+        // R5-05: Use atomic_reserve with capacity ceiling INSIDE the transaction
         // This prevents TOCTOU race conditions where two users could both pass a
         // non-locked capacity check and then both attempt to reserve.
-        // F2: Now includes user_id for owner binding
-        let user_id = request.user_id.as_deref().unwrap_or("anonymous");
         let result = self.claim_repo
-            .atomic_reserve_with_capacity(
+            .atomic_reserve(
                 user_id,
                 request.split_type.as_deref(),
                 request.referral_code.as_deref(),
-                Some(MAX_OCCUPIED_LICENSES),
+                MAX_OCCUPIED_LICENSES,
             )
             .await
             .map_err(|e| {
@@ -322,6 +324,9 @@ impl ReservationService for ReservationServiceImpl {
                     AppError::NotFound(_) => ReservationError::no_licenses(),
                     AppError::ValidationError(msg) if msg.contains("capacity") => {
                         ReservationError::new("capacity_exceeded", &msg)
+                    }
+                    AppError::Unauthorized(_) => {
+                        ReservationError::new("authentication_required", "Authentication required for reservation")
                     }
                     _ => ReservationError::new("reservation_failed", &e.to_string()),
                 }

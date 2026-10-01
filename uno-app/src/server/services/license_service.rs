@@ -109,12 +109,17 @@ impl LicenseService {
 
     /// Atomically reserve a license with session binding (Phase 1)
     ///
+    /// B3 FIX: Now requires authenticated user_id and enforces capacity ceiling.
+    /// Anonymous reservations are no longer supported.
+    ///
     /// Returns a session token that must be used to confirm the claim.
     /// The reservation expires after 2 minutes.
     pub async fn atomic_reserve(
         &self,
+        user_id: &str,
         split_type: Option<SplitType>,
         referral_code: Option<String>,
+        capacity_ceiling: i64,
     ) -> Result<ReservationResponse, AppError> {
         Self::ensure_issuance_ready()?;
         let claim_repo = self
@@ -124,7 +129,7 @@ impl LicenseService {
 
         let split_str = split_type.map(|st| convert_to_db_split(st));
         let result = claim_repo
-            .atomic_reserve(split_str.as_deref(), referral_code.as_deref())
+            .atomic_reserve(user_id, split_str.as_deref(), referral_code.as_deref(), capacity_ceiling)
             .await?;
 
         Ok(ReservationResponse::success(result))
@@ -185,13 +190,13 @@ impl LicenseService {
     ///
     /// # R5-05 DEPRECATED
     /// This method uses non-atomic operations and should NOT be used for new code.
-    /// Use `atomic_reserve_with_capacity()` + `atomic_confirm()` from ClaimRepository instead.
+    /// Use `atomic_reserve()` + `atomic_confirm()` from ClaimRepository instead.
     /// Issues with this method:
     /// - No transactional guarantee between get and claim
     /// - No capacity ceiling enforcement
     /// - No referral attribution (use atomic_confirm for frozen attribution)
     /// - Credential (lease_code) immediately exposed
-    #[deprecated(since = "2.0.0", note = "Use ClaimRepository::atomic_reserve_with_capacity() + atomic_confirm() instead")]
+    #[deprecated(since = "2.0.0", note = "Use ClaimRepository::atomic_reserve() + atomic_confirm() instead")]
     pub async fn claim_by_split_type(
         &self,
         split_type: SplitType,
@@ -238,12 +243,12 @@ impl LicenseService {
     ///
     /// # R5-05 DEPRECATED
     /// This method uses non-atomic operations and should NOT be used for new code.
-    /// Use `atomic_reserve_with_capacity()` from ClaimRepository instead.
+    /// Use `atomic_reserve()` from ClaimRepository instead.
     /// Issues with this method:
     /// - No session binding for reservation
     /// - No capacity ceiling enforcement
     /// - No publication/quarantine status checking
-    #[deprecated(since = "2.0.0", note = "Use ClaimRepository::atomic_reserve_with_capacity() instead")]
+    #[deprecated(since = "2.0.0", note = "Use ClaimRepository::atomic_reserve() instead")]
     pub async fn reserve_by_split_type(
         &self,
         split_type: SplitType,
@@ -251,7 +256,7 @@ impl LicenseService {
         Self::ensure_issuance_ready()?;
 
         tracing::warn!(
-            "R5-05: Using deprecated reserve_by_split_type - migrate to atomic_reserve_with_capacity"
+            "R5-05: Using deprecated reserve_by_split_type - migrate to atomic_reserve"
         );
 
         let api_split = convert_to_api_split(split_type);

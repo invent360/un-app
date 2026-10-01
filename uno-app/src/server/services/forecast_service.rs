@@ -237,15 +237,19 @@ mod canonical_conversion {
                     activity: 1.0,
                     start: start_week,
                     end: end_week,
-                    // F7 FIX: Use max_capacity for supply cap (0.0 means unlimited)
-                    // Note: cap represents device capacity limit, not revenue cap
+                    // B6 FIX: cap is the DAILY POOL CAP in UP units (not device count)
+                    // The canonical engine uses: pool_contribution.min(task.cap * config.up_usd)
+                    // max_capacity from DB is in UP units per day; 0.0 means unlimited
                     cap: t.max_capacity.map(|c| c as f64).unwrap_or(0.0),
-                    // F7 FIX: Include incremental per-device costs from support cost
-                    // B6 DOC: Monthly-to-weekly conversion uses 4.33 (= 52 weeks / 12 months)
-                    // This is the average number of weeks per month across a full year.
+                    // B6 FIX: extra is per-DEVICE-DAY cost in USD (not weekly!)
+                    // The canonical engine model struct says: "Extra cost per device-day in USD"
+                    // Conversion: monthly micros → USD → daily
+                    //   - Divide by 1_000_000 to convert micros to USD
+                    //   - Divide by 30.44 (average days/month) to get daily rate
+                    //   - Equivalent: monthly / 4.33 weeks / 7 days
                     // Input: monthly cost per user in micros (e.g., $2/month = 2_000_000)
-                    // Output: weekly cost per user in USD (e.g., $2 / 4.33 = $0.462/week)
-                    extra: (t.support_cost_per_user_monthly_micros as f64) / 1_000_000.0 / 4.33,
+                    // Output: daily cost per user in USD (e.g., $2 / 30.44 ≈ $0.066/day)
+                    extra: (t.support_cost_per_user_monthly_micros as f64) / 1_000_000.0 / 30.44,
                     illustrative: false,
                 }
             })

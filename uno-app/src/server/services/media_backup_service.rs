@@ -115,6 +115,8 @@ pub struct MediaBackupServiceImpl {
     backup_repo: DynMediaBackupRepository,
     asset_repo: DynMediaAssetRepository,
     storage_base_path: Option<String>,
+    /// B4 FIX: Independent backup destination client (can be different from source)
+    backup_storage_client: Option<DynFileStorageClient>,
 }
 
 impl MediaBackupServiceImpl {
@@ -124,16 +126,78 @@ impl MediaBackupServiceImpl {
     ) -> Self {
         let storage_base_path = std::env::var("LOCAL_STORAGE_PATH").ok();
 
+        // B4 FIX: Create independent backup client if BACKUP_STORAGE_* env vars are set
+        let backup_storage_client = Self::create_backup_client();
+
         Self {
             backup_repo,
             asset_repo,
             storage_base_path,
+            backup_storage_client,
         }
     }
 
+    /// B4 FIX: Create backup storage client from BACKUP_STORAGE_* environment variables
+    /// This allows backups to be stored in a different location (e.g., different GCS bucket)
+    fn create_backup_client() -> Option<DynFileStorageClient> {
+        // Check if backup-specific storage is configured
+        if std::env::var("BACKUP_STORAGE_BACKEND").is_ok() {
+            // Temporarily swap env vars to create backup client
+            let original_backend = std::env::var("FILE_STORAGE_BACKEND").ok();
+            let original_local_path = std::env::var("LOCAL_STORAGE_PATH").ok();
+            let original_gcs_bucket = std::env::var("GCS_BUCKET").ok();
+
+            // Set backup-specific vars
+            if let Ok(backend) = std::env::var("BACKUP_STORAGE_BACKEND") {
+                std::env::set_var("FILE_STORAGE_BACKEND", &backend);
+            }
+            if let Ok(path) = std::env::var("BACKUP_LOCAL_STORAGE_PATH") {
+                std::env::set_var("LOCAL_STORAGE_PATH", &path);
+            }
+            if let Ok(bucket) = std::env::var("BACKUP_GCS_BUCKET") {
+                std::env::set_var("GCS_BUCKET", &bucket);
+            }
+
+            // Create backup client
+            let client = create_client_from_env().ok();
+
+            // Restore original env vars
+            if let Some(v) = original_backend {
+                std::env::set_var("FILE_STORAGE_BACKEND", v);
+            } else {
+                std::env::remove_var("FILE_STORAGE_BACKEND");
+            }
+            if let Some(v) = original_local_path {
+                std::env::set_var("LOCAL_STORAGE_PATH", v);
+            } else {
+                std::env::remove_var("LOCAL_STORAGE_PATH");
+            }
+            if let Some(v) = original_gcs_bucket {
+                std::env::set_var("GCS_BUCKET", v);
+            } else {
+                std::env::remove_var("GCS_BUCKET");
+            }
+
+            client
+        } else {
+            None
+        }
+    }
+
+    /// Get the source storage client (for reading assets)
     fn get_storage_client(&self) -> Result<DynFileStorageClient, AppError> {
         create_client_from_env()
             .map_err(|e| AppError::ServiceUnavailable(format!("Storage client: {}", e)))
+    }
+
+    /// B4 FIX: Get the backup storage client (for writing/reading backups)
+    /// Falls back to source client if no dedicated backup client configured
+    fn get_backup_storage_client(&self) -> Result<DynFileStorageClient, AppError> {
+        if let Some(ref client) = self.backup_storage_client {
+            Ok(client.clone())
+        } else {
+            self.get_storage_client()
+        }
     }
 
     fn compute_hash(data: &[u8]) -> String {
@@ -171,7 +235,9 @@ impl MediaBackupService for MediaBackupServiceImpl {
         let assets = self.asset_repo.find_by_state(AssetState::Ready, 100000).await?;
         let total_files = assets.len() as i32;
 
-        let client = self.get_storage_client()?;
+        // B4 FIX: Use separate clients for source (reading assets) and backup destination (writing backups)
+        let source_client = self.get_storage_client()?;
+        let backup_client = self.get_backup_storage_client()?;
         let mut manifest_data = Vec::new();
         let mut total_bytes: i64 = 0;
         let mut processed_files: i32 = 0;
@@ -182,8 +248,8 @@ impl MediaBackupService for MediaBackupServiceImpl {
 
         // F5: Create backup entries AND copy actual bytes to destination using raw upload
         for asset in &assets {
-            // Get file data from source
-            match client.get_file(&asset.storage_url).await {
+            // Get file data from source using source client
+            match source_client.get_file(&asset.storage_url).await {
                 Ok(data) => {
                     let hash = Self::compute_hash(&data);
                     let file_size = data.len() as i64;
@@ -193,7 +259,8 @@ impl MediaBackupService for MediaBackupServiceImpl {
                     let backup_filename = format!("{}.dat", Uuid::new_v4());
 
                     // F5: Write to backup location using upload_raw (no image validation)
-                    if let Err(e) = client.upload_raw(
+                    // B4 FIX: Use backup_client for writing to backup destination
+                    if let Err(e) = backup_client.upload_raw(
                         &backup_id_str,
                         data.clone(),
                         &backup_filename,
@@ -256,7 +323,8 @@ impl MediaBackupService for MediaBackupServiceImpl {
         }
 
         // F5: Write manifest file using upload_raw (text file, not image)
-        if let Err(e) = client.upload_raw(
+        // B4 FIX: Use backup_client for writing to backup destination
+        if let Err(e) = backup_client.upload_raw(
             &backup_id_str,
             manifest_data.clone(),
             "manifest.txt",
@@ -337,7 +405,10 @@ impl MediaBackupService for MediaBackupServiceImpl {
         let entries = self.backup_repo.get_entries(request.backup_id).await?;
         let total_files = entries.len() as i32;
 
-        let client = self.get_storage_client()?;
+        // B4 FIX: Use separate clients - backup client for reading from backup,
+        // destination client for writing restored files
+        let backup_client = self.get_backup_storage_client()?;
+        let destination_client = self.get_storage_client()?;
         let mut restored_files = 0;
         let mut restored_bytes: i64 = 0;
         let mut failed_files = 0;
@@ -356,9 +427,9 @@ impl MediaBackupService for MediaBackupServiceImpl {
             }
             let asset = asset.unwrap();
 
-            // F5: Read from backup location using get_raw
+            // B4 FIX: Read from backup location using backup_client
             // entry.relative_path contains the UUID-based backup filename
-            match client.get_raw(&backup_id_str, &entry.relative_path).await {
+            match backup_client.get_raw(&backup_id_str, &entry.relative_path).await {
                 Ok(data) => {
                     // Verify hash if requested
                     if request.verify_hashes {
@@ -373,7 +444,7 @@ impl MediaBackupService for MediaBackupServiceImpl {
                         }
                     }
 
-                    // F5: Write restored file to original location
+                    // Determine restore location
                     // Parse resource_id from original storage_url (format: local://resource_id/filename)
                     let (restore_resource_id, restore_filename) = if request.restore_path.is_empty() {
                         // Extract from original storage_url
@@ -390,25 +461,35 @@ impl MediaBackupService for MediaBackupServiceImpl {
                         (request.restore_path.clone(), asset.filename.clone())
                     };
 
-                    // F5: Use upload_file for restoration (image validation is appropriate here)
-                    if let Err(e) = client.upload_file(
+                    // B4 FIX: Use upload_raw for restoration to preserve EXACT bytes
+                    // Do NOT use upload_file which may re-encode/validate images
+                    let new_storage_url = match destination_client.upload_raw(
                         &restore_resource_id,
                         data.clone(),
                         &restore_filename,
                         &asset.mime_type,
                     ).await {
-                        failed_files += 1;
-                        verification_errors.push(format!(
-                            "Failed to write {} to {}: {}",
-                            entry.relative_path, restore_resource_id, e
-                        ));
-                        continue;
-                    }
+                        Ok(url) => url,
+                        Err(e) => {
+                            failed_files += 1;
+                            verification_errors.push(format!(
+                                "Failed to write {} to {}: {}",
+                                entry.relative_path, restore_resource_id, e
+                            ));
+                            continue;
+                        }
+                    };
 
                     restored_files += 1;
                     restored_bytes += data.len() as i64;
 
-                    // Update asset state to ready
+                    // B4 FIX: Update asset record with new storage URL and state
+                    // This ensures the asset record points to the restored file location
+                    self.asset_repo.update_storage_url(
+                        asset.id,
+                        &new_storage_url,
+                    ).await.ok(); // Ignore errors - URL may be same as original
+
                     self.asset_repo.update_state(crate::server::repositories::UpdateStateInput {
                         asset_id: asset.id,
                         state: AssetState::Ready,
@@ -466,7 +547,8 @@ impl MediaBackupService for MediaBackupServiceImpl {
             .ok_or_else(|| AppError::NotFound(format!("Backup {} not found", backup_id)))?;
 
         let entries = self.backup_repo.get_entries(backup_id).await?;
-        let client = self.get_storage_client()?;
+        // B4 FIX: Use backup storage client for verification (backups may be on different storage)
+        let backup_client = self.get_backup_storage_client()?;
 
         let mut entries_verified = 0;
         let mut entries_corrupted = 0;
@@ -477,8 +559,8 @@ impl MediaBackupService for MediaBackupServiceImpl {
         let backup_id_str = backup.id.to_string();
 
         for entry in &entries {
-            // F5: Verify files using get_raw
-            match client.get_raw(&backup_id_str, &entry.relative_path).await {
+            // B4 FIX: Verify files using backup_client.get_raw
+            match backup_client.get_raw(&backup_id_str, &entry.relative_path).await {
                 Ok(data) => {
                     let actual_hash = Self::compute_hash(&data);
                     if actual_hash == entry.sha256_hash {
