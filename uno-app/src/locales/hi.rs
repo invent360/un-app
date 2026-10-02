@@ -975,4 +975,84 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "suitability.earnings_vary_message" => "वास्तविक कमाई क्षेत्र, कार्य उपलब्धता और नेटवर्क स्थितियों के अनुसार भिन्न होती है।",
     "suitability.earnings_vary_region_task" => "कमाई क्षेत्र और कार्य उपलब्धता के अनुसार भिन्न होती है",
     "suitability.complete_steps_for_estimate" => "अपना व्यक्तिगत अनुमान देखने के लिए पिछले चरणों को पूरा करें",
+
+    // ============================================
+    // Homepage Static Sections (for t() translation)
+    // ============================================
+
+    // Hero Section
+    "home.hero.title" => "निष्क्रिय आय कमाएं",
+    "home.hero.highlight" => "मुफ्त में",
+    "home.hero.subtitle" => "अपने निष्क्रिय इंटरनेट कनेक्शन को आय का स्रोत बनाएं। हज़ारों उपयोगकर्ताओं से जुड़ें जो अपना अप्रयुक्त बैंडविड्थ साझा करके पुरस्कार कमा रहे हैं।",
+    "home.hero.cta" => "शुरू करें",
+    "home.hero.benefit_1" => "कोई हार्डवेयर आवश्यक नहीं",
+    "home.hero.benefit_2" => "सोते समय कमाएं",
+    "home.hero.benefit_3" => "100% सुरक्षित और निजी",
+
+    // How It Works Section
+    "home.how_it_works.title" => "यह कैसे काम करता है",
+    "home.how_it_works.subtitle" => "शुरू करना आसान है",
+    "home.how_it_works.step1_title" => "ऐप डाउनलोड करें",
+    "home.how_it_works.step1_desc" => "अपने डिवाइस पर हमारा हल्का ऐप इंस्टॉल करें",
+    "home.how_it_works.step2_title" => "बैंडविड्थ साझा करें",
+    "home.how_it_works.step2_desc" => "ऐप सुरक्षित रूप से आपकी अप्रयुक्त बैंडविड्थ साझा करता है",
+    "home.how_it_works.step3_title" => "पुरस्कार कमाएं",
+    "home.how_it_works.step3_desc" => "आप जो बैंडविड्थ साझा करते हैं उसके लिए साप्ताहिक भुगतान प्राप्त करें",
+    "home.how_it_works.download_on" => "पर डाउनलोड करें",
+    "home.how_it_works.app_store" => "App Store",
+    "home.how_it_works.get_it_on" => "पर उपलब्ध",
+    "home.how_it_works.google_play" => "Google Play",
+
+    // Earnings Section
+    "home.earnings.title" => "आपकी कमाई की संभावना",
+    "home.earnings.subtitle" => "देखें कि आप अपने सेटअप के आधार पर कितना कमा सकते हैं",
+    "home.earnings.tier_casual" => "आकस्मिक",
+    "home.earnings.tier_active" => "सक्रिय",
+    "home.earnings.tier_power" => "पावर उपयोगकर्ता",
+    "home.earnings.most_popular" => "सबसे लोकप्रिय",
+    "home.earnings.per_month" => "/माह",
+    "home.earnings.devices_1" => "1 डिवाइस",
+    "home.earnings.devices_2_3" => "2-3 डिवाइस",
+    "home.earnings.devices_4_plus" => "4+ डिवाइस",
+    "home.earnings.uptime_4h" => "4+ घंटे/दिन अपटाइम",
+    "home.earnings.uptime_8h" => "8+ घंटे/दिन अपटाइम",
+    "home.earnings.uptime_24_7" => "24/7 अपटाइम",
+    "home.earnings.connection_standard" => "मानक कनेक्शन",
+    "home.earnings.connection_good" => "अच्छा कनेक्शन",
+    "home.earnings.connection_fast" => "तेज़ कनेक्शन",
+    "home.earnings.disclaimer" => "* वास्तविक कमाई स्थान, नेटवर्क मांग और अन्य कारकों के आधार पर भिन्न होती है। ये अनुमान केवल उदाहरण के लिए हैं।",
+
+    // Testimonials Section
+    "home.testimonials.title" => "असली लोग। असली कमाई।",
+    "home.testimonials.subtitle" => "हमारे बढ़ते कमाने वालों के समुदाय में शामिल हों",
+
+    // Task Availability Banner
+    "home.tasks.available_title" => "आपके क्षेत्र में कार्य उपलब्ध हैं",
+    "home.tasks.available_subtitle" => "आज ही कमाई शुरू करें",
+    "home.tasks.unavailable_title" => "आपके क्षेत्र में कार्य अस्थायी रूप से अनुपलब्ध हैं",
+    "home.tasks.unavailable_subtitle" => "जल्द वापस आएं",
+    "home.tasks.data_as_of" => "डेटा",
+    "home.tasks.last_checked" => "अंतिम जांच:",
+
+    // Eligibility CTA Section
+    "home.eligibility.title" => "कमाई शुरू करने के लिए तैयार हैं?",
+    "home.eligibility.subtitle" => "जांचें कि आपका डिवाइस योग्य है या नहीं और केवल 2 मिनट में अपनी अनुमानित कमाई देखें।",
+    "home.eligibility.cta" => "पात्रता जांचें",
+    "home.eligibility.no_payment" => "कोई भुगतान आवश्यक नहीं",
+    "home.eligibility.no_documents" => "कोई व्यक्तिगत दस्तावेज़ आवश्यक नहीं",
+    "home.eligibility.checking_device" => "डिवाइस संगतता जांच रहा है...",
+    "home.eligibility.device_supported" => "आपका डिवाइस समर्थित है",
+    "home.eligibility.ios_coming_soon" => "iOS समर्थन जल्द आ रहा है",
+    "home.eligibility.mobile_required" => "मोबाइल ऐप आवश्यक",
+
+    // Support Identity Section
+    "home.support.title" => "सवाल? हम मदद के लिए यहाँ हैं",
+    "home.support.email_label" => "ईमेल सहायता",
+    "home.support.help_center" => "सहायता केंद्र",
+    "home.support.guides_link" => "गाइड और ट्यूटोरियल",
+    "home.support.faq_label" => "अक्सर पूछे जाने वाले प्रश्न",
+    "home.support.faq_link" => "आम सवाल",
+    "home.support.identity" => "UNO का संचालन UNetwork Ltd. द्वारा किया जाता है।",
+    "home.support.terms" => "सेवा की शर्तें",
+    "home.support.privacy" => "गोपनीयता नीति",
 };

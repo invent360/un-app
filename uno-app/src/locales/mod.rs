@@ -32,6 +32,8 @@ pub mod fr;
 pub mod ar;
 pub mod id;
 pub mod bn;  // Bengali/Bangla - Phase 9
+pub mod th;  // Thai - Phase 10
+pub mod vi;  // Vietnamese - Phase 11
 pub mod lazy_loader;
 pub mod intl;
 
@@ -50,6 +52,8 @@ pub fn get_translations(locale: &str) -> &'static Map<&'static str, &'static str
         "ar" => &ar::TRANSLATIONS,
         "id" => &id::TRANSLATIONS,
         "bn" => &bn::TRANSLATIONS,
+        "th" => &th::TRANSLATIONS,
+        "vi" => &vi::TRANSLATIONS,
         _ => &en::TRANSLATIONS, // Fallback to English
     }
 }
@@ -94,6 +98,12 @@ pub const COUNTRY_LOCALES: &[(&str, &str)] = &[
 
     // Bengali/Bangla-speaking
     ("BD", "bn"),  // Bangladesh
+
+    // Thai
+    ("TH", "th"),  // Thailand
+
+    // Vietnamese
+    ("VN", "vi"),  // Vietnam
 ];
 
 /// Check if a country is bilingual and get its locale options
@@ -130,6 +140,8 @@ pub fn locale_display_name(code: &str) -> &'static str {
         "ar" => "العربية",
         "id" => "Bahasa Indonesia",
         "bn" => "বাংলা",
+        "th" => "ไทย",
+        "vi" => "Tiếng Việt",
         _ => "English",
     }
 }
@@ -140,4 +152,4 @@ pub fn is_rtl(locale: &str) -> bool {
 }
 
 /// All supported locale codes
-pub const SUPPORTED_LOCALES: &[&str] = &["en", "es", "tl", "hi", "sw", "pt", "fr", "ar", "id", "bn"];
+pub const SUPPORTED_LOCALES: &[&str] = &["en", "es", "tl", "hi", "sw", "pt", "fr", "ar", "id", "bn", "th", "vi"];

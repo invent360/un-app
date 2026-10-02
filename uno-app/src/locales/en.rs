@@ -610,6 +610,8 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "agent.pending" => "Pending",
     "agent.paid" => "Paid Out",
     "agent.view_details" => "View Details",
+    // A+ FIX: Add missing agent.view key used in routes/agent.rs
+    "agent.view" => "View",
     "agent.user_queue_title" => "Your Assigned Users",
     "agent.user_queue_subtitle" => "Users who need your attention",
     "agent.no_users" => "No users need attention",
@@ -761,8 +763,10 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "support.balance_earned" => "Earned (confirmed)",
     "support.balance_pending" => "Pending (processing)",
     "support.balance_paid" => "Paid out",
+    "support.balance_payable" => "Available for payout",
     "support.balance_total" => "Total lifetime",
-    "support.next_payout_note" => "Next payout scheduled for October 15, 2026",
+    "support.no_balance_data" => "No balance data available. Complete activation to start earning.",
+    "support.next_payout_note" => "Payouts are processed weekly on Mondays.",
     "support.pause_license" => "Pause License",
     "support.pause_license_desc" => "Temporarily stop earning. Your license remains active and you can resume anytime.",
     "support.pause_btn" => "Pause",
@@ -992,4 +996,88 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
 
     // F1-A: Support ticket creation
     "support.ticket_created" => "Ticket created successfully!",
+
+    // A+ FIX: New agent workspace keys for API data loading
+    "agent.no_stats_data" => "No referral statistics available yet.",
+    "agent.no_commission_data" => "No commission data available yet.",
+
+    // ============================================
+    // Homepage Static Sections (for t() translation)
+    // ============================================
+
+    // Hero Section
+    "home.hero.title" => "Earn Passive Income",
+    "home.hero.highlight" => "For Free",
+    "home.hero.subtitle" => "Turn your idle internet connection into a revenue stream. Join thousands of users earning rewards by sharing bandwidth they're not using.",
+    "home.hero.cta" => "Get Started",
+    "home.hero.benefit_1" => "No hardware required",
+    "home.hero.benefit_2" => "Earn while you sleep",
+    "home.hero.benefit_3" => "100% secure & private",
+
+    // How It Works Section
+    "home.how_it_works.title" => "How It Works",
+    "home.how_it_works.subtitle" => "Getting started is simple",
+    "home.how_it_works.step1_title" => "Download the App",
+    "home.how_it_works.step1_desc" => "Install our lightweight app on your device",
+    "home.how_it_works.step2_title" => "Share Bandwidth",
+    "home.how_it_works.step2_desc" => "The app securely shares your unused bandwidth",
+    "home.how_it_works.step3_title" => "Earn Rewards",
+    "home.how_it_works.step3_desc" => "Get paid weekly for the bandwidth you share",
+    "home.how_it_works.download_on" => "Download on the",
+    "home.how_it_works.app_store" => "App Store",
+    "home.how_it_works.get_it_on" => "Get it on",
+    "home.how_it_works.google_play" => "Google Play",
+
+    // Earnings Section
+    "home.earnings.title" => "Your Earnings Potential",
+    "home.earnings.subtitle" => "See how much you could earn based on your setup",
+    "home.earnings.tier_casual" => "Casual",
+    "home.earnings.tier_active" => "Active",
+    "home.earnings.tier_power" => "Power User",
+    "home.earnings.most_popular" => "Most Popular",
+    "home.earnings.per_month" => "/month",
+    "home.earnings.devices_1" => "1 device",
+    "home.earnings.devices_2_3" => "2-3 devices",
+    "home.earnings.devices_4_plus" => "4+ devices",
+    "home.earnings.uptime_4h" => "4+ hours/day uptime",
+    "home.earnings.uptime_8h" => "8+ hours/day uptime",
+    "home.earnings.uptime_24_7" => "24/7 uptime",
+    "home.earnings.connection_standard" => "Standard connection",
+    "home.earnings.connection_good" => "Good connection",
+    "home.earnings.connection_fast" => "Fast connection",
+    "home.earnings.disclaimer" => "* Actual earnings vary based on location, network demand, and other factors. These estimates are for illustration purposes.",
+
+    // Testimonials Section
+    "home.testimonials.title" => "Real People. Real Earnings.",
+    "home.testimonials.subtitle" => "Join our growing community of earners",
+
+    // Task Availability Banner
+    "home.tasks.available_title" => "Tasks are available in your region",
+    "home.tasks.available_subtitle" => "Start earning today",
+    "home.tasks.unavailable_title" => "Tasks temporarily unavailable in your region",
+    "home.tasks.unavailable_subtitle" => "Check back soon",
+    "home.tasks.data_as_of" => "Data as of",
+    "home.tasks.last_checked" => "Last checked:",
+
+    // Eligibility CTA Section
+    "home.eligibility.title" => "Ready to Start Earning?",
+    "home.eligibility.subtitle" => "Check if your device is eligible and see your estimated earnings in just 2 minutes.",
+    "home.eligibility.cta" => "Check Eligibility",
+    "home.eligibility.no_payment" => "No payment required",
+    "home.eligibility.no_documents" => "No personal documents needed",
+    "home.eligibility.checking_device" => "Checking device compatibility...",
+    "home.eligibility.device_supported" => "Your device is supported",
+    "home.eligibility.ios_coming_soon" => "iOS support coming soon",
+    "home.eligibility.mobile_required" => "Mobile app required",
+
+    // Support Identity Section
+    "home.support.title" => "Questions? We're Here to Help",
+    "home.support.email_label" => "Email Support",
+    "home.support.help_center" => "Help Center",
+    "home.support.guides_link" => "Guides & Tutorials",
+    "home.support.faq_label" => "FAQ",
+    "home.support.faq_link" => "Common Questions",
+    "home.support.identity" => "UNO is operated by UNetwork Ltd.",
+    "home.support.terms" => "Terms of Service",
+    "home.support.privacy" => "Privacy Policy",
 };

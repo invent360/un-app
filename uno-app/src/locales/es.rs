@@ -974,4 +974,84 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     "suitability.earnings_vary_message" => "Las ganancias reales varian segun region, disponibilidad de tareas y condiciones de red.",
     "suitability.earnings_vary_region_task" => "Las ganancias varian segun region y disponibilidad de tareas",
     "suitability.complete_steps_for_estimate" => "Completa los pasos anteriores para ver tu estimacion personalizada.",
+
+    // ============================================
+    // Homepage Static Sections (for t() translation)
+    // ============================================
+
+    // Hero Section
+    "home.hero.title" => "Gana Ingresos Pasivos",
+    "home.hero.highlight" => "Gratis",
+    "home.hero.subtitle" => "Convierte tu conexion de internet inactiva en una fuente de ingresos. Unete a miles de usuarios que ganan recompensas compartiendo el ancho de banda que no usan.",
+    "home.hero.cta" => "Comenzar",
+    "home.hero.benefit_1" => "Sin hardware necesario",
+    "home.hero.benefit_2" => "Gana mientras duermes",
+    "home.hero.benefit_3" => "100% seguro y privado",
+
+    // How It Works Section
+    "home.how_it_works.title" => "Como Funciona",
+    "home.how_it_works.subtitle" => "Empezar es simple",
+    "home.how_it_works.step1_title" => "Descarga la App",
+    "home.how_it_works.step1_desc" => "Instala nuestra aplicacion ligera en tu dispositivo",
+    "home.how_it_works.step2_title" => "Comparte Ancho de Banda",
+    "home.how_it_works.step2_desc" => "La app comparte de forma segura tu ancho de banda no utilizado",
+    "home.how_it_works.step3_title" => "Gana Recompensas",
+    "home.how_it_works.step3_desc" => "Recibe pagos semanales por el ancho de banda que compartes",
+    "home.how_it_works.download_on" => "Descargar en",
+    "home.how_it_works.app_store" => "App Store",
+    "home.how_it_works.get_it_on" => "Disponible en",
+    "home.how_it_works.google_play" => "Google Play",
+
+    // Earnings Section
+    "home.earnings.title" => "Tu Potencial de Ganancias",
+    "home.earnings.subtitle" => "Mira cuanto podrias ganar segun tu configuracion",
+    "home.earnings.tier_casual" => "Casual",
+    "home.earnings.tier_active" => "Activo",
+    "home.earnings.tier_power" => "Usuario Avanzado",
+    "home.earnings.most_popular" => "Mas Popular",
+    "home.earnings.per_month" => "/mes",
+    "home.earnings.devices_1" => "1 dispositivo",
+    "home.earnings.devices_2_3" => "2-3 dispositivos",
+    "home.earnings.devices_4_plus" => "4+ dispositivos",
+    "home.earnings.uptime_4h" => "4+ horas/dia activo",
+    "home.earnings.uptime_8h" => "8+ horas/dia activo",
+    "home.earnings.uptime_24_7" => "24/7 activo",
+    "home.earnings.connection_standard" => "Conexion estandar",
+    "home.earnings.connection_good" => "Buena conexion",
+    "home.earnings.connection_fast" => "Conexion rapida",
+    "home.earnings.disclaimer" => "* Las ganancias reales varian segun la ubicacion, demanda de red y otros factores. Estas estimaciones son solo ilustrativas.",
+
+    // Testimonials Section
+    "home.testimonials.title" => "Personas Reales. Ganancias Reales.",
+    "home.testimonials.subtitle" => "Únete a nuestra creciente comunidad de ganadores",
+
+    // Task Availability Banner
+    "home.tasks.available_title" => "Hay tareas disponibles en tu region",
+    "home.tasks.available_subtitle" => "Comienza a ganar hoy",
+    "home.tasks.unavailable_title" => "Tareas temporalmente no disponibles en tu region",
+    "home.tasks.unavailable_subtitle" => "Vuelve pronto",
+    "home.tasks.data_as_of" => "Datos a partir de",
+    "home.tasks.last_checked" => "Ultima verificacion:",
+
+    // Eligibility CTA Section
+    "home.eligibility.title" => "Listo para Empezar a Ganar?",
+    "home.eligibility.subtitle" => "Verifica si tu dispositivo es elegible y ve tus ganancias estimadas en solo 2 minutos.",
+    "home.eligibility.cta" => "Verificar Elegibilidad",
+    "home.eligibility.no_payment" => "Sin pago requerido",
+    "home.eligibility.no_documents" => "Sin documentos personales necesarios",
+    "home.eligibility.checking_device" => "Verificando compatibilidad del dispositivo...",
+    "home.eligibility.device_supported" => "Tu dispositivo es compatible",
+    "home.eligibility.ios_coming_soon" => "Soporte iOS proximamente",
+    "home.eligibility.mobile_required" => "App movil requerida",
+
+    // Support Identity Section
+    "home.support.title" => "Preguntas? Estamos Aqui para Ayudar",
+    "home.support.email_label" => "Soporte por Email",
+    "home.support.help_center" => "Centro de Ayuda",
+    "home.support.guides_link" => "Guias y Tutoriales",
+    "home.support.faq_label" => "Preguntas Frecuentes",
+    "home.support.faq_link" => "Preguntas Comunes",
+    "home.support.identity" => "UNO es operado por UNetwork Ltd.",
+    "home.support.terms" => "Terminos de Servicio",
+    "home.support.privacy" => "Politica de Privacidad",
 };

@@ -3,6 +3,7 @@
 use leptos::prelude::*;
 use crate::api::HomeSection;
 use crate::components::common::TestimonialData;
+use crate::hooks::t;
 
 #[cfg(any(feature = "csr", feature = "hydrate", feature = "ssr"))]
 use ember_fx_components::{Carousel, CarouselSlide, SlidesQty, ResponsiveSlidesQty};
@@ -44,8 +45,9 @@ pub fn CmsTestimonialsSection(
     /// Section data from CMS (with testimonials injected from database)
     section: HomeSection,
 ) -> impl IntoView {
-    let title = section.title.clone();
-    let subtitle = section.description.clone();
+    // Use translations for title/subtitle, with CMS fallback
+    let cms_title = section.title.clone();
+    let cms_subtitle = section.description.clone();
 
     // Helper to get nested data (handles both flat and nested "data.data" structure)
     let nested_data = section.data.get("data");
@@ -69,30 +71,52 @@ pub fn CmsTestimonialsSection(
             <div class="container">
                 <CmsTestimonialCarousel
                     testimonials=testimonials
-                    title=title
-                    subtitle=subtitle
+                    cms_title=cms_title
+                    cms_subtitle=cms_subtitle
                 />
             </div>
         </section>
     }.into_any()
 }
 
-/// Custom testimonial carousel that uses direct text instead of locale keys
+/// Custom testimonial carousel that uses translations with CMS fallback
 #[component]
 fn CmsTestimonialCarousel(
     testimonials: Vec<TestimonialData>,
-    title: String,
-    subtitle: String,
+    /// CMS title (used as fallback if translation unavailable)
+    #[prop(default = String::new())]
+    cms_title: String,
+    /// CMS subtitle (used as fallback if translation unavailable)
+    #[prop(default = String::new())]
+    cms_subtitle: String,
 ) -> impl IntoView {
     #[cfg(any(feature = "csr", feature = "hydrate", feature = "ssr"))]
     {
         let active_index = RwSignal::new(0usize);
         let testimonials_store = StoredValue::new(testimonials);
+        // Store CMS values for fallback
+        let cms_title_stored = StoredValue::new(cms_title);
+        let cms_subtitle_stored = StoredValue::new(cms_subtitle);
 
         view! {
             <div class="testimonial-carousel-wrapper">
-                <h2 class="section-title">{title}</h2>
-                <p class="section-subtitle">{subtitle}</p>
+                <h2 class="section-title">{move || {
+                    let translated = t("home.testimonials.title");
+                    // Use translation if available, otherwise fall back to CMS value
+                    if translated == "home.testimonials.title" {
+                        cms_title_stored.get_value()
+                    } else {
+                        translated
+                    }
+                }}</h2>
+                <p class="section-subtitle">{move || {
+                    let translated = t("home.testimonials.subtitle");
+                    if translated == "home.testimonials.subtitle" {
+                        cms_subtitle_stored.get_value()
+                    } else {
+                        translated
+                    }
+                }}</p>
 
                 <div class="testimonial-carousel">
                     {move || {

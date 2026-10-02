@@ -184,6 +184,82 @@ pub static TRANSLATIONS: phf::Map<&'static str, &'static str> = phf_map! {
     // Home page
     "home.coming_soon" => "Ang nilalaman ay malapit nang dumating. Bumalik mamaya para sa mga update.",
 
+    // Home - Hero Section
+    "home.hero.title" => "Kumita ng Passive Income",
+    "home.hero.highlight" => "Libre",
+    "home.hero.subtitle" => "Gawing kita ang hindi mo ginagamit na internet connection. Sumali sa libu-libong user na kumikita ng rewards sa pamamagitan ng pagbabahagi ng bandwidth na hindi nila ginagamit.",
+    "home.hero.cta" => "Magsimula",
+    "home.hero.benefit_1" => "Walang kailangan hardware",
+    "home.hero.benefit_2" => "Kumita habang natutulog",
+    "home.hero.benefit_3" => "100% secure at private",
+
+    // Home - How It Works Section
+    "home.how_it_works.title" => "Paano Ito Gumagana",
+    "home.how_it_works.subtitle" => "Ang pagsisimula ay simple",
+    "home.how_it_works.step1_title" => "I-download ang App",
+    "home.how_it_works.step1_desc" => "I-install ang aming lightweight app sa iyong device",
+    "home.how_it_works.step2_title" => "Ibahagi ang Bandwidth",
+    "home.how_it_works.step2_desc" => "Ang app ay ligtas na nagbabahagi ng hindi mo ginagamit na bandwidth",
+    "home.how_it_works.step3_title" => "Kumita ng Rewards",
+    "home.how_it_works.step3_desc" => "Makatanggap ng bayad lingguhan para sa bandwidth na ibinabahagi mo",
+    "home.how_it_works.download_on" => "I-download sa",
+    "home.how_it_works.app_store" => "App Store",
+    "home.how_it_works.get_it_on" => "Kunin sa",
+    "home.how_it_works.google_play" => "Google Play",
+
+    // Home - Earnings Section
+    "home.earnings.title" => "Ang Iyong Potensyal na Kita",
+    "home.earnings.subtitle" => "Tingnan kung magkano ang maaari mong kitain batay sa iyong setup",
+    "home.earnings.tier_casual" => "Casual",
+    "home.earnings.tier_active" => "Active",
+    "home.earnings.tier_power" => "Power User",
+    "home.earnings.most_popular" => "Pinakasikat",
+    "home.earnings.per_month" => "/buwan",
+    "home.earnings.devices_1" => "1 device",
+    "home.earnings.devices_2_3" => "2-3 device",
+    "home.earnings.devices_4_plus" => "4+ device",
+    "home.earnings.uptime_4h" => "4+ oras/araw uptime",
+    "home.earnings.uptime_8h" => "8+ oras/araw uptime",
+    "home.earnings.uptime_24_7" => "24/7 uptime",
+    "home.earnings.connection_standard" => "Standard na connection",
+    "home.earnings.connection_good" => "Magandang connection",
+    "home.earnings.connection_fast" => "Mabilis na connection",
+    "home.earnings.disclaimer" => "* Ang aktwal na kita ay nag-iiba batay sa lokasyon, network demand, at iba pang mga salik. Ang mga tantyang ito ay para sa ilustrasyon lamang.",
+
+    // Testimonials Section
+    "home.testimonials.title" => "Totoong Tao. Totoong Kita.",
+    "home.testimonials.subtitle" => "Sumali sa aming lumalaking komunidad ng mga kumikita",
+
+    // Home - Task Availability
+    "home.tasks.available_title" => "May available na mga gawain sa iyong rehiyon",
+    "home.tasks.available_subtitle" => "Magsimulang kumita ngayon",
+    "home.tasks.unavailable_title" => "Pansamantalang walang available na mga gawain sa iyong rehiyon",
+    "home.tasks.unavailable_subtitle" => "Bumalik kaagad",
+    "home.tasks.data_as_of" => "Data mula",
+    "home.tasks.last_checked" => "Huling natsek:",
+
+    // Home - Eligibility CTA
+    "home.eligibility.title" => "Handa Nang Magsimulang Kumita?",
+    "home.eligibility.subtitle" => "Tingnan kung eligible ang iyong device at makita ang tantyang kita mo sa loob lang ng 2 minuto.",
+    "home.eligibility.cta" => "I-check ang Eligibility",
+    "home.eligibility.no_payment" => "Walang bayad na kailangan",
+    "home.eligibility.no_documents" => "Walang kailangan na personal na dokumento",
+    "home.eligibility.checking_device" => "Sinusuri ang compatibility ng device...",
+    "home.eligibility.device_supported" => "Sinusuportahan ang iyong device",
+    "home.eligibility.ios_coming_soon" => "Malapit nang dumating ang iOS support",
+    "home.eligibility.mobile_required" => "Kailangan ang mobile app",
+
+    // Home - Support Section
+    "home.support.title" => "May Tanong? Nandito Kami Para Tumulong",
+    "home.support.email_label" => "Email Support",
+    "home.support.help_center" => "Help Center",
+    "home.support.guides_link" => "Mga Gabay at Tutorial",
+    "home.support.faq_label" => "FAQ",
+    "home.support.faq_link" => "Mga Karaniwang Tanong",
+    "home.support.identity" => "Ang UNO ay pinamamahalaan ng UNetwork Ltd.",
+    "home.support.terms" => "Mga Tuntunin ng Serbisyo",
+    "home.support.privacy" => "Patakaran sa Privacy",
+
     // Common
     "common.loading" => "Naglo-load...",
     "common.error" => "May naganap na error",
