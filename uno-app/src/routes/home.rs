@@ -12,6 +12,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_query_map;
 use crate::components::common::{PreviewBanner, DevBadge};
+use crate::components::home::{EarningsCalculator, TaskCarousel, StartEarningButton};
 use crate::components::suitability::use_suitability_state;
 use crate::hooks::t;
 
@@ -33,24 +34,28 @@ pub fn HomePage() -> impl IntoView {
     // Track if we're in preview mode
     let (is_preview, set_is_preview) = signal(preview_token.is_some());
 
+    // Modal state for detailed earnings calculator
+    let (show_calculator_modal, set_show_calculator_modal) = signal(false);
+
     view! {
         <div class="landing-page">
             // Show preview banner if in preview mode
             {move || is_preview.get().then(|| view! { <PreviewBanner /> })}
 
-            // R5-13: Task availability banner
-            <TaskAvailabilityBanner />
-
             // Static homepage content (no CMS dependency)
-            <StaticHeroSection />
+            <StaticHeroSection on_more_click=set_show_calculator_modal />
+            // Task carousel - shows summarized task cards
+            <TaskCarousel />
             <StaticHowItWorksSection />
-            <StaticEarningsSection />
+
+            // Earnings Calculator Modal (popup)
+            <EarningsCalculatorModal
+                is_open=show_calculator_modal
+                set_open=set_show_calculator_modal
+            />
 
             // CMS-driven testimonials section (loads after hydration)
             <HomeContent preview_token=preview_token.clone() set_is_preview=set_is_preview />
-
-            // R5-13: Support identity section
-            <SupportIdentitySection />
         </div>
     }
 }
@@ -151,12 +156,8 @@ fn CmsHomeContent(
                         }.into_any()
                     }
                     Some(_) => {
-                        // API returned but no content - show "coming soon" message only
-                        view! {
-                            <div class="empty-state" style="text-align: center; padding: 3rem;">
-                                <p class="placeholder-text">{move || t("home.coming_soon")}</p>
-                            </div>
-                        }.into_any()
+                        // API returned but no content - render nothing
+                        view! { <div></div> }.into_any()
                     }
                     None => {
                         // Still loading - show spinner (Suspense should handle this, but just in case)
@@ -385,12 +386,114 @@ fn HomeFaqSection(faqs: Vec<HomeFaqItem>) -> impl IntoView {
 }
 
 // ==============================================
+// EARNINGS CALCULATOR MODAL
+// ==============================================
+
+/// Modal wrapper for detailed earnings calculator
+#[component]
+fn EarningsCalculatorModal(
+    /// Whether the modal is open
+    is_open: ReadSignal<bool>,
+    /// Signal to set modal state
+    set_open: WriteSignal<bool>,
+) -> impl IntoView {
+    view! {
+        <Show when=move || is_open.get()>
+            <div class="calculator-modal-backdrop" on:click=move |_| set_open.set(false)>
+                <div class="calculator-modal" on:click=|ev| ev.stop_propagation()>
+                    <button class="calculator-modal-close" on:click=move |_| set_open.set(false)>
+                        "×"
+                    </button>
+                    <EarningsCalculator />
+                </div>
+            </div>
+        </Show>
+    }
+}
+
+// ==============================================
 // STATIC HOMEPAGE SECTIONS (No CMS dependency)
 // ==============================================
 
+/// Mini earnings calculator for hero phone mockup
+#[component]
+fn HeroEarningsCalculator(
+    /// Callback when "More" button is clicked
+    on_more_click: WriteSignal<bool>,
+) -> impl IntoView {
+    // License count (1-100)
+    let (licenses, set_licenses) = signal(1i32);
+
+    // Minimum/average earnings per license per day: $0.12
+    let earnings_per_license = 0.12f64;
+
+    // Calculate daily earnings
+    let daily_earnings = move || {
+        let count = licenses.get() as f64;
+        count * earnings_per_license
+    };
+
+    // Calculate monthly earnings (30 days)
+    let monthly_earnings = move || {
+        daily_earnings() * 30.0
+    };
+
+    view! {
+        <div class="hero-calculator">
+            // Left: Title + Slider
+            <div class="hero-calc-left">
+                <h4 class="hero-calc-title">"Potential Monthly Rewards"</h4>
+                <div class="hero-calc-slider">
+                    <input
+                        type="range"
+                        min="1"
+                        max="100"
+                        step="1"
+                        prop:value=move || licenses.get()
+                        on:input=move |ev| {
+                            if let Ok(val) = event_target_value(&ev).parse::<i32>() {
+                                set_licenses.set(val);
+                            }
+                        }
+                        class="license-slider"
+                    />
+                </div>
+            </div>
+
+            // Right: Stats in a row
+            <div class="hero-calc-stats">
+                <div class="hero-calc-stat">
+                    <span class="stat-label">"Licenses"</span>
+                    <span class="stat-value">{move || licenses.get()}</span>
+                    <span class="stat-helper">"@ $0.12/day"</span>
+                </div>
+                <div class="hero-calc-divider"></div>
+                <div class="hero-calc-stat">
+                    <span class="stat-label">"Rewards/mo"</span>
+                    <span class="stat-value stat-earnings">
+                        <span class="earnings-amount">{move || format!("${:.2}", monthly_earnings())}</span>
+                    </span>
+                    <span class="stat-helper">"× 30 days"</span>
+                </div>
+                <div class="hero-calc-divider"></div>
+                <button
+                    class="hero-calc-more-btn"
+                    on:click=move |_| on_more_click.set(true)
+                    title="Open detailed calculator"
+                >
+                    "More"
+                </button>
+            </div>
+        </div>
+    }
+}
+
 /// Static hero section - always works without database
 #[component]
-fn StaticHeroSection() -> impl IntoView {
+fn StaticHeroSection(
+    /// Callback to open detailed calculator modal
+    on_more_click: WriteSignal<bool>,
+) -> impl IntoView {
     view! {
         <section class="hero">
             <div class="container hero-content">
@@ -399,6 +502,7 @@ fn StaticHeroSection() -> impl IntoView {
                         {move || t("home.hero.title")} " "
                         <span class="highlight">{move || t("home.hero.highlight")}</span>
                     </h1>
+                    <HeroEarningsCalculator on_more_click=on_more_click />
                     <p class="hero-subtitle">
                         {move || t("home.hero.subtitle")}
                     </p>
@@ -471,6 +575,24 @@ fn StaticHowItWorksSection() -> impl IntoView {
                     <div class="step">
                         <div class="step-number">"2"</div>
                         <div class="step-icon">
+                            // Shield with checkmark icon for KYC/KYB verification
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <polyline points="9 12 11 14 15 10"></polyline>
+                            </svg>
+                        </div>
+                        <h3 class="step-title">"Verify your Identity (KYC/KYB)"</h3>
+                        <p class="step-description">"Complete a quick identity verification to unlock full earning potential."</p>
+                    </div>
+                    <div class="step-arrow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">"3"</div>
+                        <div class="step-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
@@ -485,7 +607,7 @@ fn StaticHowItWorksSection() -> impl IntoView {
                         </svg>
                     </div>
                     <div class="step">
-                        <div class="step-number">"3"</div>
+                        <div class="step-number">"4"</div>
                         <div class="step-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
@@ -526,85 +648,39 @@ fn StaticHowItWorksSection() -> impl IntoView {
     }
 }
 
-/// Static earnings potential section
-#[component]
-fn StaticEarningsSection() -> impl IntoView {
-    view! {
-        <section id="earnings" class="section earnings">
-            <div class="container">
-                <h2 class="section-title">{move || t("home.earnings.title")}</h2>
-                <p class="section-subtitle">{move || t("home.earnings.subtitle")}</p>
+// ==============================================
+// START EARNING CTA SECTION
+// ==============================================
 
-                <div class="earnings-grid">
-                    <div class="earnings-card">
-                        <div class="earnings-card-header">
-                            <span class="device-count">{move || t("home.earnings.tier_casual")}</span>
-                        </div>
-                        <div class="earnings-card-amount">"$5-15"</div>
-                        <div class="earnings-card-period">{move || t("home.earnings.per_month")}</div>
-                        <ul class="earnings-card-features">
-                            <li>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {move || t("home.earnings.devices_1")}
-                            </li>
-                            <li>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {move || t("home.earnings.uptime_4h")}
-                            </li>
-                            <li>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {move || t("home.earnings.connection_standard")}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="earnings-card featured">
-                        <div class="earnings-card-badge">{move || t("home.earnings.most_popular")}</div>
-                        <div class="earnings-card-header">
-                            <span class="device-count">{move || t("home.earnings.tier_active")}</span>
-                        </div>
-                        <div class="earnings-card-amount">"$15-35"</div>
-                        <div class="earnings-card-period">{move || t("home.earnings.per_month")}</div>
-                        <ul class="earnings-card-features">
-                            <li>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {move || t("home.earnings.devices_2_3")}
-                            </li>
-                            <li>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {move || t("home.earnings.uptime_8h")}
-                            </li>
-                            <li>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {move || t("home.earnings.connection_good")}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="earnings-card">
-                        <div class="earnings-card-header">
-                            <span class="device-count">{move || t("home.earnings.tier_power")}</span>
-                        </div>
-                        <div class="earnings-card-amount">"$35-75"</div>
-                        <div class="earnings-card-period">{move || t("home.earnings.per_month")}</div>
-                        <ul class="earnings-card-features">
-                            <li>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {move || t("home.earnings.devices_4_plus")}
-                            </li>
-                            <li>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {move || t("home.earnings.uptime_24_7")}
-                            </li>
-                            <li>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {move || t("home.earnings.connection_fast")}
-                            </li>
-                        </ul>
+/// Start Earning CTA section with prominent button
+#[component]
+fn StartEarningCTASection(
+    modal_open: RwSignal<bool>,
+) -> impl IntoView {
+    view! {
+        <section class="start-earning-cta">
+            <div class="container">
+                <div class="cta-content">
+                    <h2 class="cta-title">{move || t("home.start.cta_title")}</h2>
+                    <p class="cta-subtitle">{move || t("home.start.cta_subtitle")}</p>
+
+                    <StartEarningButton modal_open=modal_open />
+
+                    <div class="cta-benefits">
+                        <span class="benefit">
+                            <span class="benefit-icon">"✓"</span>
+                            {move || t("home.start.benefit_free")}
+                        </span>
+                        <span class="benefit">
+                            <span class="benefit-icon">"✓"</span>
+                            {move || t("home.start.benefit_no_auth")}
+                        </span>
+                        <span class="benefit">
+                            <span class="benefit-icon">"✓"</span>
+                            {move || t("home.start.benefit_instant")}
+                        </span>
                     </div>
                 </div>
-
-                <p class="earnings-disclaimer">
-                    {move || t("home.earnings.disclaimer")}
-                </p>
             </div>
         </section>
     }
